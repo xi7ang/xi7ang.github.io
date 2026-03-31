@@ -4,7 +4,7 @@
 
 -------------------
 
-<ResourceTabs category="curriculum" :months="['202508', '202507', '202506', '202505']" />
+<ResourceTabs category="curriculum" :months="['202603']" />
 
 ---------------
 ### 项目更多资源
