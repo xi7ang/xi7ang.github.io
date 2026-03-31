@@ -17,7 +17,7 @@ hero:
       link: "https://qm.qq.com/q/M9U9Hhd1wQ"
     - theme: alt
       text: "⭐ 项目开源 GitHub"
-      link: "https://github.com/mswnlz"
+      link: "https://github.com/xi7ang"
 
 features:
   - icon: "🤖"

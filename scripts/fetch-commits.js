@@ -2,7 +2,7 @@ import fetch from 'node-fetch';
 import { writeFileSync, readFileSync } from 'fs';
 import { resolve } from 'path';
 
-const owner = 'mswnlz';
+const owner = 'xi7ang';
 const token = process.env.GITHUB_TOKEN; // For higher rate limits, set a GITHUB_TOKEN env variable
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));

@@ -38,7 +38,7 @@
 
 ---------------
 ## Star History
-[![Star History Chart](https://api.star-history.com/svg?repos=mswnlz/edu-knowlege&type=Date)](https://www.star-history.com/#mswnlz/edu-knowlege&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=xi7ang/edu-knowlege&type=Date)](https://www.star-history.com/#xi7ang/edu-knowlege&Date)
 
 ---------------
 

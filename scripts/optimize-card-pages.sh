@@ -30,17 +30,17 @@ PAGES=(
 
 # GitHub到网站链接的映射关系
 declare -A LINK_MAPPING
-LINK_MAPPING["https://github.com/mswnlz/chinese-traditional"]="/chinese-traditional/"
-LINK_MAPPING["https://github.com/mswnlz/tools"]="/tools/"
-LINK_MAPPING["https://github.com/mswnlz/cross-border"]="/cross-border/"
-LINK_MAPPING["https://github.com/mswnlz/self-media"]="/self-media/"
-LINK_MAPPING["https://github.com/mswnlz/edu-knowlege"]="/edu-knowlege/"
-LINK_MAPPING["https://github.com/mswnlz/AIknowledge"]="/AIknowledge/"
-LINK_MAPPING["https://github.com/mswnlz/curriculum"]="/curriculum/"
-LINK_MAPPING["https://github.com/mswnlz/movies"]="/movies/"
-LINK_MAPPING["https://github.com/mswnlz/book"]="/book/"
-LINK_MAPPING["https://github.com/mswnlz/healthy"]="/healthy/"
-LINK_MAPPING["https://github.com/mswnlz"]="/"
+LINK_MAPPING["https://github.com/xi7ang/chinese-traditional"]="/chinese-traditional/"
+LINK_MAPPING["https://github.com/xi7ang/tools"]="/tools/"
+LINK_MAPPING["https://github.com/xi7ang/cross-border"]="/cross-border/"
+LINK_MAPPING["https://github.com/xi7ang/self-media"]="/self-media/"
+LINK_MAPPING["https://github.com/xi7ang/edu-knowlege"]="/edu-knowlege/"
+LINK_MAPPING["https://github.com/xi7ang/AIknowledge"]="/AIknowledge/"
+LINK_MAPPING["https://github.com/xi7ang/curriculum"]="/curriculum/"
+LINK_MAPPING["https://github.com/xi7ang/movies"]="/movies/"
+LINK_MAPPING["https://github.com/xi7ang/book"]="/book/"
+LINK_MAPPING["https://github.com/xi7ang/healthy"]="/healthy/"
+LINK_MAPPING["https://github.com/xi7ang"]="/"
 
 echo "🚀 开始批量优化卡片页面..."
 echo ""

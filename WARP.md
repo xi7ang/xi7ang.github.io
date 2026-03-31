@@ -4,7 +4,7 @@ This file provides guidance to WARP (warp.dev) when working with code in this re
 
 ## Project Overview
 
-This is a GitHub Pages static website project (`mswnlz/mswnlz.github.io`) built with VitePress, showcasing content from all resource repositories in the mswnlz ecosystem. The repository includes:
+This is a GitHub Pages static website project (`xi7ang/xi7ang.github.io`) built with VitePress, showcasing content from all resource repositories in the xi7ang ecosystem. The repository includes:
 
 - VitePress-based static site generator configuration
 - Documentation pages linking to all ecosystem repositories
@@ -84,7 +84,7 @@ git submodule update --recursive --remote
 
 ## Ecosystem Integration
 
-This website serves as the central hub for the entire mswnlz project ecosystem:
+This website serves as the central hub for the entire xi7ang project ecosystem:
 
 ### Resource Repositories
 - `tools` - Software tools and utilities
