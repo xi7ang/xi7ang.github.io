@@ -1,5 +1,5 @@
 // Debug script to check for layout issues on production site
-// Run this in the browser console on https://doc.869hr.uk/
+// Run this in the browser console on https://xi7ang.github.io/
 
 console.log('=== Layout Debug Script ===');
 

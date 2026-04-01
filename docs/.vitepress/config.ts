@@ -21,12 +21,12 @@ function getSidebarItems(dir: string) {
 export default defineConfig({
   base: '/',
   title: "超过 100T 的资源",
-  titleTemplate: ":title - 大坝的资源收集站 | 免费资源下载",
+  titleTemplate: ":title - xi7ang 资源收集站 | 免费资源下载",
   lang: 'zh-CN',
   lastUpdated: true,
   cleanUrls: true,
   sitemap: {
-    hostname: 'https://doc.869hr.uk'
+    hostname: 'https://xi7ang.github.io'
   },
   vite: {
     assetsInclude: ['**/*.png', '**/*.jpg', '**/*.jpeg', '**/*.gif', '**/*.svg'],
@@ -62,26 +62,26 @@ export default defineConfig({
     
     // Open Graph / 社交媒体分享图标
     ['meta', { property: 'og:type', content: 'website' }],
-    ['meta', { property: 'og:title', content: '大坝的资源收集站 | 超过 100T+ 资源' }],
+    ['meta', { property: 'og:title', content: 'xi7ang 资源收集站 | 超过 100T+ 资源' }],
     ['meta', { property: 'og:description', content: 'A collection of resources including AI, books, traditional Chinese culture, cross-border e-commerce, self-media, education, health, movies, and tools.' }],
     ['meta', { property: 'og:image', content: '/og-image.png' }],
     ['meta', { property: 'og:image:width', content: '1200' }],
     ['meta', { property: 'og:image:height', content: '630' }],
-    ['meta', { property: 'og:url', content: 'https://doc.869hr.uk' }],
+    ['meta', { property: 'og:url', content: 'https://xi7ang.github.io' }],
     
     // Twitter Card
     ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
-    ['meta', { name: 'twitter:title', content: '大坝的资源收集站 | 超过 100T+ 资源' }],
+    ['meta', { name: 'twitter:title', content: 'xi7ang 资源收集站 | 超过 100T+ 资源' }],
     ['meta', { name: 'twitter:description', content: 'A collection of resources including AI, books, traditional Chinese culture, cross-border e-commerce, self-media, education, health, movies, and tools.' }],
     ['meta', { name: 'twitter:image', content: '/og-image.png' }],
     
     // SEO 关键字和其他元标签
     ['meta', { name: 'keywords', content: '免费资源下载,AI知识,书籍资料,跨境电商,自媒体,教育资源,健康养生,影视资源,工具软件,100T资源,网盘资源,夸克网盘,阿里网盘' }],
-    ['meta', { name: 'author', content: '大坝的资源收集站' }],
+    ['meta', { name: 'author', content: 'xi7ang 资源收集站' }],
     ['meta', { name: 'robots', content: 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1' }],
     ['meta', { name: 'revisit-after', content: '1 days' }],
     ['meta', { property: 'og:locale', content: 'zh_CN' }],
-    ['meta', { property: 'og:site_name', content: '大坝的资源收集站' }],
+    ['meta', { property: 'og:site_name', content: 'xi7ang 资源收集站' }],
     
     // 结构化数据 (JSON-LD)
     [
@@ -90,23 +90,23 @@ export default defineConfig({
       JSON.stringify({
         '@context': 'https://schema.org',
         '@type': 'WebSite',
-        name: '大坝的资源收集站',
+        name: 'xi7ang 资源收集站',
         description: '超过100T免费资源下载站，包含AI知识、书籍资料、跨境电商、自媒体、教育、健康、影视、工具等海量资源',
-        url: 'https://doc.869hr.uk',
+        url: 'https://xi7ang.github.io',
         potentialAction: {
           '@type': 'SearchAction',
-          target: 'https://doc.869hr.uk/?q={search_term_string}',
+          target: 'https://xi7ang.github.io/?q={search_term_string}',
           'query-input': 'required name=search_term_string'
         },
         author: {
           '@type': 'Organization',
-          name: '大坝的资源收集站',
-          url: 'https://doc.869hr.uk'
+          name: 'xi7ang 资源收集站',
+          url: 'https://xi7ang.github.io'
         },
         publisher: {
           '@type': 'Organization',
-          name: '大坝的资源收集站',
-          url: 'https://doc.869hr.uk'
+          name: 'xi7ang 资源收集站',
+          url: 'https://xi7ang.github.io'
         }
       })
     ],

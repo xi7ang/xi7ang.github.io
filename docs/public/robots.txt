@@ -22,7 +22,7 @@ Allow: /auto/
 Allow: /movie-recommendations/
 
 # Sitemap
-Sitemap: https://doc.869hr.uk/sitemap.xml
+Sitemap: https://xi7ang.github.io/sitemap.xml
 
 # Crawl-delay for respectful crawling
 Crawl-delay: 1

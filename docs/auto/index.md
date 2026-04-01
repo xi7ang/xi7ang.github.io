@@ -77,7 +77,7 @@ https://s.869hr.uk/2hm
 
 
 ------------------
-# 六，基于github仓库，做了个网站，https://doc.869hr.uk
+# 六，基于github仓库，做了个网站，https://xi7ang.github.io
 <img width="1103" alt="image" src="https://github.com/user-attachments/assets/921f54d6-82b2-4376-8594-cca9ac968d4f" />
 并支持搜索
 <img width="1091" alt="image" src="https://github.com/user-attachments/assets/500c9118-7366-43da-a6d5-324f69c4ca32" />
