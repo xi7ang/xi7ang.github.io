@@ -20,6 +20,54 @@ CONTENT_REPOS=(
   "tools"
 )
 
+update_resource_tabs_months() {
+  local source_repo_path="$1"
+  local index_file="$2"
+
+  if [ ! -f "$index_file" ] || ! grep -q "ResourceTabs" "$index_file"; then
+    return
+  fi
+
+  local months_literal="[]"
+  local month_values=()
+  mapfile -t month_values < <(
+    find "$source_repo_path" -maxdepth 1 -type f -name '20*.md' -printf '%f\n' | \
+      sed 's/\.md$//' | grep -E '^20[0-9]{4}$' | sort -r
+  )
+
+  if [ ${#month_values[@]} -gt 0 ]; then
+    months_literal="["
+    local i
+    for i in "${!month_values[@]}"; do
+      if [ "$i" -gt 0 ]; then
+        months_literal+=", "
+      fi
+      months_literal+="'${month_values[$i]}'"
+    done
+    months_literal+="]"
+  fi
+
+  python3 - "$index_file" "$months_literal" <<'PY'
+from pathlib import Path
+import re
+import sys
+
+index_file = Path(sys.argv[1])
+months_literal = sys.argv[2]
+text = index_file.read_text(encoding='utf-8')
+new_text, count = re.subn(
+    r'(<ResourceTabs\s+category="[^"]+"\s+:months=")\[[^\"]*\]("\s*/>)',
+    rf'\g<1>{months_literal}\g<2>',
+    text,
+    count=1,
+)
+if count:
+    index_file.write_text(new_text, encoding='utf-8')
+PY
+
+  echo "  - Updated ResourceTabs months in $(realpath --relative-to="$(pwd)" "$index_file") => $months_literal"
+}
+
 echo "Starting content synchronization..."
 echo "Source: $SOURCE_BASE_DIR"
 echo "Target: $TARGET_DOCS_DIR"
@@ -78,6 +126,9 @@ for REPO in "${CONTENT_REPOS[@]}"; do
     fi
   done
   echo "  - Copied $md_files_count .md files to $REPO/ and public/$REPO/"
+
+  update_resource_tabs_months "$SOURCE_REPO_PATH" "$TARGET_REPO_PATH/index.md"
+  update_resource_tabs_months "$SOURCE_REPO_PATH" "$TARGET_PUBLIC_REPO_PATH/index.md"
 
   # Copy image files to the public directory, maintaining repo structure
   img_files_count=0
