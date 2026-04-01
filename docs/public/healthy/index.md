@@ -6,7 +6,7 @@
 
 --------------
 
-<ResourceTabs category="healthy" :months="['202507', '202506', '202505']" />
+<ResourceTabs category="healthy" :months="[]" />
 
 ---------------
 ### 项目更多资源

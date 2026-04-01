@@ -5,7 +5,7 @@
 
 ------------
 
-<ResourceTabs category="cross-border" :months="['202507', '202506', '202505']" />
+<ResourceTabs category="cross-border" :months="[]" />
 
 
 

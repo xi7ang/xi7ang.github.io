@@ -21,7 +21,7 @@ keywords: AI知识,人工智能教程,提示词工程,机器学习,深度学习,
 
 ------------
 
-<ResourceTabs category="AIknowledge" :months="['202508', '202507', '202506', '202505']" />
+<ResourceTabs category="AIknowledge" :months="[]" />
 
 
 ---------------
