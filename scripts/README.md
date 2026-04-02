@@ -96,7 +96,7 @@ scripts/
 3. **脚本会自动：**
    - 检测到新的202509.md文件
    - 更新对应页面的ResourceTabs配置
-   - 提交更改到xi7ang.github.io仓库
+   - 提交更改到xi7ang.github.io 仓库（站点域名 pan.devmini.space）
    - 触发网站重新构建
    - 新的Tab会在3-5分钟后出现在网站上
 
