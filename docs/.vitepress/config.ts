@@ -26,7 +26,7 @@ export default defineConfig({
   lastUpdated: true,
   cleanUrls: true,
   sitemap: {
-    hostname: 'https://xi7ang.github.io'
+    hostname: 'https://pan.devmini.space'
   },
   vite: {
     assetsInclude: ['**/*.png', '**/*.jpg', '**/*.jpeg', '**/*.gif', '**/*.svg'],
@@ -67,7 +67,7 @@ export default defineConfig({
     ['meta', { property: 'og:image', content: '/og-image.png' }],
     ['meta', { property: 'og:image:width', content: '1200' }],
     ['meta', { property: 'og:image:height', content: '630' }],
-    ['meta', { property: 'og:url', content: 'https://xi7ang.github.io' }],
+    ['meta', { property: 'og:url', content: 'https://pan.devmini.space' }],
     
     // Twitter Card
     ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
@@ -92,21 +92,21 @@ export default defineConfig({
         '@type': 'WebSite',
         name: 'xi7ang 资源收集站',
         description: '超过100T免费资源下载站，包含AI知识、书籍资料、跨境电商、自媒体、教育、健康、影视、工具等海量资源',
-        url: 'https://xi7ang.github.io',
+        url: 'https://pan.devmini.space',
         potentialAction: {
           '@type': 'SearchAction',
-          target: 'https://xi7ang.github.io/?q={search_term_string}',
+          target: 'https://pan.devmini.space/?q={search_term_string}',
           'query-input': 'required name=search_term_string'
         },
         author: {
           '@type': 'Organization',
           name: 'xi7ang 资源收集站',
-          url: 'https://xi7ang.github.io'
+          url: 'https://pan.devmini.space'
         },
         publisher: {
           '@type': 'Organization',
           name: 'xi7ang 资源收集站',
-          url: 'https://xi7ang.github.io'
+          url: 'https://pan.devmini.space'
         }
       })
     ],

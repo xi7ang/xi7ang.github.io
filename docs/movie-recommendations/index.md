@@ -14,7 +14,7 @@
 
 <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 25px; border-radius: 15px; margin: 20px 0; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
 
-### 💎 **探索资源主页，超过 100T 持续整理中 - [xi7ang.github.io](https://xi7ang.github.io)**
+### 💎 **探索资源主页，超过 100T 持续整理中 - [pan.devmini.space](https://pan.devmini.space)**
 
 **🌟 不止于影视，更是你的数字生活全能助手！**
 
@@ -24,7 +24,7 @@
 
 <div style="text-align: center; margin-top: 20px;">
 
-### 🎯 [**>> 进入资源主页 <<**](https://xi7ang.github.io)
+### 🎯 [**>> 进入资源主页 <<**](https://pan.devmini.space)
 
 *🔥 每日更新 · 永久免费 · 精品推荐*
 

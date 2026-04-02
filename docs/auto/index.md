@@ -39,7 +39,7 @@
 	9	完成所有资源github提交后，运行生成网站的脚本trigger-update.sh，确保这些更新已经网站上生效
 	10	确认本地仓库的上面的这些更改，都已经提交到了github仓库版本管理上，先获取最新github版本，如果还有没有提交的完成提交，不要有本地改动没有提交到github上的改动
 	11	确保提交到了远程仓库，确保提交到了远程仓库，确保提交到了远程仓库
-	12	然后等待 3 分钟，确保网站更新完成。编译完成后，输出这些条目对应的完整网页 URL，例如：https://xi7ang.github.io/curriculum/202508#中医十二经络易堵点自我疏通手法课程 ，这样就能直接复制去其他地方转发。
+	12	然后等待 3 分钟，确保网站更新完成。编译完成后，输出这些条目对应的完整网页 URL，例如：https://pan.devmini.space/curriculum/202508#中医十二经络易堵点自我疏通手法课程 ，这样就能直接复制去其他地方转发。
 
 
 ----------
@@ -66,7 +66,7 @@
 
 
 ------------------
-# 六，基于 GitHub 仓库，做了个网站，https://xi7ang.github.io
+# 六，基于 GitHub 仓库，做了个网站，https://pan.devmini.space
 <img width="1103" alt="image" src="https://github.com/user-attachments/assets/921f54d6-82b2-4376-8594-cca9ac968d4e" />
 并支持搜索
 <img width="1091" alt="image" src="https://github.com/user-attachments/assets/500c9118-7366-43da-a6d5-324f69c4ca32" />
@@ -104,7 +104,7 @@ Skills 存放在两个位置：
 | 自动生成分享链接 | 永久 + 加密 + 随机提取码 |
 | 自动归类 | 根据标题关键词自动归类到对应仓库 |
 | Telegram 通知 | 频道单条 + 群组汇总（多仓库只发一条）|
-| 站点自动更新 | 触发 xi7ang.github.io 重建 |
+| 站点自动更新 | 触发 pan.devmini.space 对应站点重建 |
 
 ### 使用方法
 
