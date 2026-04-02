@@ -14,7 +14,7 @@ hero:
       link: "/AIknowledge/"
     - theme: alt
       text: "📞 加入QQ群交流"
-      link: "https://qm.qq.com/q/M9U9Hhd1wQ"
+      link: "https://qm.qq.com/q/EkPkbcVMaY"
     - theme: alt
       text: "⭐ 项目开源 GitHub"
       link: "https://github.com/xi7ang"
@@ -137,7 +137,7 @@ xi7ang 资源收集站是一个专注于提供**免费优质资源下载**的开
 每日更新
 
 **👥 用户群体**  
-QQ群 1019984660
+QQ群 1095868992
 
 **🌍 支持平台**  
 夸克网盘、阿里网盘等
@@ -162,7 +162,7 @@ QQ群 1019984660
 
 💡 **温馨提示**: 所有资源仅供学习交流使用，请支持正版。如有版权问题，请及时联系我们处理。
 
-📧 **联系方式**: 3511035605@qq.com | QQ群: [1019984660](https://qm.qq.com/q/M9U9Hhd1wQ)
+📧 **联系方式**: 3511035605@qq.com | QQ群: [1095868992](https://qm.qq.com/q/EkPkbcVMaY)
 
 <UpdateTime />
 
