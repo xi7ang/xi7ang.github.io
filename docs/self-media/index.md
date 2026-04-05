@@ -1,6 +1,6 @@
 # self-media
 自媒体相关资源，包括拉新，流量玩法、获客，转化、变现等资料，持续更新中
-<ResourceTabs category="self-media" :months="[]" />
+<ResourceTabs category="self-media" :months="['202604']" />
 
 ---------------
 ### 项目更多资源
