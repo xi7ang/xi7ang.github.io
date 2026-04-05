@@ -320,7 +320,7 @@ export default defineConfig({
       }
     ],
     footer: {
-      message: '友情链接: <a href="https://869hr.uk">M\'s Blog</a> | <a href="/disclaimer">免责声明</a> | 如有侵权，请联系删除。<br><span id="busuanzi_container_site_uv">访客数 <span id="busuanzi_value_site_uv"></span> 人次</span>，<span id="busuanzi_container_site_pv">本站总访问量 <span id="busuanzi_value_site_pv"></span> 次</span>',
+      message: '友情链接: <a href="https://devmini.space/blog">DevMini博客</a> | <a href="/disclaimer">免责声明</a> | 如有侵权，请联系删除。<br><span id="busuanzi_container_site_uv">访客数 <span id="busuanzi_value_site_uv"></span> 人次</span>，<span id="busuanzi_container_site_pv">本站总访问量 <span id="busuanzi_value_site_pv"></span> 次</span>',
       copyright: 'Copyright © 2025-present xi7ang · 3511035605@qq.com'
     }
   }
