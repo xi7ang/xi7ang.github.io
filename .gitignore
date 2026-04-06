@@ -1,1 +1,6 @@
 .DS_Store
+
+# Pagefind CLI (not needed at runtime, built artifacts already committed)
+node_modules/pagefind/
+node_modules/@pagefind/
+node_modules/.bin/pagefind

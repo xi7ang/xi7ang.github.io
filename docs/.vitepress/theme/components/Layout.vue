@@ -2,6 +2,7 @@
 import DefaultTheme from 'vitepress/theme'
 import { useData } from 'vitepress'
 import CommitHistory from './CommitHistory.vue'
+import PagefindSearch from './PagefindSearch.vue'
 
 const { frontmatter } = useData()
 </script>
@@ -10,6 +11,9 @@ const { frontmatter } = useData()
   <DefaultTheme.Layout>
     <template #home-hero-after>
       <CommitHistory />
+    </template>
+    <template #VPNavBarSearch>
+      <PagefindSearch />
     </template>
   </DefaultTheme.Layout>
 </template>
