@@ -9,11 +9,12 @@
     "fetch-commits": "node scripts/fetch-commits.js"
   },
   "devDependencies": {
+    "node-fetch": "^3.3.2",
     "vitepress": "1.0.0",
-    "vue": "3.2.44",
-    "node-fetch": "^3.3.2"
+    "vue": "3.2.44"
   },
   "dependencies": {
+    "@rollup/rollup-linux-x64-gnu": "^4.60.1",
     "flexsearch": "^0.8.205",
     "markdown-it": "^14.1.0"
   },
