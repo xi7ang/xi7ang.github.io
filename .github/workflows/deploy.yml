@@ -70,6 +70,18 @@ jobs:
       - name: Build VitePress site
         run: npm run build
 
+      - name: Fix pagefind WASM filename mismatch
+        run: |
+          # pagefind 1.5.0 Extended 生成 wasm.unknown.pagefind
+          # 但 pagefind.js 内部查找 pagefind_bg.wasm
+          # 创建软链接让两者兼容
+          cd ./docs/.vitepress/dist/pagefind
+          if [ -f "wasm.unknown.pagefind" ]; then
+            ln -sf wasm.unknown.pagefind pagefind_bg.wasm
+            echo "Created symlink: wasm.unknown.pagefind -> pagefind_bg.wasm"
+          fi
+          ls -la *.wasm *.pagefind 2>/dev/null || echo "No WASM files found"
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4
         with:
