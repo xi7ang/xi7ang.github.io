@@ -1,4 +1,26 @@
 /* ============================================================
+   Pagefind 搜索 — 替换导航栏默认搜索
+   ============================================================ */
+
+/* 隐藏导航栏默认搜索组件 */
+.VPNavBar .VPNavBarSearch {
+  display: none !important;
+}
+
+/* PagefindSearch 定位到搜索区域 */
+.VPNavBar .content-body .navbar-search {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+}
+
+/* 确保搜索按钮在导航栏正确高度 */
+.VPNavBar .pagefind-search-btn {
+  height: 36px;
+  font-size: 0.82rem;
+}
+
+/* ============================================================
    Playful Geometric 辅助样式
    ============================================================ */
 
