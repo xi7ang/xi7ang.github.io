@@ -10,6 +10,7 @@
     "postbuild": "pagefind --site docs/.vitepress/dist --output-path docs/.vitepress/dist/pagefind"
   },
   "devDependencies": {
+    "@pagefind/default-ui": "^1.5.0",
     "node-fetch": "^3.3.2",
     "pagefind": "^1.5.0",
     "vitepress": "1.0.0",

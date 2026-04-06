@@ -30,6 +30,13 @@ export default defineConfig({
   },
   vite: {
     assetsInclude: ['**/*.png', '**/*.jpg', '**/*.jpeg', '**/*.gif', '**/*.svg'],
+    build: {
+      rollupOptions: {
+        // pagefind.js 是 pagefind CLI 构建后输出的 ES Module，不应被 Vite 打包
+        // 浏览器从 /pagefind/ 路径直接加载，保留原样
+        external: ['/pagefind/pagefind.js']
+      }
+    }
   },
   description: "超过100T免费资源下载站，包含AI知识、书籍资料、跨境电商、自媒体、教育、健康、影视、工具等海量资源，持续更新中",
   head: [

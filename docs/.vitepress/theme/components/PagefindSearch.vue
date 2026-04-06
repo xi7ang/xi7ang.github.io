@@ -1,113 +1,181 @@
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 
 const searchOpen = ref(false)
 const query = ref('')
-const results = ref([])
+const results = ref<any[]>([])
 const loading = ref(false)
-const searchInput = ref(null)
-const container = ref(null)
+const searchInput = ref<HTMLInputElement | null>(null)
+const container = ref<HTMLElement | null>(null)
+const searchError = ref(false)
 
-let pagefind = null
+// 单例：整个页面生命周期只加载一次 pagefind
+let pagefindInstance: any = null
+let pagefindLoading: Promise<any> | null = null
 
-// 加载 Pagefind（通过 script 标签动态加载，避免 Rollup 静态分析）
-async function loadPagefind() {
-  if (pagefind) return pagefind
-  // 已通过 script 标签加载
-  if (window.__pagefind__) {
-    pagefind = window.__pagefind__
-    return pagefind
-  }
-  return new Promise((resolve) => {
-    if (window.__pagefind__) {
-      pagefind = window.__pagefind__
-      resolve(pagefind)
+function loadPagefind(): Promise<any> {
+  if (pagefindInstance) return Promise.resolve(pagefindInstance)
+  if (pagefindLoading) return pagefindLoading
+
+  pagefindLoading = new Promise((resolve, reject) => {
+    // pagefind-ui.js 是自包含的预构建文件
+    // 它包含完整的 PagefindUI 类，设置 window.PagefindUI
+    if ((window as any).PagefindUI) {
+      try {
+        // 创建隐藏容器，只使用其底层 search API
+        const el = document.createElement('div')
+        el.style.display = 'none'
+        el.style.position = 'absolute'
+        el.style.left = '-9999px'
+        document.body.appendChild(el)
+
+        pagefindInstance = new (window as any).PagefindUI({
+          element: el,
+          bundlePath: '/pagefind',
+          resetStyles: false,
+          showImages: false,
+          showSubResults: false,
+          autofocus: false,
+          debounceTimeoutMs: 0,
+        })
+        console.log('[Pagefind] 初始化成功')
+        resolve(pagefindInstance)
+      } catch (e: any) {
+        console.error('[Pagefind] 初始化失败:', e)
+        reject(e)
+      }
       return
     }
+
+    // 动态加载 pagefind-ui.js
     const script = document.createElement('script')
-    script.src = '/pagefind/pagefind.js'
-    script.onload = async () => {
-      const pf = window.pagefind
-      await pf.init()
-      window.__pagefind__ = pf
-      pagefind = pf
-      resolve(pf)
+    script.src = '/pagefind/pagefind-ui.js'
+    script.type = 'module'
+    script.onload = () => {
+      try {
+        const el = document.createElement('div')
+        el.style.display = 'none'
+        el.style.position = 'absolute'
+        el.style.left = '-9999px'
+        document.body.appendChild(el)
+
+        pagefindInstance = new (window as any).PagefindUI({
+          element: el,
+          bundlePath: '/pagefind',
+          resetStyles: false,
+          showImages: false,
+          showSubResults: false,
+          autofocus: false,
+          debounceTimeoutMs: 0,
+        })
+        console.log('[Pagefind] 初始化成功')
+        resolve(pagefindInstance)
+      } catch (e: any) {
+        console.error('[Pagefind] 初始化失败:', e)
+        reject(e)
+      }
     }
-    script.onerror = () => {
-      console.error('Pagefind 加载失败')
-      resolve(null)
+    script.onerror = (e) => {
+      console.error('[Pagefind] 脚本加载失败:', e)
+      reject(new Error('pagefind-ui.js 加载失败'))
     }
     document.head.appendChild(script)
   })
+
+  return pagefindLoading
 }
 
-// 搜索
-async function doSearch(q) {
+async function doSearch(q: string) {
   if (!q.trim()) {
     results.value = []
-    return
-  }
-  loading.value = true
-  const pf = await loadPagefind()
-  if (!pf) {
     loading.value = false
     return
   }
+
+  loading.value = true
+  searchError.value = false
+
   try {
-    const search = await pf.search(q)
-    const data = await Promise.all(search.results.slice(0, 8).map(r => r.data()))
+    const pf = await loadPagefind()
+
+    if (!pf) {
+      console.error('[Pagefind] 实例为空')
+      loading.value = false
+      searchError.value = true
+      return
+    }
+
+    // PagefindUI 实例的 search 方法返回 PagefindSearch 对象
+    // 该对象的 .results 是同步的数组，每个元素有 .data() 方法（返回 Promise）
+    const searchResult = pf.search(q)
+
+    // searchResult.results 是 PagefindSearchResult[]（非 Promise）
+    const rawResults = searchResult.results || []
+
+    if (rawResults.length === 0) {
+      results.value = []
+      loading.value = false
+      return
+    }
+
+    // 每个 .data() 返回 Promise<ResultData>
+    const data = await Promise.all(
+      rawResults.slice(0, 8).map((r: any) => r.data())
+    )
+
     results.value = data
-  } catch (e) {
+    console.log(`[Pagefind] 搜索「${q}」: ${data.length} 条结果`)
+  } catch (e: any) {
+    console.error('[Pagefind] 搜索异常:', e)
+    searchError.value = true
     results.value = []
   }
+
   loading.value = false
 }
 
 // 防抖
-let debounceTimer = null
-function onInput(e) {
-  clearTimeout(debounceTimer)
-  debounceTimer = setTimeout(() => doSearch(e.target.value), 200)
+let debounceTimer: ReturnType<typeof setTimeout> | null = null
+function onInput(e: Event) {
+  const val = (e.target as HTMLInputElement).value
+  query.value = val
+  if (debounceTimer) clearTimeout(debounceTimer)
+  debounceTimer = setTimeout(() => doSearch(val), 250)
 }
 
-// 打开/关闭
 function toggle() {
   searchOpen.value = !searchOpen.value
   if (searchOpen.value) {
-    setTimeout(() => searchInput.value?.focus(), 50)
-  } else {
     query.value = ''
     results.value = []
+    loading.value = false
+    searchError.value = false
+    setTimeout(() => searchInput.value?.focus(), 50)
   }
 }
 
-// 点击外部关闭
-function onClickOutside(e) {
-  if (container.value && !container.value.contains(e.target)) {
+function onClickOutside(e: MouseEvent) {
+  if (container.value && !container.value.contains(e.target as Node)) {
+    searchOpen.value = false
+  }
+}
+
+function onKeydown(e: KeyboardEvent) {
+  if (e.key === 'Escape') {
     searchOpen.value = false
   }
 }
 
 onMounted(() => {
   document.addEventListener('click', onClickOutside)
-  // 预加载 Pagefind（不阻塞）
-  loadPagefind()
+  // 预加载 pagefind（不阻塞 UI）
+  loadPagefind().catch(() => {})
 })
 
 onUnmounted(() => {
   document.removeEventListener('click', onClickOutside)
-  clearTimeout(debounceTimer)
+  if (debounceTimer) clearTimeout(debounceTimer)
 })
-
-// 键盘 Enter 搜索
-function onKeydown(e) {
-  if (e.key === 'Enter') {
-    doSearch(query.value)
-  }
-  if (e.key === 'Escape') {
-    searchOpen.value = false
-  }
-}
 </script>
 
 <template>
@@ -121,7 +189,7 @@ function onKeydown(e) {
 
     <!-- 搜索弹窗 -->
     <Transition name="search-popup">
-      <div v-if="searchOpen" class="pagefind-search-modal" @click.stop>
+      <div v-if="searchOpen" class="pagefind-search-modal" @click.stop @keydown="onKeydown">
         <!-- 搜索框 -->
         <div class="search-input-row">
           <span class="input-icon">🔍</span>
@@ -132,16 +200,24 @@ function onKeydown(e) {
             class="search-input"
             placeholder="搜索资源名称、关键词..."
             @input="onInput"
-            @keydown="onKeydown"
             autocomplete="off"
           />
-          <button class="close-btn" @click="searchOpen = false">✕</button>
+          <button v-if="loading" class="loading-indicator">
+            <span class="spin-loader"></span>
+          </button>
+          <button v-else class="close-btn" @click="searchOpen = false">✕</button>
         </div>
 
         <!-- 结果 -->
-        <div class="search-results">
+        <div class="search-results" role="listbox">
+          <!-- 错误状态 -->
+          <div v-if="searchError" class="search-state error">
+            <p>搜索服务暂时不可用</p>
+            <p class="search-tip">请刷新页面后重试</p>
+          </div>
+
           <!-- 加载中 -->
-          <div v-if="loading" class="search-state loading">
+          <div v-else-if="loading" class="search-state loading">
             <div class="loading-dots">
               <span></span><span></span><span></span>
             </div>
@@ -149,7 +225,7 @@ function onKeydown(e) {
           </div>
 
           <!-- 无结果 -->
-          <div v-else-if="query && !loading && results.length === 0" class="search-state empty">
+          <div v-else-if="query && results.length === 0" class="search-state empty">
             <p>未找到「{{ query }}」相关结果</p>
             <p class="search-tip">试试更简短的关键词，或浏览分类页面</p>
           </div>
@@ -161,6 +237,7 @@ function onKeydown(e) {
               :key="result.url"
               :href="result.url"
               class="result-item"
+              role="option"
               @click="searchOpen = false"
             >
               <div class="result-content">
@@ -173,17 +250,16 @@ function onKeydown(e) {
           </div>
 
           <!-- 初始状态 -->
-          <div v-else-if="!query" class="search-state hint">
+          <div v-else class="search-state hint">
             <p>输入关键词开始搜索</p>
             <div class="search-hot">
               <span class="hot-label">热门:</span>
-              <a
-                v-for="kw in ['新能源汽车', 'Claude', 'AI教程', '书籍', 'TikTok']"
+              <button
+                v-for="kw in ['Claude', 'AI教程', 'TikTok', '新能源汽车', '书籍']"
                 :key="kw"
-                href="#"
                 class="hot-tag"
-                @click.prevent="query = kw; doSearch(kw)"
-              >{{ kw }}</a>
+                @click="query = kw; doSearch(kw)"
+              >{{ kw }}</button>
             </div>
           </div>
         </div>
@@ -237,13 +313,8 @@ function onKeydown(e) {
   box-shadow: 4px 4px 0 #FFFFFF;
 }
 
-.search-icon {
-  font-size: 0.9rem;
-}
-
-.search-placeholder {
-  font-weight: 600;
-}
+.search-icon { font-size: 0.9rem; }
+.search-placeholder { font-weight: 600; }
 
 .search-kbd {
   font-size: 0.7rem;
@@ -297,10 +368,7 @@ function onKeydown(e) {
   background: #0E0E0E;
 }
 
-.input-icon {
-  font-size: 1.1rem;
-  flex-shrink: 0;
-}
+.input-icon { font-size: 1.1rem; flex-shrink: 0; }
 
 .search-input {
   flex: 1;
@@ -333,6 +401,33 @@ function onKeydown(e) {
 .close-btn:hover { color: #111111; }
 .dark .close-btn:hover { color: #FFFFFF; }
 
+/* 加载动画 */
+.loading-indicator {
+  background: none;
+  border: none;
+  cursor: default;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.spin-loader {
+  width: 14px;
+  height: 14px;
+  border: 2px solid #E0E0DA;
+  border-top-color: #FF3AF2;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  display: block;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 /* 结果区 */
 .search-results {
   max-height: 420px;
@@ -340,16 +435,9 @@ function onKeydown(e) {
   overscroll-behavior: contain;
 }
 
-.search-results::-webkit-scrollbar {
-  width: 6px;
-}
-.search-results::-webkit-scrollbar-track {
-  background: #F5F5F0;
-}
-.search-results::-webkit-scrollbar-thumb {
-  background: #CCCCCC;
-  border-radius: 3px;
-}
+.search-results::-webkit-scrollbar { width: 6px; }
+.search-results::-webkit-scrollbar-track { background: #F5F5F0; }
+.search-results::-webkit-scrollbar-thumb { background: #CCCCCC; border-radius: 3px; }
 
 /* 状态 */
 .search-state {
@@ -359,10 +447,7 @@ function onKeydown(e) {
   font-size: 0.9rem;
 }
 
-.search-state p {
-  margin: 0;
-}
-
+.search-state p { margin: 0; }
 .search-tip {
   margin-top: 6px !important;
   font-size: 0.8rem !important;
@@ -374,7 +459,6 @@ function onKeydown(e) {
   flex-direction: column;
   align-items: center;
   gap: 12px;
-  padding: 28px 20px;
 }
 
 .loading-dots {
@@ -407,11 +491,7 @@ function onKeydown(e) {
   margin-top: 12px;
 }
 
-.hot-label {
-  font-weight: 700;
-  font-size: 0.8rem;
-  color: #888888;
-}
+.hot-label { font-weight: 700; font-size: 0.8rem; color: #888888; }
 
 .hot-tag {
   display: inline-block;
@@ -422,8 +502,9 @@ function onKeydown(e) {
   font-size: 0.78rem;
   font-weight: 600;
   color: #555555;
-  text-decoration: none;
+  cursor: pointer;
   transition: all 0.15s ease;
+  font-family: inherit;
 }
 
 .hot-tag:hover {
@@ -433,9 +514,7 @@ function onKeydown(e) {
 }
 
 /* 结果列表 */
-.results-list {
-  padding: 8px 0;
-}
+.results-list { padding: 8px 0; }
 
 .result-item {
   display: flex;
@@ -448,26 +527,12 @@ function onKeydown(e) {
   border-bottom: 1px solid #F0F0EB;
 }
 
-.result-item:last-child {
-  border-bottom: none;
-}
+.result-item:last-child { border-bottom: none; }
+.result-item:hover { background: #F5F5F0; }
+.dark .result-item:hover { background: #1A1A1A; }
+.dark .result-item { border-bottom-color: #222222; }
 
-.result-item:hover {
-  background: #F5F5F0;
-}
-
-.dark .result-item:hover {
-  background: #1A1A1A;
-}
-
-.dark .result-item {
-  border-bottom-color: #222222;
-}
-
-.result-content {
-  flex: 1;
-  min-width: 0;
-}
+.result-content { flex: 1; min-width: 0; }
 
 .result-title {
   font-weight: 800;

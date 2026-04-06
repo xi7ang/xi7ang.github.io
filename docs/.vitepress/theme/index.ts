@@ -12,7 +12,7 @@ import './style.css'
 export default {
   ...DefaultTheme,
   Layout: Layout,
-  enhanceApp({ app }) {
+  enhanceApp({ app }: { app: any }) {
     app.component('PagefindSearch', PagefindSearch)
     app.component('CommitHistory', CommitHistory)
     app.component('UpdateTime', UpdateTime)
