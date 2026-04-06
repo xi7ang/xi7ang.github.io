@@ -7,82 +7,44 @@ const results = ref<any[]>([])
 const loading = ref(false)
 const searchInput = ref<HTMLInputElement | null>(null)
 const container = ref<HTMLElement | null>(null)
-const searchError = ref(false)
 
-// 单例：整个页面生命周期只加载一次 pagefind
-let pagefindInstance: any = null
-let pagefindLoading: Promise<any> | null = null
+// pagefind API 单例
+let pfInstance: any = null
+let pfInitPromise: Promise<any> | null = null
 
-function loadPagefind(): Promise<any> {
-  if (pagefindInstance) return Promise.resolve(pagefindInstance)
-  if (pagefindLoading) return pagefindLoading
+async function loadPagefind(): Promise<any> {
+  if (pfInstance) return pfInstance
+  if (pfInitPromise) return pfInitPromise
 
-  pagefindLoading = new Promise((resolve, reject) => {
-    // pagefind-ui.js 是自包含的预构建文件
-    // 它包含完整的 PagefindUI 类，设置 window.PagefindUI
-    if ((window as any).PagefindUI) {
-      try {
-        // 创建隐藏容器，只使用其底层 search API
-        const el = document.createElement('div')
-        el.style.display = 'none'
-        el.style.position = 'absolute'
-        el.style.left = '-9999px'
-        document.body.appendChild(el)
+  pfInitPromise = new Promise(async (resolve, reject) => {
+    try {
+      // 动态导入 pagefind.js
+      // @vite-ignore: 告知 Vite 这是外部路径，不做解析
+      const mod = await import(/* @vite-ignore */ '/pagefind/pagefind.js')
 
-        pagefindInstance = new (window as any).PagefindUI({
-          element: el,
-          bundlePath: '/pagefind',
-          resetStyles: false,
-          showImages: false,
-          showSubResults: false,
-          autofocus: false,
-          debounceTimeoutMs: 0,
-        })
-        console.log('[Pagefind] 初始化成功')
-        resolve(pagefindInstance)
-      } catch (e: any) {
-        console.error('[Pagefind] 初始化失败:', e)
-        reject(e)
-      }
-      return
+      // 使用 createInstance（更底层，控制力更强）
+      const instance = mod.createInstance({
+        basePath: '/pagefind/',
+        excerptLength: 30,
+      })
+
+      // 并行初始化 + 超时保护（最多等 8 秒）
+      const initResult = await Promise.race([
+        instance.init(),
+        new Promise((_, rej) => setTimeout(() => rej(new Error('pagefind 初始化超时')), 8000))
+      ])
+
+      pfInstance = instance
+      console.log('[Pagefind] 初始化成功')
+      resolve(instance)
+    } catch (e: any) {
+      console.error('[Pagefind] 初始化失败:', e?.message || e)
+      // 不要 throw，给用户一个空搜索体验即可
+      resolve(null)
     }
-
-    // 动态加载 pagefind-ui.js
-    const script = document.createElement('script')
-    script.src = '/pagefind/pagefind-ui.js'
-    script.type = 'module'
-    script.onload = () => {
-      try {
-        const el = document.createElement('div')
-        el.style.display = 'none'
-        el.style.position = 'absolute'
-        el.style.left = '-9999px'
-        document.body.appendChild(el)
-
-        pagefindInstance = new (window as any).PagefindUI({
-          element: el,
-          bundlePath: '/pagefind',
-          resetStyles: false,
-          showImages: false,
-          showSubResults: false,
-          autofocus: false,
-          debounceTimeoutMs: 0,
-        })
-        console.log('[Pagefind] 初始化成功')
-        resolve(pagefindInstance)
-      } catch (e: any) {
-        console.error('[Pagefind] 初始化失败:', e)
-        reject(e)
-      }
-    }
-    script.onerror = (e) => {
-      console.error('[Pagefind] 脚本加载失败:', e)
-      reject(new Error('pagefind-ui.js 加载失败'))
-    }
-    document.head.appendChild(script)
   })
 
-  return pagefindLoading
+  return pfInitPromise
 }
 
 async function doSearch(q: string) {
@@ -93,42 +55,30 @@ async function doSearch(q: string) {
   }
 
   loading.value = true
-  searchError.value = false
 
   try {
     const pf = await loadPagefind()
-
     if (!pf) {
-      console.error('[Pagefind] 实例为空')
-      loading.value = false
-      searchError.value = true
-      return
-    }
-
-    // PagefindUI 实例的 search 方法返回 PagefindSearch 对象
-    // 该对象的 .results 是同步的数组，每个元素有 .data() 方法（返回 Promise）
-    const searchResult = pf.search(q)
-
-    // searchResult.results 是 PagefindSearchResult[]（非 Promise）
-    const rawResults = searchResult.results || []
-
-    if (rawResults.length === 0) {
+      // pagefind 不可用，静默降级（不显示错误，只显示无结果）
       results.value = []
       loading.value = false
       return
     }
 
-    // 每个 .data() 返回 Promise<ResultData>
-    const data = await Promise.all(
-      rawResults.slice(0, 8).map((r: any) => r.data())
-    )
+    const result = await pf.search(q)
 
-    results.value = data
-    console.log(`[Pagefind] 搜索「${q}」: ${data.length} 条结果`)
+    if (!result?.results?.length) {
+      results.value = []
+    } else {
+      const data = await Promise.all(
+        result.results.slice(0, 8).map((r: any) => r.data())
+      )
+      results.value = data
+      console.log(`[Pagefind] 搜索「${q}」: ${data.length} 条结果`)
+    }
   } catch (e: any) {
-    console.error('[Pagefind] 搜索异常:', e)
-    searchError.value = true
-    results.value = []
+    console.error('[Pagefind] 搜索失败:', e?.message || e)
+    results.value = [] // 降级：显示空结果
   }
 
   loading.value = false
@@ -140,7 +90,7 @@ function onInput(e: Event) {
   const val = (e.target as HTMLInputElement).value
   query.value = val
   if (debounceTimer) clearTimeout(debounceTimer)
-  debounceTimer = setTimeout(() => doSearch(val), 250)
+  debounceTimer = setTimeout(() => doSearch(val), 300)
 }
 
 function toggle() {
@@ -149,8 +99,9 @@ function toggle() {
     query.value = ''
     results.value = []
     loading.value = false
-    searchError.value = false
     setTimeout(() => searchInput.value?.focus(), 50)
+    // 打开时预热 pagefind
+    loadPagefind()
   }
 }
 
@@ -161,15 +112,13 @@ function onClickOutside(e: MouseEvent) {
 }
 
 function onKeydown(e: KeyboardEvent) {
-  if (e.key === 'Escape') {
-    searchOpen.value = false
-  }
+  if (e.key === 'Escape') searchOpen.value = false
 }
 
 onMounted(() => {
   document.addEventListener('click', onClickOutside)
-  // 预加载 pagefind（不阻塞 UI）
-  loadPagefind().catch(() => {})
+  // 预加载（后台静默进行，不阻塞）
+  loadPagefind()
 })
 
 onUnmounted(() => {
@@ -210,14 +159,8 @@ onUnmounted(() => {
 
         <!-- 结果 -->
         <div class="search-results" role="listbox">
-          <!-- 错误状态 -->
-          <div v-if="searchError" class="search-state error">
-            <p>搜索服务暂时不可用</p>
-            <p class="search-tip">请刷新页面后重试</p>
-          </div>
-
           <!-- 加载中 -->
-          <div v-else-if="loading" class="search-state loading">
+          <div v-if="loading" class="search-state loading">
             <div class="loading-dots">
               <span></span><span></span><span></span>
             </div>
