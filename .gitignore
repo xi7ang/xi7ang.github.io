@@ -5,3 +5,9 @@ node_modules/pagefind/
 node_modules/@pagefind/
 node_modules/.bin/pagefind
 node_modules/
+
+# Generated site artifacts
+docs/.vitepress/dist/
+
+# Generated site artifacts
+docs/public/atom.xml
