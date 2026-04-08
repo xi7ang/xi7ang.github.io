@@ -3,7 +3,7 @@
 
 --------------
 
-<ResourceTabs category="healthy" :months="[]" />
+<ResourceTabs category="healthy" :months="['202604']" />
 
 ---------------
 ### 项目更多资源
