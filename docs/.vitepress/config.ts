@@ -232,6 +232,7 @@ export default defineConfig({
   themeConfig: {
     nav: [
       { text: '点击加入QQ群：1095868992', link: 'https://qm.qq.com/q/EkPkbcVMaY' },
+      { text: '📣 加入 Telegram 社群', link: 'https://t.me/xi7ang' },
       { text: '首页', link: '/' },
       { text: '所有资源', link: '/AIknowledge/' }, // 指向第一个资源分类，用户可以通过侧边栏切换
       { text: '💖 赞赏支持', link: '/support' },
