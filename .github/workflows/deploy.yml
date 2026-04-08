@@ -47,7 +47,7 @@ jobs:
           mkdir -p content-source
 
           # List of content repositories
-          repos=("AIknowledge" "auto" "book" "chinese-traditional" "cross-border" "curriculum" "edu-knowlege" "healthy" "movies" "self-media" "tools")
+          repos=("AIknowledge" "auto" "book" "chinese-traditional" "cross-border" "curriculum" "edu-knowlege" "games" "healthy" "movies" "self-media" "tools")
           failed_repos=()
 
           # Clone each repository

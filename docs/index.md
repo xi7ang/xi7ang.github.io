@@ -26,6 +26,12 @@ features:
     link: "/AIknowledge/"
     linkText: "探索AI资源 →"
   
+  - icon: "🎮"
+    title: "游戏资源"
+    details: "PC游戏、主机游戏、安卓手游、MOD、修改器、攻略等持续更新的游戏合集"
+    link: "/games/"
+    linkText: "进入游戏区 →"
+  
   - icon: "📖"
     title: "书籍资料"
     details: "电子书、技术文档、学术论文、小说文学、专业教材等丰富阅读资源"

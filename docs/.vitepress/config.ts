@@ -84,7 +84,7 @@ export default defineConfig({
     ['meta', { name: 'twitter:image', content: '/og-image.png' }],
     
     // SEO 关键字和其他元标签
-    ['meta', { name: 'keywords', content: '免费资源下载,AI知识,书籍资料,跨境电商,自媒体,教育资源,健康养生,影视资源,工具软件,100T资源,网盘资源,夸克网盘,阿里网盘' }],
+    ['meta', { name: 'keywords', content: '免费资源下载,AI知识,游戏资源,Steam游戏,安卓游戏,书籍资料,跨境电商,自媒体,教育资源,健康养生,影视资源,工具软件,100T资源,网盘资源,夸克网盘,阿里网盘' }],
     ['meta', { name: 'author', content: 'xi7ang 资源收集站' }],
     ['meta', { name: 'robots', content: 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1' }],
     ['meta', { name: 'revisit-after', content: '1 days' }],
@@ -290,6 +290,14 @@ export default defineConfig({
             items: [
               { text: '教育知识主页', link: '/edu-knowlege/' },
               ...getSidebarItems('edu-knowlege')
+            ]
+          },
+          {
+            text: '游戏资源',
+            collapsed: true,
+            items: [
+              { text: '游戏资源主页', link: '/games/' },
+              ...getSidebarItems('games')
             ]
           },
           {

@@ -17,6 +17,7 @@ CONTENT_REPOS=(
   "cross-border"
   "curriculum"
   "edu-knowlege"
+  "games"
   "healthy"
   "movies"
   "self-media"
