@@ -16,6 +16,9 @@ hero:
       text: "📞 加入QQ群交流"
       link: "https://qm.qq.com/q/EkPkbcVMaY"
     - theme: alt
+      text: "📣 加入Telegram资源社群"
+      link: "https://t.me/xi7ang"
+    - theme: alt
       text: "⭐ 项目开源 GitHub"
       link: "https://github.com/xi7ang"
 
@@ -168,7 +171,7 @@ QQ群 1095868992
 
 💡 **温馨提示**: 所有资源仅供学习交流使用，请支持正版。如有版权问题，请及时联系我们处理。
 
-📧 **联系方式**: 3511035605@qq.com | QQ群: [1095868992](https://qm.qq.com/q/EkPkbcVMaY)
+📧 **联系方式**: 3511035605@qq.com | QQ群: [1095868992](https://qm.qq.com/q/EkPkbcVMaY) | Telegram: [@xi7ang](https://t.me/xi7ang)
 
 <UpdateTime />
 
