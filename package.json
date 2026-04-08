@@ -4,10 +4,13 @@
   "type": "module",
   "scripts": {
     "dev": "vitepress dev docs",
-    "build": "vitepress build docs && pagefind --site docs/.vitepress/dist --output-path docs/.vitepress/dist/pagefind",
+    "generate-atom": "node scripts/generate-atom.js",
+    "build": "vitepress build docs",
     "serve": "vitepress serve docs",
     "fetch-commits": "node scripts/fetch-commits.js",
-    "postbuild": "pagefind --site docs/.vitepress/dist --output-path docs/.vitepress/dist/pagefind"
+    "build:search": "pagefind --site docs/.vitepress/dist --output-path docs/.vitepress/dist/pagefind",
+    "prebuild": "npm run generate-atom",
+    "postbuild": "npm run build:search"
   },
   "devDependencies": {
     "@pagefind/default-ui": "^1.5.0",

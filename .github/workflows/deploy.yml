@@ -41,26 +41,36 @@ jobs:
 
       - name: Checkout content repositories
         run: |
+          set -euo pipefail
+
           # Create directory for content sources
           mkdir -p content-source
-          
+
           # List of content repositories
           repos=("AIknowledge" "auto" "book" "chinese-traditional" "cross-border" "curriculum" "edu-knowlege" "healthy" "movies" "self-media" "tools")
-          
+          failed_repos=()
+
           # Clone each repository
           for repo in "${repos[@]}"; do
             echo "Cloning $repo..."
-            git clone "https://github.com/xi7ang/$repo.git" "content-source/$repo" || {
-              echo "Warning: Failed to clone $repo, skipping..."
-            }
+            if ! git clone --depth 1 "https://github.com/xi7ang/$repo.git" "content-source/$repo"; then
+              echo "::error::Failed to clone $repo"
+              failed_repos+=("$repo")
+            fi
           done
+
+          if [ ${#failed_repos[@]} -gt 0 ]; then
+            echo "Failed content repositories: ${failed_repos[*]}"
+            exit 1
+          fi
 
       - name: Copy latest content from all repositories
         run: |
           # Set up paths
           export SOURCE_BASE_DIR="./content-source"
           export TARGET_DOCS_DIR="./docs"
-          
+          export REQUIRE_ALL_REPOS="true"
+
           # Run the content synchronization
           bash ./copy_content.sh
 

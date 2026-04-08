@@ -6,6 +6,7 @@ shopt -s nullglob
 SOURCE_BASE_DIR="${SOURCE_BASE_DIR:-./}"
 # Define the target directory for VitePress docs
 TARGET_DOCS_DIR="${TARGET_DOCS_DIR:-xi7ang.github.io/docs}"
+REQUIRE_ALL_REPOS="${REQUIRE_ALL_REPOS:-false}"
 
 # List of content repositories (directories)
 CONTENT_REPOS=(
@@ -21,6 +22,8 @@ CONTENT_REPOS=(
   "self-media"
   "tools"
 )
+
+MISSING_REPOS=()
 
 update_resource_tabs_months() {
   local source_repo_path="$1"
@@ -73,6 +76,7 @@ PY
 echo "Starting content synchronization..."
 echo "Source: $SOURCE_BASE_DIR"
 echo "Target: $TARGET_DOCS_DIR"
+echo "Require all repositories: $REQUIRE_ALL_REPOS"
 
 mkdir -p "$TARGET_DOCS_DIR"
 mkdir -p "$TARGET_DOCS_DIR/public"
@@ -98,7 +102,8 @@ for REPO in "${CONTENT_REPOS[@]}"; do
   echo "Processing repository: $REPO"
 
   if [ ! -d "$SOURCE_REPO_PATH" ]; then
-    echo "  - Warning: Source directory $SOURCE_REPO_PATH not found, skipping"
+    echo "  - Error: Source directory $SOURCE_REPO_PATH not found"
+    MISSING_REPOS+=("$REPO")
     continue
   fi
 
@@ -149,6 +154,14 @@ for REPO in "${CONTENT_REPOS[@]}"; do
     fi
   done
 done
+
+if [ ${#MISSING_REPOS[@]} -gt 0 ]; then
+  echo "Missing source repositories: ${MISSING_REPOS[*]}"
+  if [ "$REQUIRE_ALL_REPOS" = "true" ]; then
+    echo "Failing because REQUIRE_ALL_REPOS=true"
+    exit 1
+  fi
+fi
 
 echo "Content copying and image path modification complete."
 echo "Summary: Processed ${#CONTENT_REPOS[@]} repositories"

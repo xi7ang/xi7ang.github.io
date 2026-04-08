@@ -62,6 +62,7 @@ export default defineConfig({
     
     // PWA 相关
     ['link', { rel: 'manifest', href: '/site.webmanifest' }],
+    ['link', { rel: 'alternate', type: 'application/atom+xml', title: 'xi7ang 资源收集站更新订阅', href: '/atom.xml' }],
     ['meta', { name: 'msapplication-TileColor', content: '#2d89ef' }],
     ['meta', { name: 'msapplication-TileImage', content: '/mstile-144x144.png' }],
     ['meta', { name: 'msapplication-config', content: '/browserconfig.xml' }],
