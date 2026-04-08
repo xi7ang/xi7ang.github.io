@@ -2,7 +2,10 @@
 书籍资料相关的，包括各种教程、小说、哲学巨著等上千种书籍，持续更新中
 
 ### 推荐阅读
-[免费书籍资料网站推荐：电子书资源、学习资料与精品书单下载指南](/book/book-resources-guide)
+- [免费书籍资料网站推荐：电子书资源、学习资料与精品书单下载指南](/book/book-resources-guide)
+- [电子书资源网站怎么选：免费电子书、学习资料与长期收藏指南](/book/ebook-resources-site-guide)
+- [学习资料网站推荐：如何高效找到电子书、教程和长期可用资源](/book/study-materials-site-guide)
+- [精品书单推荐网站怎么找：书籍资料、阅读资源与专题书单整理思路](/book/curated-booklists-guide)
 
 ----------------
 
