@@ -38,9 +38,7 @@ export default defineConfig({
       }
     }
   },
-  markdown: {
-    deadLinks: false,
-  },
+  ignoreDeadLinks: true,
   description: "超过100T免费资源下载站，包含AI知识、书籍资料、跨境电商、自媒体、教育、健康、影视、工具等海量资源，持续更新中",
   head: [
     // 基础网站图标配置
