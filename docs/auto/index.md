@@ -183,7 +183,7 @@ Skills 存放在两个位置：
 已更新仓库：book、movies、curriculum
 共 5 项资源
 
-📦 https://t.me/dabaziyuan
+📦 https://t.me/xi7ang
 ```
 
 ## 推广文件
