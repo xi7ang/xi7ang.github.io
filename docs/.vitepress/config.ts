@@ -29,13 +29,18 @@ export default defineConfig({
     hostname: 'https://pan.devmini.space'
   },
   vite: {
-    assetsInclude: ['**/*.png', '**/*.jpg', '**/*.jpeg', '**/*.gif', '**/*.svg'],
+    assetsInclude: ['**/*.png', '**/*.jpg', '**/*.jpeg', '**/*.gif', '**/*.svg', '**/*.webp'],
     build: {
       rollupOptions: {
         // pagefind.js 是 pagefind CLI 构建后输出的 ES Module，不应被 Vite 打包
         // 浏览器从 /pagefind/ 路径直接加载，保留原样
         external: ['/pagefind/pagefind.js']
-      }
+      },
+      minify: 'esbuild',
+      sourcemap: false,
+    },
+    esbuild: {
+      drop: process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : [],
     }
   },
   ignoreDeadLinks: true,
@@ -73,8 +78,8 @@ export default defineConfig({
     ['meta', { property: 'og:type', content: 'website' }],
     ['meta', { property: 'og:title', content: 'xi7ang 资源收集站 | 超过 100T+ 资源' }],
     ['meta', { property: 'og:description', content: 'A collection of resources including AI, books, traditional Chinese culture, cross-border e-commerce, self-media, education, health, movies, and tools.' }],
-    ['meta', { property: 'og:image', content: '/og-image.png' }],
-    ['meta', { property: 'og:image:width', content: '1200' }],
+    ['meta', { property: 'og:image', content: '/og-image.webp' }],
+    ['meta', { property: 'og:image:width', content: '630' }],
     ['meta', { property: 'og:image:height', content: '630' }],
     ['meta', { property: 'og:url', content: 'https://pan.devmini.space' }],
     
@@ -82,7 +87,7 @@ export default defineConfig({
     ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
     ['meta', { name: 'twitter:title', content: 'xi7ang 资源收集站 | 超过 100T+ 资源' }],
     ['meta', { name: 'twitter:description', content: 'A collection of resources including AI, books, traditional Chinese culture, cross-border e-commerce, self-media, education, health, movies, and tools.' }],
-    ['meta', { name: 'twitter:image', content: '/og-image.png' }],
+    ['meta', { name: 'twitter:image', content: '/og-image.webp' }],
     
     // SEO 关键字和其他元标签
     ['meta', { name: 'keywords', content: '免费资源下载,AI知识,游戏资源,Steam游戏,安卓游戏,书籍资料,跨境电商,自媒体,教育资源,健康养生,影视资源,工具软件,100T资源,网盘资源,夸克网盘,阿里网盘' }],
@@ -127,6 +132,14 @@ export default defineConfig({
         content: 'lI-wB0SQ6fXo-tUmUtTvz_9Qa65EMnPl_9PUuxhCJoI'
       }
     ],
+    // Preconnect 加速第三方资源加载
+    ['link', { rel: 'preconnect', href: 'https://busuanzi.ibruce.info' }],
+    ['link', { rel: 'preconnect', href: 'https://pagead2.googlesyndication.com' }],
+    ['link', { rel: 'preconnect', href: 'https://js.stripe.com' }],
+    ['link', { rel: 'dns-prefetch', href: 'https://busuanzi.ibruce.info' }],
+    ['link', { rel: 'dns-prefetch', href: 'https://pagead2.googlesyndication.com' }],
+    ['link', { rel: 'dns-prefetch', href: 'https://js.stripe.com' }],
+
     [
       'script',
       {
@@ -138,7 +151,7 @@ export default defineConfig({
     [
       'script',
       {
-        async: true,
+        defer: true,
         src: 'https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js'
       }
     ],
@@ -151,82 +164,40 @@ export default defineConfig({
     ],
     [
       'script',
-      {},
+      { defer: true },
       `
-        // 全局不蒜子统计管理
+        // 全局不蒜子统计管理（defer 脚本，不阻塞 HTML 解析）
         window.busuanziReady = false;
-        
-        // 等待不蒜子脚本加载完成
-        (function() {
-          let checkCount = 0;
-          const maxChecks = 50; // 最多检查5秒
-          
-          function checkBusuanziReady() {
-            if (window.bszCaller && window.bszTag) {
-              window.busuanziReady = true;
-              console.log('不蒜子统计已就绪');
-              return;
-            }
-            
-            checkCount++;
-            if (checkCount < maxChecks) {
-              setTimeout(checkBusuanziReady, 100);
-            } else {
-              console.warn('不蒜子统计加载超时');
-            }
-          }
-          
-          // 开始检查
-          checkBusuanziReady();
-        })();
-        
-        // 刷新不蒜子统计的全局函数
         window.refreshBusuanzi = function() {
           if (window.busuanziReady && window.bszCaller) {
             try {
-              // 设置超时处理
-              const timeout = setTimeout(() => {
-                console.warn('不蒜子统计请求超时，显示默认提示');
-                window.showBusuanziError();
-              }, 8000); // 8秒超时
-              
-              // 直接调用不蒜子的 fetch 方法
+              const timeout = setTimeout(function() { window.showBusuanziError(); }, 8000);
               window.bszCaller.fetch('//busuanzi.ibruce.info/busuanzi?jsonpCallback=BusuanziCallback', function(data) {
                 clearTimeout(timeout);
-                if (window.bszTag && data) {
-                  window.bszTag.texts(data);
-                  window.bszTag.shows();
-                  console.log('不蒜子统计已刷新');
-                } else {
-                  console.error('不蒜子数据无效');
-                  window.showBusuanziError();
-                }
+                if (window.bszTag && data) { window.bszTag.texts(data); window.bszTag.shows(); }
+                else { window.showBusuanziError(); }
               });
-            } catch (e) {
-              console.error('刷新不蒜子统计失败:', e);
-              window.showBusuanziError();
-            }
-          } else {
-            console.warn('不蒜子未就绪，稍后重试');
-            setTimeout(() => window.refreshBusuanzi(), 2000);
-          }
+            } catch (e) { window.showBusuanziError(); }
+          } else { setTimeout(function() { window.refreshBusuanzi(); }, 2000); }
         };
-        
-        // 显示错误信息的函数
         window.showBusuanziError = function() {
-          const uvElement = document.getElementById('busuanzi_value_site_uv');
-          const pvElement = document.getElementById('busuanzi_value_site_pv');
-          
-          if (uvElement) uvElement.textContent = '统计服务暂时不可用';
-          if (pvElement) pvElement.textContent = '统计服务暂时不可用';
-          
-          // 隐藏容器以避免显示奇怪的文本
-          const uvContainer = document.getElementById('busuanzi_container_site_uv');
-          const pvContainer = document.getElementById('busuanzi_container_site_pv');
-          
-          if (uvContainer) uvContainer.style.display = 'none';
-          if (pvContainer) pvContainer.style.display = 'none';
+          var uv = document.getElementById('busuanzi_value_site_uv');
+          var pv = document.getElementById('busuanzi_value_site_pv');
+          var uvc = document.getElementById('busuanzi_container_site_uv');
+          var pvc = document.getElementById('busuanzi_container_site_pv');
+          if (uv) uv.textContent = '统计服务暂时不可用';
+          if (pv) pv.textContent = '统计服务暂时不可用';
+          if (uvc) uvc.style.display = 'none';
+          if (pvc) pvc.style.display = 'none';
         };
+        (function() {
+          var count = 0;
+          function check() {
+            if (window.bszCaller && window.bszTag) { window.busuanziReady = true; return; }
+            if (++count < 50) setTimeout(check, 100);
+          }
+          check();
+        })();
       `
     ]
   ],
