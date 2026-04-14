@@ -4,6 +4,7 @@
     <CategoryPage
       v-else-if="isCategory"
       :category="currentCategory"
+      :key="route.path"
     />
     <div v-else class="default-content">
       <Content />

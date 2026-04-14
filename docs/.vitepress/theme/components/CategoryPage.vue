@@ -103,8 +103,8 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
-import ResourceGrid from './ResourceGrid.vue'
 import { useRoute } from 'vitepress'
+import ResourceGrid from './ResourceGrid.vue'
 
 const PAGE_SIZE = 24
 
