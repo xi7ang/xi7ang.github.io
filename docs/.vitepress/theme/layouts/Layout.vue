@@ -1,12 +1,12 @@
 <template>
-  <div class="custom-layout">
+  <div class="layout">
     <HomepageHero v-if="isHome" />
     <CategoryPage
       v-else-if="isCategory"
       :category="currentCategory"
       :key="route.path"
     />
-    <div v-else class="default-content">
+    <div v-else class="default">
       <Content />
     </div>
     <SiteFooter />
@@ -22,38 +22,23 @@ import SiteFooter from '../components/SiteFooter.vue'
 
 const route = useRoute()
 
-const CATEGORIES = [
+const CATS = [
   'AIknowledge', 'book', 'chinese-traditional', 'cross-border',
   'curriculum', 'edu-knowlege', 'games', 'healthy',
-  'movies', 'self-media', 'tools', 'auto', 'movie-recommendations',
+  'movies', 'self-media', 'tools', 'auto',
 ]
 
-const isHome = computed(() => route.path === '/')
+const isHome = computed(() => route.path === '/' || route.path === '/index')
 
 const isCategory = computed(() => {
-  const segs = route.path.replace(/^\//, '').split('/')
-  return CATEGORIES.includes(segs[0]) && (segs[1] === '' || !segs[1] || segs[1]?.startsWith('?'))
+  const seg = route.path.replace(/^\//, '').split('/')[0]
+  return CATS.includes(seg)
 })
 
-const currentCategory = computed(() => {
-  const segs = route.path.replace(/^\//, '').split('/')
-  return segs[0] || ''
-})
+const currentCategory = computed(() => route.path.replace(/^\//, '').split('/')[0])
 </script>
 
 <style scoped>
-.custom-layout {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
-.default-content {
-  flex: 1;
-  max-width: var(--vp-layout-max-width);
-  margin: 0 auto;
-  padding: 2rem 1.5rem;
-  width: 100%;
-  box-sizing: border-box;
-}
+.layout { min-height: 100vh; }
+.default { max-width: var(--vp-layout-max-width); margin: 0 auto; padding: 2rem 1.5rem; }
 </style>
