@@ -101,7 +101,8 @@
             v-for="(item, i) in displayedItems"
             :key="item.title + i"
             :item="item"
-            class="animate-in"
+            :data-title="item.title"
+            :class="['animate-in', { 'rc-highlight': highlightedTitle && i === 0 }]"
             :style="{ animationDelay: `${(i % 4) * 60}ms` }"
           />
         </div>
@@ -172,6 +173,7 @@ const showBackTop = ref(false)
 const displayedCount = ref(PAGE_SIZE)
 const loadingMore = ref(false)
 const dataLoaded = ref(false)
+const highlightedTitle = ref('')
 
 const CAT_EMOJIS = {
   'AIknowledge': '🤖', 'book': '📚', 'curriculum': '🎓', 'tools': '🔧',
@@ -257,9 +259,10 @@ function onScroll() {
   showBackTop.value = window.scrollY > 400
 }
 
-// Reset pagination when search/month changes
+// Reset pagination and clear highlight when user types or changes filter
 watch([localSearch, activeMonth], () => {
   displayedCount.value = PAGE_SIZE
+  highlightedTitle.value = ''
 })
 
 onMounted(async () => {
@@ -273,15 +276,15 @@ onMounted(async () => {
     // Auto-scroll to first matching item if arriving from homepage search
     const q = route.query.q
     if (q) {
-      localSearch.value = decodeURIComponent(String(q))
+      const decoded = decodeURIComponent(String(q))
+      localSearch.value = decoded
+      highlightedTitle.value = decoded
       await nextTick()
-      setTimeout(() => {
-        const firstCard = document.querySelector('.resource-card')
-        if (firstCard) {
-          const offset = firstCard.getBoundingClientRect().top + window.scrollY - 80
-          window.scrollTo({ top: offset, behavior: 'smooth' })
-        }
-      }, 200)
+      // Find the first rendered card matching the highlighted title
+      const target = document.querySelector(`[data-title="${CSS.escape(decoded)}"]`)
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
     }
   } catch {
     if (window.__RESOURCES__) {
