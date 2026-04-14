@@ -1,20 +1,14 @@
 <template>
   <div class="homepage-hero">
-    <!-- 搜索区 -->
-    <div class="search-section">
-      <div class="search-box">
-        <span class="search-icon">🔍</span>
-        <input
-          v-model="searchQuery"
-          type="text"
-          placeholder="搜索 100T+ 免费资源..."
-          class="search-input"
-          @input="handleSearch"
-          @keydown.enter="doSearch"
-        />
-        <button class="search-btn" @click="doSearch">搜索</button>
-      </div>
+    <!-- 全局搜索触发区 -->
+    <div class="search-trigger" @click="searchRef?.open()">
+      <span class="trigger-icon">🔍</span>
+      <span class="trigger-text">搜索 100T+ 免费资源...</span>
+      <span class="trigger-shortcut"><kbd>/</kbd></span>
     </div>
+
+    <!-- GlobalSearch 模态框 -->
+    <GlobalSearch ref="searchRef" />
 
     <!-- 分类卡片网格 -->
     <div class="categories-section">
@@ -43,36 +37,33 @@
     <div v-if="recentResources.length" class="recent-section">
       <h2 class="section-title">
         <span>🕐</span> 最近更新
-        <a href="#" @click.prevent="showAll = !showAll" class="section-toggle">
-          {{ showAll ? '收起' : '展开全部' }}
-        </a>
+        <button class="section-toggle" @click="showAll = !showAll">
+          {{ showAll ? '收起' : `展开全部 (${recentResources.length})` }}
+        </button>
       </h2>
-      <div class="recent-scroll" :class="{ expanded: showAll }">
-        <div class="recent-grid">
+      <div class="recent-grid-wrap">
+        <div class="recent-grid" :class="{ 'show-all': showAll }">
           <ResourceCard
-            v-for="(r, i) in (showAll ? recentResources : recentResources.slice(0, 8))"
+            v-for="(r, i) in (showAll ? paginatedRecent : recentResources.slice(0, 8))"
             :key="i"
             :resource="r"
             :compact="true"
           />
         </div>
       </div>
-    </div>
-
-    <!-- 搜索结果 -->
-    <div v-if="searchResults.length" class="results-section">
-      <h2 class="section-title">
-        <span>🔍</span> 搜索结果
-        <span class="section-sub">找到 {{ searchResults.length }} 条相关资源</span>
-      </h2>
-      <ResourceGrid :resources="searchResults" :columns="2" />
+      <div v-if="recentResources.length > 8 && !showAll" class="load-more-row">
+        <button class="load-more-btn" @click="showAll = true">
+          查看全部 {{ recentResources.length }} 条最近更新 ↓
+        </button>
+      </div>
     </div>
 
     <!-- 平台统计 -->
     <div class="stats-section">
+      <h2 class="section-title"><span>📊</span> 站点统计</h2>
       <div class="stats-grid">
         <div class="stat-item">
-          <div class="stat-value">{{ totalResources }}</div>
+          <div class="stat-value">{{ totalResources.toLocaleString() }}</div>
           <div class="stat-label">资源总数</div>
         </div>
         <div class="stat-item">
@@ -95,14 +86,13 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import ResourceCard from './ResourceCard.vue'
-import ResourceGrid from './ResourceGrid.vue'
+import GlobalSearch from './GlobalSearch.vue'
 
+const searchRef = ref<InstanceType<typeof GlobalSearch> | null>(null)
 const allResources = ref<any[]>([])
-const searchQuery = ref('')
-const searchResults = ref<any[]>([])
 const showAll = ref(false)
 
-const categoryMap: Record<string, { icon: string; label: string }> = {
+const CATEGORY_MAP: Record<string, { icon: string; label: string }> = {
   AIknowledge:        { icon: '🤖', label: 'AI知识' },
   book:               { icon: '📖', label: '书籍资料' },
   'chinese-traditional': { icon: '🏛️', label: '传统文化' },
@@ -122,8 +112,9 @@ const categoryList = computed(() => {
   for (const r of allResources.value) {
     counts[r.category] = (counts[r.category] || 0) + 1
   }
-  return Object.entries(categoryMap)
+  return Object.entries(CATEGORY_MAP)
     .map(([id, v]) => ({ id, ...v, count: counts[id] || 0 }))
+    .filter(c => c.count > 0)
     .sort((a, b) => b.count - a.count)
 })
 
@@ -135,11 +126,12 @@ const platformCount = computed(() => {
   return c
 })
 
-const recentResources = computed(() => {
-  return [...allResources.value]
+const recentResources = computed(() =>
+  [...allResources.value]
     .sort((a, b) => b.month.localeCompare(a.month))
-    .slice(0, 20)
-})
+)
+
+const paginatedRecent = computed(() => recentResources.value)
 
 const recentMonth = computed(() => {
   const months = allResources.value.map(r => r.month).filter(Boolean)
@@ -149,27 +141,10 @@ const recentMonth = computed(() => {
   return latest || '—'
 })
 
-function handleSearch() {
-  if (!searchQuery.value.trim()) {
-    searchResults.value = []
-    return
-  }
-  const q = searchQuery.value.toLowerCase()
-  searchResults.value = allResources.value.filter(r =>
-    r.title.toLowerCase().includes(q) ||
-    r.category.toLowerCase().includes(q)
-  ).slice(0, 50)
-}
-
-function doSearch() {
-  handleSearch()
-}
-
 onMounted(() => {
   if (Array.isArray(window.__RESOURCES__)) {
     allResources.value = window.__RESOURCES__
   } else {
-    // fallback: try to load from dist
     fetch('/resources.json')
       .then(r => r.json())
       .then(data => { allResources.value = data })
@@ -182,65 +157,59 @@ onMounted(() => {
 .homepage-hero {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem 1.5rem;
+  padding: 2.5rem 1.5rem 3rem;
   display: flex;
   flex-direction: column;
-  gap: 3rem;
+  gap: 3.5rem;
 }
 
-/* 搜索区 */
-.search-section { width: 100%; }
-
-.search-box {
+/* 搜索触发区 */
+.search-trigger {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  padding: 1rem 1.5rem;
   background: var(--vp-c-bg);
   border: 2px solid var(--vp-c-border);
   border-radius: 16px;
-  padding: 0.75rem 1.25rem;
-  transition: border-color 0.2s;
-}
-
-.search-box:focus-within {
-  border-color: var(--vp-c-brand-1);
-}
-
-.search-icon { font-size: 1.2rem; flex-shrink: 0; }
-
-.search-input {
-  flex: 1;
-  border: none;
-  background: transparent;
-  font-size: 1rem;
-  color: var(--vp-c-text-1);
-  outline: none;
-  min-width: 0;
-}
-
-.search-input::placeholder { color: var(--vp-c-text-3); }
-
-.search-btn {
-  padding: 0.5rem 1.25rem;
-  background: var(--vp-c-brand-1);
-  color: #fff;
-  border: none;
-  border-radius: 10px;
-  font-size: 0.9rem;
-  font-weight: 600;
   cursor: pointer;
-  flex-shrink: 0;
-  transition: background 0.2s;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
-.search-btn:hover { background: var(--vp-c-brand-2); }
+.search-trigger:hover {
+  border-color: var(--vp-c-brand-1);
+  box-shadow: 0 4px 16px rgba(var(--vp-c-brand-rgb, 0, 0, 0), 0.1);
+}
+
+.trigger-icon { font-size: 1.3rem; flex-shrink: 0; }
+
+.trigger-text {
+  flex: 1;
+  font-size: 1rem;
+  color: var(--vp-c-text-3);
+  text-align: left;
+}
+
+.trigger-shortcut { flex-shrink: 0; }
+
+.trigger-shortcut kbd {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.5rem;
+  background: var(--vp-c-bg-soft);
+  border: 1px solid var(--vp-c-border);
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-family: monospace;
+  color: var(--vp-c-text-2);
+}
 
 /* 分类网格 */
 .category-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 1rem;
-  margin-top: 1rem;
 }
 
 .category-card {
@@ -262,9 +231,7 @@ onMounted(() => {
 }
 
 .cat-icon { font-size: 1.75rem; flex-shrink: 0; }
-
 .cat-info { flex: 1; min-width: 0; }
-
 .cat-name {
   font-size: 0.95rem;
   font-weight: 600;
@@ -273,28 +240,18 @@ onMounted(() => {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-
-.cat-count {
-  font-size: 0.75rem;
-  color: var(--vp-c-text-3);
-  margin-top: 0.2rem;
-}
-
-.cat-arrow {
-  font-size: 1.5rem;
-  color: var(--vp-c-text-3);
-  flex-shrink: 0;
-}
+.cat-count { font-size: 0.75rem; color: var(--vp-c-text-3); margin-top: 0.2rem; }
+.cat-arrow { font-size: 1.5rem; color: var(--vp-c-text-3); flex-shrink: 0; }
 
 /* 区块标题 */
 .section-title {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 1.25rem;
+  font-size: 1.2rem;
   font-weight: 700;
   color: var(--vp-c-text-1);
-  margin: 0 0 1rem 0;
+  margin: 0 0 1.2rem 0;
   border-bottom: 2px solid var(--vp-c-border);
   padding-bottom: 0.5rem;
 }
@@ -308,23 +265,47 @@ onMounted(() => {
 
 .section-toggle {
   margin-left: auto;
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   font-weight: 500;
   color: var(--vp-c-brand-1);
-  text-decoration: none;
+  background: none;
+  border: none;
   cursor: pointer;
+  padding: 0;
 }
 
 /* 最近更新 */
-.recent-scroll { overflow-x: auto; }
-.recent-scroll::-webkit-scrollbar { height: 6px; }
-.recent-scroll::-webkit-scrollbar-thumb { background: var(--vp-c-border); border-radius: 3px; }
+.recent-grid-wrap { overflow-x: auto; }
+.recent-grid-wrap::-webkit-scrollbar { height: 6px; }
+.recent-grid-wrap::-webkit-scrollbar-thumb { background: var(--vp-c-border); border-radius: 3px; }
 
 .recent-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 1rem;
   min-width: 600px;
+}
+
+.load-more-row {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.25rem;
+}
+
+.load-more-btn {
+  padding: 0.6rem 1.5rem;
+  background: var(--vp-c-bg-soft);
+  border: 1px solid var(--vp-c-border);
+  border-radius: 10px;
+  font-size: 0.85rem;
+  color: var(--vp-c-brand-1);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.load-more-btn:hover {
+  background: var(--vp-c-brand-soft);
+  border-color: var(--vp-c-brand-1);
 }
 
 /* 统计区 */
@@ -339,24 +320,17 @@ onMounted(() => {
 }
 
 .stat-item { text-align: center; }
-
 .stat-value {
   font-size: 1.75rem;
   font-weight: 800;
   color: var(--vp-c-brand-1);
   line-height: 1.2;
 }
-
-.stat-label {
-  font-size: 0.8rem;
-  color: var(--vp-c-text-3);
-  margin-top: 0.25rem;
-}
+.stat-label { font-size: 0.8rem; color: var(--vp-c-text-3); margin-top: 0.25rem; }
 
 @media (max-width: 640px) {
-  .homepage-hero { padding: 1.5rem 1rem; gap: 2rem; }
+  .homepage-hero { padding: 1.5rem 1rem 2rem; gap: 2.5rem; }
   .stats-grid { grid-template-columns: repeat(2, 1fr); }
   .category-grid { grid-template-columns: 1fr 1fr; }
-  .recent-grid { grid-template-columns: 1fr; }
 }
 </style>

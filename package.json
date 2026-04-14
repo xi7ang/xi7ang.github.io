@@ -5,11 +5,11 @@
   "scripts": {
     "dev": "vitepress dev docs",
     "generate-atom": "node scripts/generate-atom.js",
-    "build": "vitepress build docs",
+    "build": "node scripts/parse-resources.js && node scripts/build-search-index.js && vitepress build docs",
     "serve": "vitepress serve docs",
     "fetch-commits": "node scripts/fetch-commits.js",
     "build:search": "pagefind --site docs/.vitepress/dist --output-path docs/.vitepress/dist/pagefind",
-    "prebuild": "node scripts/parse-resources.js && npm run generate-atom",
+    "prebuild": "node scripts/parse-resources.js && node scripts/build-search-index.js && npm run generate-atom",
     "postbuild": "npm run build:search"
   },
   "devDependencies": {
@@ -22,6 +22,7 @@
   "dependencies": {
     "@rollup/rollup-linux-x64-gnu": "^4.60.1",
     "flexsearch": "^0.8.205",
+    "fuse.js": "^6.6.2",
     "markdown-it": "^14.1.0"
   },
   "pnpm": {
