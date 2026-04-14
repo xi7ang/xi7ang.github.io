@@ -19,11 +19,11 @@
         @click="setMonth(null)"
       >全部</button>
       <button
-        v-for="m in availableMonths"
-        :key="m"
-        :class="['pill', { active: activeMonth === m }]"
-        @click="setMonth(m)"
-      >{{ formatMonth(m) }}</button>
+        v-for="item in availableMonths"
+        :key="item.month"
+        :class="['pill', { active: activeMonth === item.month }]"
+        @click="setMonth(item.month)"
+      >{{ formatMonth(item) }} ({{ item.count }})</button>
     </div>
 
     <!-- 搜索 & 排序 -->
@@ -178,16 +178,29 @@ const visiblePages = computed(() => {
   return pages
 })
 
-const availableMonths = computed(() =>
-  [...new Set(allResources.value.filter(r => r.category === props.category).map(r => r.month).filter(Boolean))]
+const availableMonths = computed(() => {
+  const counts: Record<string, number> = {}
+  for (const r of allResources.value) {
+    if (r.category === props.category && r.month) counts[r.month] = (counts[r.month] || 0) + 1
+  }
+  return [...new Set(Object.keys(counts))]
     .sort((a, b) => b.localeCompare(a))
-)
+    .map(m => ({ month: m, count: counts[m] }))
+})
 
-function formatMonth(m: string) {
-  return m?.length === 6 ? `${m.slice(0, 4)}/${m.slice(4, 6)}` : m
+function formatMonth(m: string | { month: string; count: number }) {
+  const s = typeof m === 'string' ? m : m.month
+  return s?.length === 6 ? `${s.slice(0, 4)}/${s.slice(4, 6)}` : s
 }
 
-function setMonth(m: string | null) { activeMonth.value = m; currentPage.value = 1 }
+function syncUrl(month: string | null) {
+  const url = new URL(window.location.href)
+  if (month) url.searchParams.set('month', month)
+  else url.searchParams.delete('month')
+  history.replaceState(null, '', url.toString())
+}
+
+function setMonth(m: string | null) { activeMonth.value = m; currentPage.value = 1; syncUrl(m) }
 function reset() { localSearch.value = ''; activeMonth.value = null; currentPage.value = 1 }
 
 watch([localSearch, activeMonth], () => { currentPage.value = 1 })

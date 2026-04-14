@@ -41,9 +41,7 @@
             <span class="cat-name">{{ cat.label }}</span>
             <span class="cat-count">{{ cat.count.toLocaleString() }} 条</span>
           </div>
-          <svg class="cat-arrow" viewBox="0 0 16 16" fill="none">
-            <path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
+          <span class="cat-cta">查看全部 →</span>
         </a>
       </div>
     </div>

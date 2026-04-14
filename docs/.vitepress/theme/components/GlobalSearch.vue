@@ -82,7 +82,7 @@
               <div class="result-left">
                 <span class="result-platform-dot" :style="{ background: platformColor(item.platform) }"></span>
                 <div class="result-info">
-                  <div class="result-title">{{ item.title }}</div>
+                  <div class="result-title" v-html="highlight(item.title, query)"></div>
                   <div class="result-tags">
                     <span class="result-tag">{{ item.categoryLabel }}</span>
                     <span class="result-tag">{{ item.platformLabel }}</span>
@@ -90,6 +90,7 @@
                   </div>
                 </div>
               </div>
+              <button class="cat-btn" @click.stop="openCategory(item)">查看分类</button>
               <svg class="result-arrow" viewBox="0 0 16 16" fill="none">
                 <path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
@@ -181,7 +182,17 @@ function openSelected() {
 
 function openItem(item: SearchItem) {
   if (item.url) window.open(item.url, '_blank', 'noopener,noreferrer')
+}
+
+function openCategory(item: SearchItem) {
+  window.location.href = `/${item.category}/`
   close()
+}
+
+function highlight(text: string, q: string): string {
+  if (!q || !q.trim()) return text
+  const escaped = q.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  return text.replace(new RegExp(escaped, 'gi'), m => `<mark>${m}</mark>`)
 }
 
 function close() {
@@ -424,6 +435,28 @@ kbd {
 .result-tag.pwd { color: var(--vp-c-brand-1); border-color: var(--vp-c-brand-1); }
 
 .result-arrow { width: 16px; height: 16px; color: var(--vp-c-text-3); flex-shrink: 0; }
+
+.result-title :deep(mark) {
+  background: rgba(255, 200, 0, 0.3);
+  color: inherit;
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
+.cat-btn {
+  padding: 0.2rem 0.5rem;
+  background: var(--vp-c-bg-soft);
+  border: 1px solid var(--vp-c-border);
+  border-radius: 5px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--vp-c-brand-1);
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+.cat-btn:hover { background: var(--vp-c-brand-soft); border-color: var(--vp-c-brand-1); }
 
 /* Mobile */
 @media (max-width: 640px) {

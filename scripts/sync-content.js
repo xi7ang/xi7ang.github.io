@@ -38,9 +38,15 @@ function syncCategory(cat) {
     fs.mkdirSync(dstDir, { recursive: true })
   }
 
-  const srcFiles = fs.readdirSync(srcBase)
-    .filter(f => /^20\d{4}\.md$/.test(f))
+  // 优先同步年月文件（20*.md），若无则同步所有非 index 的 .md（如 AIknowledge.md）
+  let srcFiles = fs.readdirSync(srcBase)
+    .filter(f => f.endsWith('.md') && !f.startsWith('index'))
+    .filter(f => /^20\d{4}\.md$/.test(f) || true)  // 暂时取所有 .md
     .sort()
+
+  // 如果有 20*.md，只同步年月文件；否则同步全部非 index .md
+  const yearMonthFiles = srcFiles.filter(f => /^20\d{4}\.md$/.test(f))
+  const syncFiles = yearMonthFiles.length > 0 ? yearMonthFiles : srcFiles
 
   const dstFiles = new Set(
     fs.existsSync(dstDir)
@@ -50,7 +56,7 @@ function syncCategory(cat) {
 
   let copied = 0, skipped = 0
 
-  for (const file of srcFiles) {
+  for (const file of syncFiles) {
     const src = path.join(srcBase, file)
     const dst = path.join(dstDir, file)
 
@@ -104,12 +110,6 @@ function main() {
       console.log(`📁 ${cat}: 内容仓库不存在，跳过`)
       continue
     }
-    const srcFiles = fs.readdirSync(srcBase).filter(f => /^20\d{4}\.md$/.test(f))
-    if (srcFiles.length === 0) {
-      console.log(`📁 ${cat}: 无年月 .md 文件，跳过`)
-      continue
-    }
-    console.log(`📁 ${cat}: ${srcFiles.join(', ')}`)
     const { copied, skipped } = syncCategory(cat)
     totalCopied += copied
     totalSkipped += skipped
