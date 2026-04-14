@@ -251,6 +251,32 @@ function loadMore() {
   }, 300)
 }
 
+// Find first rendered card matching title, scroll + highlight it
+async function scrollToTitle(targetTitle) {
+  await nextTick()
+  const allCards = document.querySelectorAll('.resource-card')
+  for (const card of allCards) {
+    if (card.dataset.title === targetTitle) {
+      card.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      return true
+    }
+  }
+  return false
+}
+
+// Keep loading more until we find the target card (for deep paginated results)
+async function loadMoreUntilTitleFound(targetTitle) {
+  while (hasMore.value) {
+    loadingMore.value = true
+    displayedCount.value += PAGE_SIZE
+    await new Promise(r => setTimeout(r, 200))
+    loadingMore.value = false
+    await nextTick()
+    const found = await scrollToTitle(targetTitle)
+    if (found) return
+  }
+}
+
 function scrollToTop() {
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
@@ -272,18 +298,16 @@ onMounted(async () => {
     const data = await res.json()
     allResources.value = data
     dataLoaded.value = true
-    await nextTick()
-    // Auto-scroll to first matching item if arriving from homepage search
     const q = route.query.q
     if (q) {
       const decoded = decodeURIComponent(String(q))
       localSearch.value = decoded
       highlightedTitle.value = decoded
-      await nextTick()
-      // Find the first rendered card matching the highlighted title
-      const target = document.querySelector(`[data-title="${CSS.escape(decoded)}"]`)
-      if (target) {
-        target.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      // Try scroll immediately (card may already be in first page)
+      const found = await scrollToTitle(decoded)
+      // If not found, keep loading more until it appears
+      if (!found) {
+        await loadMoreUntilTitleFound(decoded)
       }
     }
   } catch {
