@@ -3,6 +3,17 @@ import { defineConfig } from 'vitepress'
 import fs from 'node:fs'
 import path from 'node:path'
 
+// Inject init.js as the FIRST script in HTML via Vite transform
+function injectInitScript() {
+  return {
+    name: 'inject-init-script',
+    transformIndexHtml(html) {
+      const initScript = '<script src="/init.js"></script>'
+      return html.replace(/<head>/, '<head>\n' + initScript)
+    }
+  }
+}
+
 function getSidebarItems(dir: string) {
   const files = fs.readdirSync(path.join(__dirname, '../', dir))
     .filter(file => file.endsWith('.md') && file !== 'index.md')
@@ -29,6 +40,7 @@ export default defineConfig({
     hostname: 'https://pan.devmini.space'
   },
   vite: {
+    plugins: [injectInitScript()],
     assetsInclude: ['**/*.png', '**/*.jpg', '**/*.jpeg', '**/*.gif', '**/*.svg', '**/*.webp'],
     build: {
       rollupOptions: {
@@ -140,11 +152,7 @@ export default defineConfig({
     ['link', { rel: 'dns-prefetch', href: 'https://pagead2.googlesyndication.com' }],
     ['link', { rel: 'dns-prefetch', href: 'https://js.stripe.com' }],
 
-    [
-      'script',
-      {},
-      `window.__RESOURCES__ = window.__RESOURCES__ || []; fetch('/data/resources.json').then(r=>r.json()).then(d=>{window.__RESOURCES__=d;document.dispatchEvent(new Event('resources-ready'));}).catch(()=>{});fetch('/data/search-index.json').then(r=>r.json()).then(d=>{window.__SEARCH_INDEX__=d;document.dispatchEvent(new Event('search-ready'));}).catch(()=>{});`
-    ],
+    ['script', { src: '/init.js' }],
     [
       'script',
       {

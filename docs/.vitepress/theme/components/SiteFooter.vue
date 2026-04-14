@@ -11,10 +11,6 @@
           <span class="stat-text"><strong>{{ categoryCount }}</strong> 个分类</span>
         </div>
         <div class="stat-chip">
-          <span class="stat-icon">🕐</span>
-          <span class="stat-text">每月更新</span>
-        </div>
-        <div class="stat-chip">
           <span class="stat-icon">👁️</span>
           <span class="stat-text">浏览 <strong>{{ viewCount.toLocaleString() }}</strong> 次</span>
         </div>
@@ -46,24 +42,21 @@ const allResources = ref<any[]>([])
 const viewCount = ref(0)
 
 const totalResources = computed(() => allResources.value.length)
-const categoryCount = computed(() => {
-  return new Set(allResources.value.map(r => r.category)).size
-})
+const categoryCount = computed(() => new Set(allResources.value.map(r => r.category)).size)
 
-onMounted(() => {
+onMounted(async () => {
   // Load resources
-  if (Array.isArray(window.__RESOURCES__)) {
-    allResources.value = window.__RESOURCES__
-  } else {
-    fetch('/data/resources.json')
-      .then(r => r.json())
-      .then(data => { allResources.value = data })
-      .catch(() => {})
+  try {
+    const r = await fetch('/data/resources.json')
+    const data = await r.json()
+    allResources.value = data
+  } catch (e) {
+    console.error('Failed to load resources:', e)
   }
 
-  // Simple localStorage-based view counter
+  // View counter (localStorage-based)
   const KEY = 'xi7ang_site_views_v2'
-  const stored = parseInt(localStorage.getItem(KEY) || '0', 10)
+  const stored = parseInt(String(localStorage.getItem(KEY) || '0'), 10)
   viewCount.value = stored + 1
   localStorage.setItem(KEY, String(viewCount.value))
 })
@@ -107,7 +100,7 @@ onMounted(() => {
 }
 
 .stat-icon { font-size: 0.9rem; }
-.stat-text strong { color: var(--vp-c-brand-1); font-weight: 700; }
+.stat-chip strong { color: var(--vp-c-brand-1); font-weight: 700; }
 
 .footer-divider {
   width: 60px;

@@ -188,19 +188,15 @@ function reset() {
 
 watch([localSearch, activeMonth], () => { currentPage.value = 1 })
 
-onMounted(() => {
-  const m = route.query.month as string
-  if (m) activeMonth.value = m
-
-  if (Array.isArray(window.__RESOURCES__)) {
-    allResources.value = window.__RESOURCES__
-  } else {
-    fetch('/data/resources.json')
-      .then(r => r.json())
-      .then(data => { allResources.value = data })
-      .catch(() => {})
-  }
-})
+onMounted(async () => {
+          try {
+            const r = await fetch('/data/resources.json')
+            const data = await r.json()
+            allResources.value = data
+          } catch (e) {
+            console.error('Failed to load resources:', e)
+          }
+        })
 </script>
 
 <style scoped>

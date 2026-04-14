@@ -220,8 +220,8 @@ function open() {
 
 function loadIndex() {
   if (searchIndex.value.length) return
-  Promise.resolve()
-    .then(() => window.__SEARCH_INDEX__ || fetch('/data/search-index.json').then(r => r.json()))
+  fetch('/data/search-index.json')
+    .then(r => r.json())
     .then((data: SearchItem[]) => {
       searchIndex.value = data
     })

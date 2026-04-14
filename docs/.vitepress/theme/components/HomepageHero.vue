@@ -1,6 +1,6 @@
 <template>
   <div class="homepage-hero">
-    <!-- 全局搜索触发区 -->
+    <!-- 搜索触发区 -->
     <div class="search-trigger" @click="searchRef?.open()">
       <span class="trigger-icon">🔍</span>
       <span class="trigger-text">搜索 100T+ 免费资源...</span>
@@ -44,7 +44,7 @@
       <div class="recent-grid-wrap">
         <div class="recent-grid" :class="{ 'show-all': showAll }">
           <ResourceCard
-            v-for="(r, i) in (showAll ? paginatedRecent : recentResources.slice(0, 8))"
+            v-for="(r, i) in (showAll ? recentResources : recentResources.slice(0, 8))"
             :key="i"
             :resource="r"
             :compact="true"
@@ -127,11 +127,8 @@ const platformCount = computed(() => {
 })
 
 const recentResources = computed(() =>
-  [...allResources.value]
-    .sort((a, b) => b.month.localeCompare(a.month))
+  [...allResources.value].sort((a, b) => b.month.localeCompare(a.month))
 )
-
-const paginatedRecent = computed(() => recentResources.value)
 
 const recentMonth = computed(() => {
   const months = allResources.value.map(r => r.month).filter(Boolean)
@@ -141,14 +138,13 @@ const recentMonth = computed(() => {
   return latest || '—'
 })
 
-onMounted(() => {
-  if (Array.isArray(window.__RESOURCES__)) {
-    allResources.value = window.__RESOURCES__
-  } else {
-    fetch('/data/resources.json')
-      .then(r => r.json())
-      .then(data => { allResources.value = data })
-      .catch(() => {})
+onMounted(async () => {
+  try {
+    const r = await fetch('/data/resources.json')
+    const data = await r.json()
+    allResources.value = data
+  } catch (e) {
+    console.error('Failed to load resources:', e)
   }
 })
 </script>
@@ -176,23 +172,17 @@ onMounted(() => {
   transition: all 0.2s;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
-
 .search-trigger:hover {
   border-color: var(--vp-c-brand-1);
   box-shadow: 0 4px 16px rgba(var(--vp-c-brand-rgb, 0, 0, 0), 0.1);
 }
-
 .trigger-icon { font-size: 1.3rem; flex-shrink: 0; }
-
 .trigger-text {
   flex: 1;
   font-size: 1rem;
   color: var(--vp-c-text-3);
   text-align: left;
 }
-
-.trigger-shortcut { flex-shrink: 0; }
-
 .trigger-shortcut kbd {
   display: inline-flex;
   align-items: center;
@@ -211,7 +201,6 @@ onMounted(() => {
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 1rem;
 }
-
 .category-card {
   display: flex;
   align-items: center;
@@ -223,13 +212,11 @@ onMounted(() => {
   text-decoration: none;
   transition: all 0.2s ease;
 }
-
 .category-card:hover {
   border-color: var(--vp-c-brand-1);
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
 }
-
 .cat-icon { font-size: 1.75rem; flex-shrink: 0; }
 .cat-info { flex: 1; min-width: 0; }
 .cat-name {
@@ -255,14 +242,12 @@ onMounted(() => {
   border-bottom: 2px solid var(--vp-c-border);
   padding-bottom: 0.5rem;
 }
-
 .section-sub {
   font-size: 0.8rem;
   font-weight: 400;
   color: var(--vp-c-text-3);
   margin-left: auto;
 }
-
 .section-toggle {
   margin-left: auto;
   font-size: 0.82rem;
@@ -278,20 +263,17 @@ onMounted(() => {
 .recent-grid-wrap { overflow-x: auto; }
 .recent-grid-wrap::-webkit-scrollbar { height: 6px; }
 .recent-grid-wrap::-webkit-scrollbar-thumb { background: var(--vp-c-border); border-radius: 3px; }
-
 .recent-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 1rem;
   min-width: 600px;
 }
-
 .load-more-row {
   display: flex;
   justify-content: center;
   margin-top: 1.25rem;
 }
-
 .load-more-btn {
   padding: 0.6rem 1.5rem;
   background: var(--vp-c-bg-soft);
@@ -302,11 +284,7 @@ onMounted(() => {
   cursor: pointer;
   transition: all 0.2s;
 }
-
-.load-more-btn:hover {
-  background: var(--vp-c-brand-soft);
-  border-color: var(--vp-c-brand-1);
-}
+.load-more-btn:hover { background: var(--vp-c-brand-soft); border-color: var(--vp-c-brand-1); }
 
 /* 统计区 */
 .stats-grid {
@@ -318,7 +296,6 @@ onMounted(() => {
   border-radius: 12px;
   padding: 1.5rem;
 }
-
 .stat-item { text-align: center; }
 .stat-value {
   font-size: 1.75rem;
