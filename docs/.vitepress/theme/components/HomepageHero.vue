@@ -41,7 +41,7 @@
           游戏 · 书籍 · 课程 · 工具 · 影视 · AI 知识
         </p>
 
-        <!-- Search (outside hero overflow so dropdown can escape) -->
+        <!-- Search — dropdown is inside search-wrap so they scroll together -->
         <div class="search-wrap">
           <div class="search-bar" :class="{ focused: searchFocused }">
             <svg class="search-bar__icon" viewBox="0 0 20 20" fill="none">
@@ -68,11 +68,9 @@
               </svg>
             </button>
           </div>
-        </div>
 
-        <!-- Search Dropdown — rendered outside hero via teleport, or use position:fixed -->
-        <Teleport to="body">
-          <div v-if="searchQuery && searchFocused" class="search-dropdown" :style="dropdownStyle">
+          <!-- Search Dropdown — absolute inside search-wrap, scrolls with page -->
+          <div v-if="searchQuery && searchFocused" class="search-dropdown">
             <div v-if="searchResults.length === 0" class="sd-empty">
               未找到「{{ searchQuery }}」相关资源，试试其他关键词
             </div>
@@ -97,9 +95,7 @@
               </div>
             </div>
           </div>
-          <!-- Backdrop -->
-          <div v-if="searchQuery && searchFocused" class="search-backdrop" @click="searchFocused = false"></div>
-        </Teleport>
+        </div>
 
       </div>
     </section>
@@ -305,19 +301,6 @@ const searchResults = computed(() => {
   )
 })
 
-// ── Dropdown position ──
-const dropdownStyle = computed(() => {
-  const input = searchInputRef.value
-  if (!input) return {}
-  const rect = input.getBoundingClientRect()
-  return {
-    position: 'fixed',
-    top: `${rect.bottom + 8}px`,
-    left: `${Math.max(16, rect.left)}px`,
-    width: `${Math.min(rect.width, window.innerWidth - 32)}px`,
-    zIndex: 9999
-  }
-})
 
 // ── Methods ──
 function platColor(platform) {
@@ -378,7 +361,9 @@ function openSelected() {
 }
 
 function openItem(item) {
-  window.location.href = `/${item.category}/`
+  // Navigate to category page with ?q=searchTerm so it can scroll to the item
+  const q = encodeURIComponent(searchQuery.value.trim())
+  window.location.href = `/${item.category}/?q=${q}`
 }
 
 function onBlur() {

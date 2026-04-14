@@ -148,7 +148,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useRoute } from 'vitepress'
 import ResourceCard from './ResourceCard.vue'
 
@@ -269,6 +269,20 @@ onMounted(async () => {
     const data = await res.json()
     allResources.value = data
     dataLoaded.value = true
+    await nextTick()
+    // Auto-scroll to first matching item if arriving from homepage search
+    const q = route.query.q
+    if (q) {
+      localSearch.value = decodeURIComponent(String(q))
+      await nextTick()
+      setTimeout(() => {
+        const firstCard = document.querySelector('.resource-card')
+        if (firstCard) {
+          const offset = firstCard.getBoundingClientRect().top + window.scrollY - 80
+          window.scrollTo({ top: offset, behavior: 'smooth' })
+        }
+      }, 200)
+    }
   } catch {
     if (window.__RESOURCES__) {
       allResources.value = window.__RESOURCES__
