@@ -10,8 +10,8 @@ import { fileURLToPath } from 'node:url'
 import Fuse from 'fuse.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const RESOURCES_FILE = path.join(__dirname, '../docs/.vitepress/dist/resources.json')
-const OUTPUT_FILE   = path.join(__dirname, '../docs/.vitepress/dist/search-index.json')
+const RESOURCES_FILE = path.join(__dirname, '../docs/public/data/resources.json')
+const OUTPUT_FILE   = path.join(__dirname, '../docs/public/data/search-index.json')
 
 const CATEGORY_LABELS = {
   AIknowledge:        'AI知识',

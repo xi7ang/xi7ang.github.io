@@ -143,7 +143,7 @@ export default defineConfig({
     [
       'script',
       {},
-      `window.__RESOURCES__ = window.__RESOURCES__ || []; fetch('/resources.json').then(r=>r.json()).then(d=>{window.__RESOURCES__=d;document.dispatchEvent(new Event('resources-ready'));}).catch(()=>{});fetch('/search-index.json').then(r=>r.json()).then(d=>{window.__SEARCH_INDEX__=d;document.dispatchEvent(new Event('search-ready'));}).catch(()=>{});`
+      `window.__RESOURCES__ = window.__RESOURCES__ || []; fetch('/data/resources.json').then(r=>r.json()).then(d=>{window.__RESOURCES__=d;document.dispatchEvent(new Event('resources-ready'));}).catch(()=>{});fetch('/data/search-index.json').then(r=>r.json()).then(d=>{window.__SEARCH_INDEX__=d;document.dispatchEvent(new Event('search-ready'));}).catch(()=>{});`
     ],
     [
       'script',

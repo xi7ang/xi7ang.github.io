@@ -3,14 +3,15 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vitepress dev docs",
+    "dev": "node scripts/parse-resources.js && node scripts/build-search-index.js && vitepress dev docs",
     "generate-atom": "node scripts/generate-atom.js",
     "build": "node scripts/parse-resources.js && node scripts/build-search-index.js && vitepress build docs",
     "serve": "vitepress serve docs",
     "fetch-commits": "node scripts/fetch-commits.js",
     "build:search": "pagefind --site docs/.vitepress/dist --output-path docs/.vitepress/dist/pagefind",
     "prebuild": "node scripts/parse-resources.js && node scripts/build-search-index.js && npm run generate-atom",
-    "postbuild": "npm run build:search"
+    "postbuild": "npm run build:search",
+    "sync": "node scripts/sync-content.js"
   },
   "devDependencies": {
     "@pagefind/default-ui": "^1.5.0",

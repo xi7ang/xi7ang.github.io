@@ -195,7 +195,7 @@ onMounted(() => {
   if (Array.isArray(window.__RESOURCES__)) {
     allResources.value = window.__RESOURCES__
   } else {
-    fetch('/resources.json')
+    fetch('/data/resources.json')
       .then(r => r.json())
       .then(data => { allResources.value = data })
       .catch(() => {})

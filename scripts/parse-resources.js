@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const DOCS_DIR = path.join(__dirname, '../docs')
-const OUTPUT_FILE = path.join(__dirname, '../docs/.vitepress/dist/resources.json')
+const OUTPUT_FILE = path.join(__dirname, '../docs/public/data/resources.json')
 
 // 平台识别
 function detectPlatform(url) {
@@ -168,6 +168,7 @@ function main() {
 
   // 确保输出目录存在
   const outDir = path.dirname(OUTPUT_FILE)
+  fs.mkdirSync(outDir, { recursive: true })
   if (!fs.existsSync(outDir)) {
     fs.mkdirSync(outDir, { recursive: true })
   }
