@@ -8,6 +8,7 @@
     <div v-else class="default-content">
       <Content />
     </div>
+    <SiteFooter />
   </div>
 </template>
 
@@ -16,6 +17,7 @@ import { computed } from 'vue'
 import { useRoute } from 'vitepress'
 import HomepageHero from '../components/HomepageHero.vue'
 import CategoryPage from '../components/CategoryPage.vue'
+import SiteFooter from '../components/SiteFooter.vue'
 
 const route = useRoute()
 
@@ -28,24 +30,29 @@ const CATEGORIES = [
 const isHome = computed(() => route.path === '/')
 
 const isCategory = computed(() => {
-  const segments = route.path.replace(/^\//, '').split('/')
-  return CATEGORIES.includes(segments[0]) && (segments[1] === '' || segments[1]?.startsWith('?'))
+  const segs = route.path.replace(/^\//, '').split('/')
+  return CATEGORIES.includes(segs[0]) && (segs[1] === '' || !segs[1] || segs[1]?.startsWith('?'))
 })
 
 const currentCategory = computed(() => {
-  const segments = route.path.replace(/^\//, '').split('/')
-  return segments[0] || ''
+  const segs = route.path.replace(/^\//, '').split('/')
+  return segs[0] || ''
 })
 </script>
 
 <style scoped>
 .custom-layout {
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .default-content {
+  flex: 1;
   max-width: var(--vp-layout-max-width);
   margin: 0 auto;
   padding: 2rem 1.5rem;
+  width: 100%;
+  box-sizing: border-box;
 }
 </style>
