@@ -1,83 +1,91 @@
 <template>
   <div class="homepage-hero">
-    <!-- 搜索触发区 -->
-    <div class="search-trigger" @click="searchRef?.open()">
-      <span class="trigger-icon">🔍</span>
-      <span class="trigger-text">搜索 100T+ 免费资源...</span>
-      <span class="trigger-shortcut"><kbd>/</kbd></span>
+
+    <!-- Hero 搜索区 -->
+    <div class="hero-search">
+      <h1 class="hero-title">免费网盘资源导航</h1>
+      <p class="hero-sub">收录夸克、百度、阿里、迅雷四大网盘平台优质资源，持续更新</p>
+      <div class="search-box">
+        <svg class="search-icon" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M13.5 13.5L17 17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <input
+          class="search-input"
+          placeholder="搜索资源名称、分类..."
+          @click="searchRef?.open()"
+          readonly
+        />
+        <kbd class="search-kbd">/</kbd>
+      </div>
     </div>
 
-    <!-- GlobalSearch 模态框 -->
+    <!-- 全局搜索 -->
     <GlobalSearch ref="searchRef" />
 
-    <!-- 分类卡片网格 -->
-    <div class="categories-section">
-      <h2 class="section-title">
-        <span>📚</span> 资源分类
-        <span class="section-sub">共 {{ totalResources }} 个资源，持续更新</span>
-      </h2>
+    <!-- 分类卡片 -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-label">资源分类</span>
+        <span class="section-count">{{ categoryList.length }} 个分类 · {{ totalResources.toLocaleString() }} 条资源</span>
+      </div>
       <div class="category-grid">
         <a
           v-for="cat in categoryList"
           :key="cat.id"
           :href="`/${cat.id}/`"
-          class="category-card"
+          class="cat-card"
         >
-          <div class="cat-icon">{{ cat.icon }}</div>
+          <span class="cat-dot" :style="{ background: catColor(cat.id) }"></span>
           <div class="cat-info">
-            <div class="cat-name">{{ cat.label }}</div>
-            <div class="cat-count">{{ cat.count }} 个资源</div>
+            <span class="cat-name">{{ cat.label }}</span>
+            <span class="cat-count">{{ cat.count.toLocaleString() }} 条</span>
           </div>
-          <div class="cat-arrow">›</div>
+          <svg class="cat-arrow" viewBox="0 0 16 16" fill="none">
+            <path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
         </a>
       </div>
     </div>
 
     <!-- 最近更新 -->
-    <div v-if="recentResources.length" class="recent-section">
-      <h2 class="section-title">
-        <span>🕐</span> 最近更新
+    <div v-if="recentResources.length" class="section">
+      <div class="section-header">
+        <span class="section-label">最近更新</span>
         <button class="section-toggle" @click="showAll = !showAll">
           {{ showAll ? '收起' : `展开全部 (${recentResources.length})` }}
         </button>
-      </h2>
-      <div class="recent-grid-wrap">
-        <div class="recent-grid" :class="{ 'show-all': showAll }">
-          <ResourceCard
-            v-for="(r, i) in (showAll ? recentResources : recentResources.slice(0, 8))"
-            :key="i"
-            :resource="r"
-            :compact="true"
-          />
-        </div>
       </div>
-      <div v-if="recentResources.length > 8 && !showAll" class="load-more-row">
-        <button class="load-more-btn" @click="showAll = true">
-          查看全部 {{ recentResources.length }} 条最近更新 ↓
-        </button>
+      <div class="recent-grid">
+        <ResourceCard
+          v-for="(r, i) in (showAll ? recentResources : recentResources.slice(0, 6))"
+          :key="i"
+          :resource="r"
+          :compact="true"
+        />
       </div>
     </div>
 
-    <!-- 平台统计 -->
-    <div class="stats-section">
-      <h2 class="section-title"><span>📊</span> 站点统计</h2>
-      <div class="stats-grid">
-        <div class="stat-item">
-          <div class="stat-value">{{ totalResources.toLocaleString() }}</div>
-          <div class="stat-label">资源总数</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-value">{{ categoryList.length }}</div>
-          <div class="stat-label">分类数量</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-value">{{ platformCount.quark }}</div>
-          <div class="stat-label">夸克资源</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-value">{{ recentMonth }}</div>
-          <div class="stat-label">最近更新</div>
-        </div>
+    <!-- 统计 -->
+    <div class="stats-row">
+      <div class="stat-item">
+        <span class="stat-val">{{ totalResources.toLocaleString() }}</span>
+        <span class="stat-lbl">资源总数</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-val">{{ categoryList.length }}</span>
+        <span class="stat-lbl">分类数量</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-val">{{ platformCount.quark }}</span>
+        <span class="stat-lbl">夸克资源</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-val">{{ recentMonth }}</span>
+        <span class="stat-lbl">最近更新</span>
       </div>
     </div>
   </div>
@@ -92,28 +100,46 @@ const searchRef = ref<InstanceType<typeof GlobalSearch> | null>(null)
 const allResources = ref<any[]>([])
 const showAll = ref(false)
 
-const CATEGORY_MAP: Record<string, { icon: string; label: string }> = {
-  AIknowledge:        { icon: '🤖', label: 'AI知识' },
-  book:               { icon: '📖', label: '书籍资料' },
-  'chinese-traditional': { icon: '🏛️', label: '传统文化' },
-  'cross-border':     { icon: '🌍', label: '跨境电商' },
-  curriculum:         { icon: '📝', label: '课程资料' },
-  'edu-knowlege':     { icon: '🎓', label: '教育知识' },
-  games:              { icon: '🎮', label: '游戏资源' },
-  healthy:            { icon: '💪', label: '健康养生' },
-  movies:             { icon: '🎬', label: '影视媒体' },
-  'self-media':       { icon: '📱', label: '自媒体' },
-  tools:              { icon: '🔧', label: '工具合集' },
-  auto:               { icon: '⚡', label: '自动化工具' },
+// 分类色盘（用于圆点）
+const CAT_COLORS: Record<string, string> = {
+  AIknowledge:        '#7c3aed',
+  book:               '#2563eb',
+  'chinese-traditional': '#dc2626',
+  'cross-border':     '#0891b2',
+  curriculum:         '#16a34a',
+  'edu-knowlege':     '#9333ea',
+  games:              '#ea580c',
+  healthy:            '#059669',
+  movies:             '#db2777',
+  'self-media':       '#ca8a04',
+  tools:              '#475569',
+  auto:               '#64748b',
+}
+
+function catColor(id: string) {
+  return CAT_COLORS[id] || 'var(--vp-c-brand-1)'
+}
+
+const CATEGORY_MAP: Record<string, string> = {
+  AIknowledge:        'AI知识',
+  book:               '书籍资料',
+  'chinese-traditional': '传统文化',
+  'cross-border':     '跨境电商',
+  curriculum:         '课程资料',
+  'edu-knowlege':     '教育知识',
+  games:              '游戏资源',
+  healthy:            '健康养生',
+  movies:             '影视媒体',
+  'self-media':       '自媒体',
+  tools:              '工具合集',
+  auto:               '自动化工具',
 }
 
 const categoryList = computed(() => {
   const counts: Record<string, number> = {}
-  for (const r of allResources.value) {
-    counts[r.category] = (counts[r.category] || 0) + 1
-  }
+  for (const r of allResources.value) counts[r.category] = (counts[r.category] || 0) + 1
   return Object.entries(CATEGORY_MAP)
-    .map(([id, v]) => ({ id, ...v, count: counts[id] || 0 }))
+    .map(([id, label]) => ({ id, label, count: counts[id] || 0 }))
     .filter(c => c.count > 0)
     .sort((a, b) => b.count - a.count)
 })
@@ -151,106 +177,108 @@ onMounted(async () => {
 
 <style scoped>
 .homepage-hero {
-  max-width: 1200px;
+  max-width: 1100px;
   margin: 0 auto;
-  padding: 2.5rem 1.5rem 3rem;
+  padding: 3rem 1.5rem 4rem;
   display: flex;
   flex-direction: column;
-  gap: 3.5rem;
+  gap: 3rem;
 }
 
-/* 搜索触发区 */
-.search-trigger {
+/* Hero */
+.hero-search {
+  text-align: center;
+  padding: 2rem 0 1rem;
+}
+
+.hero-title {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--vp-c-text-1);
+  margin: 0 0 0.6rem;
+  letter-spacing: -0.02em;
+}
+
+.hero-sub {
+  font-size: 0.95rem;
+  color: var(--vp-c-text-2);
+  margin: 0 0 1.75rem;
+  line-height: 1.6;
+}
+
+.search-box {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 1rem 1.5rem;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 0.75rem 1.1rem;
   background: var(--vp-c-bg);
-  border: 2px solid var(--vp-c-border);
-  border-radius: 16px;
-  cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  border: 1.5px solid var(--vp-c-border);
+  border-radius: 14px;
+  cursor: text;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
-.search-trigger:hover {
+
+.search-box:focus-within {
   border-color: var(--vp-c-brand-1);
-  box-shadow: 0 4px 16px rgba(var(--vp-c-brand-rgb, 0, 0, 0), 0.1);
+  box-shadow: 0 0 0 3px rgba(var(--vp-c-brand-rgb, 124, 58, 237), 0.12);
 }
-.trigger-icon { font-size: 1.3rem; flex-shrink: 0; }
-.trigger-text {
-  flex: 1;
-  font-size: 1rem;
+
+.search-icon {
+  width: 18px;
+  height: 18px;
   color: var(--vp-c-text-3);
-  text-align: left;
+  flex-shrink: 0;
 }
-.trigger-shortcut kbd {
-  display: inline-flex;
-  align-items: center;
+
+.search-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 0.95rem;
+  color: var(--vp-c-text-1);
+  outline: none;
+  cursor: pointer;
+}
+
+.search-input::placeholder { color: var(--vp-c-text-3); }
+
+.search-kbd {
   padding: 0.2rem 0.5rem;
   background: var(--vp-c-bg-soft);
   border: 1px solid var(--vp-c-border);
   border-radius: 6px;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-family: monospace;
-  color: var(--vp-c-text-2);
+  color: var(--vp-c-text-3);
+  flex-shrink: 0;
 }
 
-/* 分类网格 */
-.category-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 1rem;
-}
-.category-card {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 1rem 1.25rem;
-  background: var(--vp-c-bg);
-  border: 1px solid var(--vp-c-border);
-  border-radius: 12px;
-  text-decoration: none;
-  transition: all 0.2s ease;
-}
-.category-card:hover {
-  border-color: var(--vp-c-brand-1);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
-}
-.cat-icon { font-size: 1.75rem; flex-shrink: 0; }
-.cat-info { flex: 1; min-width: 0; }
-.cat-name {
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--vp-c-text-1);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.cat-count { font-size: 0.75rem; color: var(--vp-c-text-3); margin-top: 0.2rem; }
-.cat-arrow { font-size: 1.5rem; color: var(--vp-c-text-3); flex-shrink: 0; }
+/* Section */
+.section { display: flex; flex-direction: column; gap: 1rem; }
 
-/* 区块标题 */
-.section-title {
+.section-header {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 1.2rem;
+  justify-content: space-between;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--vp-c-border);
+}
+
+.section-label {
+  font-size: 1.05rem;
   font-weight: 700;
   color: var(--vp-c-text-1);
-  margin: 0 0 1.2rem 0;
-  border-bottom: 2px solid var(--vp-c-border);
-  padding-bottom: 0.5rem;
 }
-.section-sub {
+
+.section-count {
   font-size: 0.8rem;
-  font-weight: 400;
   color: var(--vp-c-text-3);
-  margin-left: auto;
 }
+
 .section-toggle {
-  margin-left: auto;
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   font-weight: 500;
   color: var(--vp-c-brand-1);
   background: none;
@@ -259,55 +287,125 @@ onMounted(async () => {
   padding: 0;
 }
 
-/* 最近更新 */
-.recent-grid-wrap { overflow-x: auto; }
-.recent-grid-wrap::-webkit-scrollbar { height: 6px; }
-.recent-grid-wrap::-webkit-scrollbar-thumb { background: var(--vp-c-border); border-radius: 3px; }
-.recent-grid {
+/* 分类网格 */
+.category-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1rem;
-  min-width: 600px;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.6rem;
 }
-.load-more-row {
+
+.cat-card {
   display: flex;
-  justify-content: center;
-  margin-top: 1.25rem;
-}
-.load-more-btn {
-  padding: 0.6rem 1.5rem;
-  background: var(--vp-c-bg-soft);
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.9rem 1rem;
+  background: var(--vp-c-bg);
   border: 1px solid var(--vp-c-border);
   border-radius: 10px;
-  font-size: 0.85rem;
-  color: var(--vp-c-brand-1);
-  cursor: pointer;
-  transition: all 0.2s;
+  text-decoration: none;
+  transition: all 0.18s ease;
 }
-.load-more-btn:hover { background: var(--vp-c-brand-soft); border-color: var(--vp-c-brand-1); }
 
-/* 统计区 */
-.stats-grid {
+.cat-card:hover {
+  border-color: var(--vp-c-brand-1);
+  background: var(--vp-c-brand-soft);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.cat-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.cat-info { flex: 1; min-width: 0; }
+
+.cat-name {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--vp-c-text-1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cat-count {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--vp-c-text-3);
+  margin-top: 0.1rem;
+}
+
+.cat-arrow {
+  width: 16px;
+  height: 16px;
+  color: var(--vp-c-text-3);
+  flex-shrink: 0;
+}
+
+/* 最近更新 */
+.recent-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 0.75rem;
+}
+
+/* 统计 */
+.stats-row {
+  display: flex;
+  align-items: center;
   background: var(--vp-c-bg-soft);
   border: 1px solid var(--vp-c-border);
   border-radius: 12px;
-  padding: 1.5rem;
+  padding: 1.25rem 1.5rem;
+  gap: 0;
 }
-.stat-item { text-align: center; }
-.stat-value {
-  font-size: 1.75rem;
+
+.stat-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.stat-val {
+  font-size: 1.5rem;
   font-weight: 800;
   color: var(--vp-c-brand-1);
   line-height: 1.2;
 }
-.stat-label { font-size: 0.8rem; color: var(--vp-c-text-3); margin-top: 0.25rem; }
 
+.stat-lbl {
+  font-size: 0.75rem;
+  color: var(--vp-c-text-3);
+}
+
+.stat-divider {
+  width: 1px;
+  height: 2.5rem;
+  background: var(--vp-c-border);
+  flex-shrink: 0;
+}
+
+/* Mobile */
 @media (max-width: 640px) {
-  .homepage-hero { padding: 1.5rem 1rem 2rem; gap: 2.5rem; }
-  .stats-grid { grid-template-columns: repeat(2, 1fr); }
-  .category-grid { grid-template-columns: 1fr 1fr; }
+  .homepage-hero { padding: 2rem 1rem 3rem; gap: 2.5rem; }
+  .hero-title { font-size: 1.5rem; }
+  .hero-sub { font-size: 0.85rem; }
+  .category-grid { grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+  .cat-card { padding: 0.75rem 0.85rem; gap: 0.6rem; }
+  .recent-grid { grid-template-columns: 1fr; }
+  .stats-row {
+    flex-wrap: wrap;
+    gap: 0;
+    padding: 1rem;
+  }
+  .stat-item { flex: 0 0 50%; padding: 0.5rem 0; }
+  .stat-divider { display: none; }
+  .stat-val { font-size: 1.25rem; }
 }
 </style>

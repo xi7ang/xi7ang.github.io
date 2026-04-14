@@ -3,50 +3,28 @@
     <div class="platform-stripe"></div>
     <div class="card-body">
       <div class="card-header">
-        <div class="platform-badge">
-          <span class="platform-icon">{{ platformIcon }}</span>
-          <span class="platform-name">{{ platformLabel }}</span>
-        </div>
-        <span v-if="resource.pwd" class="pwd-badge">
-          🔑 {{ resource.pwd }}
+        <span class="platform-tag" :style="{ background: platformColor(resource.platform) }">
+          {{ platformLabel }}
         </span>
+        <span v-if="resource.pwd" class="pwd-tag">取码: {{ resource.pwd }}</span>
       </div>
 
       <h3 class="card-title" :title="resource.title">{{ resource.title }}</h3>
 
-      <div v-if="!compact && resource.description" class="card-desc">
-        {{ resource.description }}
-      </div>
-
       <div class="card-meta">
-        <span class="meta-item">
-          <span class="meta-icon">📁</span>
-          {{ categoryLabel }}
-        </span>
-        <span class="meta-item">
-          <span class="meta-icon">📅</span>
-          {{ monthLabel }}
-        </span>
+        <span class="meta-chip">{{ categoryLabel }}</span>
+        <span class="meta-chip">{{ monthLabel }}</span>
       </div>
 
       <div class="card-actions">
-        <button
-          v-if="resource.url"
-          class="btn btn-primary"
-          @click="handleJump"
-          :title="resource.url"
-        >
-          <span>🚀</span>
-          <span>{{ compact ? '跳转' : '跳转到网盘' }}</span>
+        <button v-if="resource.url" class="btn btn-ghost" @click="handleCopy">
+          <svg viewBox="0 0 16 16" fill="none"><rect x="5" y="5" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M3 11V3h8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+          {{ copied ? '已复制' : '复制链接' }}
         </button>
-        <button
-          v-if="resource.url"
-          class="btn btn-secondary"
-          @click="handleCopy"
-        >
-          <span>{{ copied ? '✅' : '📋' }}</span>
-          <span>{{ copied ? '已复制' : '复制链接' }}</span>
-        </button>
+        <a v-if="resource.url" :href="resource.url" target="_blank" rel="noopener" class="btn btn-primary">
+          跳转网盘
+          <svg viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
       </div>
     </div>
   </div>
@@ -65,22 +43,18 @@ interface Resource {
   description?: string
 }
 
-const props = defineProps<{
-  resource: Resource
-  compact?: boolean
-}>()
-
+const props = defineProps<{ resource: Resource; compact?: boolean }>()
 const copied = ref(false)
 
-const platformMap: Record<string, { icon: string; label: string }> = {
-  quark:   { icon: '🏐', label: '夸克网盘' },
-  baidu:   { icon: '📦', label: '百度网盘' },
-  xunlei:  { icon: '⚡', label: '迅雷网盘' },
-  aliyun:  { icon: '☁️', label: '阿里云盘' },
-  unknown: { icon: '🔗', label: '其他资源' },
+const PLATFORM_META: Record<string, { label: string; color: string }> = {
+  quark:   { label: '夸克网盘', color: '#7c3aed' },
+  baidu:   { label: '百度网盘', color: '#1d4ed8' },
+  xunlei:  { label: '迅雷网盘', color: '#d97706' },
+  aliyun:  { label: '阿里云盘', color: '#0891b2' },
+  unknown: { label: '其他', color: '#64748b' },
 }
 
-const categoryMap: Record<string, string> = {
+const CATEGORY_LABELS: Record<string, string> = {
   AIknowledge:        'AI知识',
   book:               '书籍资料',
   'chinese-traditional': '传统文化',
@@ -95,36 +69,31 @@ const categoryMap: Record<string, string> = {
   auto:               '自动化工具',
 }
 
-const platformIcon = computed(() => platformMap[props.resource.platform]?.icon ?? '🔗')
-const platformLabel = computed(() => platformMap[props.resource.platform]?.label ?? '其他资源')
-const categoryLabel = computed(() => categoryMap[props.resource.category] ?? props.resource.category)
+function platformColor(p: string) {
+  return PLATFORM_META[p]?.color || '#64748b'
+}
+
+const platformLabel = computed(() => PLATFORM_META[props.resource.platform]?.label ?? '其他')
+const categoryLabel = computed(() => CATEGORY_LABELS[props.resource.category] ?? props.resource.category)
 
 const monthLabel = computed(() => {
   const m = props.resource.month
-  if (m && m.length === 6) {
-    return `${m.slice(0, 4)}年${parseInt(m.slice(4, 6))}月`
-  }
+  if (m?.length === 6) return `${m.slice(0, 4)}/${m.slice(4, 6)}`
   return m || ''
 })
 
-async function handleJump() {
-  if (!props.resource.url) return
-  window.open(props.resource.url, '_blank', 'noopener,noreferrer')
-}
-
 async function handleCopy() {
   if (!props.resource.url) return
-  const fullUrl = props.resource.pwd
+  const url = props.resource.pwd
     ? `${props.resource.url.split('?')[0]}?pwd=${props.resource.pwd}`
     : props.resource.url
   try {
-    await navigator.clipboard.writeText(fullUrl)
+    await navigator.clipboard.writeText(url)
     copied.value = true
     setTimeout(() => { copied.value = false }, 2000)
   } catch {
-    // fallback
     const ta = document.createElement('textarea')
-    ta.value = fullUrl
+    ta.value = url
     document.body.appendChild(ta)
     ta.select()
     document.execCommand('copy')
@@ -141,31 +110,28 @@ async function handleCopy() {
   display: flex;
   background: var(--vp-c-bg);
   border: 1px solid var(--vp-c-border);
-  border-radius: 12px;
+  border-radius: 10px;
   overflow: hidden;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
 }
 
 .resource-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
   border-color: var(--vp-c-brand-1);
 }
 
-.platform-stripe {
-  width: 4px;
-  flex-shrink: 0;
-}
-
-.platform-quark  .platform-stripe { background: #8B5CF6; }
-.platform-baidu  .platform-stripe { background: #2932E1; }
-.platform-xunlei .platform-stripe { background: #FF9500; }
-.platform-aliyun .platform-stripe { background: #00B9F1; }
-.platform-unknown .platform-stripe { background: #6B7280; }
+/* 左侧色条 */
+.platform-stripe { width: 3px; flex-shrink: 0; }
+.platform-quark  .platform-stripe { background: #7c3aed; }
+.platform-baidu  .platform-stripe { background: #1d4ed8; }
+.platform-xunlei .platform-stripe { background: #d97706; }
+.platform-aliyun .platform-stripe { background: #0891b2; }
+.platform-unknown .platform-stripe { background: #64748b; }
 
 .card-body {
   flex: 1;
-  padding: 1rem 1.25rem;
+  padding: 0.875rem 1rem;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -179,39 +145,38 @@ async function handleCopy() {
   flex-wrap: wrap;
 }
 
-.platform-badge {
+.platform-tag {
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
-  padding: 0.2rem 0.6rem;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  background: var(--vp-c-brand-soft);
-  color: var(--vp-c-brand-1);
+  padding: 0.15rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.02em;
+  flex-shrink: 0;
 }
 
-.platform-icon { font-size: 0.85rem; }
-
-.pwd-badge {
+.pwd-tag {
   display: inline-flex;
   align-items: center;
-  padding: 0.15rem 0.5rem;
-  border-radius: 12px;
-  font-size: 0.72rem;
-  font-weight: 600;
+  padding: 0.12rem 0.5rem;
   background: var(--vp-c-bg-soft);
-  color: var(--vp-c-text-2);
   border: 1px solid var(--vp-c-border);
+  border-radius: 4px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--vp-c-text-3);
   font-family: var(--vp-font-family-mono);
+  letter-spacing: 0.02em;
 }
 
 .card-title {
-  font-size: 0.95rem;
+  font-size: 0.875rem;
   font-weight: 600;
   color: var(--vp-c-text-1);
   margin: 0;
-  line-height: 1.4;
+  line-height: 1.45;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -219,31 +184,22 @@ async function handleCopy() {
   word-break: break-word;
 }
 
-.card-desc {
-  font-size: 0.8rem;
-  color: var(--vp-c-text-3);
-  line-height: 1.5;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
 .card-meta {
   display: flex;
-  gap: 1rem;
+  gap: 0.4rem;
   flex-wrap: wrap;
 }
 
-.meta-item {
+.meta-chip {
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
-  font-size: 0.75rem;
+  padding: 0.1rem 0.45rem;
+  background: var(--vp-c-bg-soft);
+  border: 1px solid var(--vp-c-border);
+  border-radius: 4px;
+  font-size: 0.7rem;
   color: var(--vp-c-text-3);
 }
-
-.meta-icon { font-size: 0.75rem; }
 
 .card-actions {
   display: flex;
@@ -256,65 +212,42 @@ async function handleCopy() {
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-  padding: 0.4rem 0.85rem;
-  border-radius: 8px;
-  font-size: 0.8rem;
-  font-weight: 500;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
   cursor: pointer;
   border: none;
-  transition: all 0.2s ease;
   text-decoration: none;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
 }
+
+.btn svg { width: 12px; height: 12px; flex-shrink: 0; }
 
 .btn-primary {
   background: var(--vp-c-brand-1);
   color: #fff;
 }
+.btn-primary:hover { background: var(--vp-c-brand-2); }
 
-.btn-primary:hover {
-  background: var(--vp-c-brand-2);
-  transform: scale(1.03);
-}
-
-.btn-secondary {
+.btn-ghost {
   background: var(--vp-c-bg-soft);
   color: var(--vp-c-text-2);
   border: 1px solid var(--vp-c-border);
 }
-
-.btn-secondary:hover {
-  background: var(--vp-c-brand-soft);
-  color: var(--vp-c-brand-1);
-  border-color: var(--vp-c-brand-1);
-}
+.btn-ghost:hover { border-color: var(--vp-c-brand-1); color: var(--vp-c-brand-1); }
 
 /* compact 模式 */
-.resource-card.compact .card-body {
-  padding: 0.75rem 1rem;
-  gap: 0.35rem;
-}
+.resource-card.compact .card-body { padding: 0.7rem 0.875rem; gap: 0.4rem; }
+.resource-card.compact .card-title { -webkit-line-clamp: 1; font-size: 0.825rem; }
+.resource-card.compact .btn { padding: 0.28rem 0.6rem; font-size: 0.73rem; }
 
-.resource-card.compact .card-title {
-  font-size: 0.875rem;
-  -webkit-line-clamp: 1;
-}
-
-.resource-card.compact .btn {
-  padding: 0.3rem 0.65rem;
-  font-size: 0.75rem;
-}
-
-/* 响应式 */
+/* Mobile */
 @media (max-width: 640px) {
-  .card-body {
-    padding: 0.85rem 1rem;
-  }
-  .card-actions {
-    flex-direction: column;
-  }
-  .btn {
-    width: 100%;
-    justify-content: center;
-  }
+  .card-actions { flex-direction: column; }
+  .btn { width: 100%; justify-content: center; }
+  .resource-card.compact .card-actions { flex-direction: row; }
+  .resource-card.compact .btn { width: auto; }
 }
 </style>

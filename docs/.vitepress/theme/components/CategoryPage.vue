@@ -1,44 +1,48 @@
 <template>
   <div class="category-page">
+
     <!-- Banner -->
-    <div class="cat-banner">
-      <div class="cat-icon-lg">{{ categoryMeta?.icon }}</div>
-      <div class="cat-meta">
-        <h1 class="cat-title">{{ categoryMeta?.label || category }}</h1>
-        <p class="cat-desc">{{ categoryMeta?.desc || '' }}</p>
-        <div class="cat-stats">
-          <span class="stat-pill">📦 {{ displayCount }} 条资源</span>
-          <span v-if="availableMonths.length > 1" class="stat-pill">🗂️ {{ availableMonths.length }} 个更新周期</span>
+    <div class="cat-banner" :style="{ borderLeftColor: catColor }">
+      <div class="cat-info">
+        <div class="cat-meta-row">
+          <span class="cat-tag" :style="{ background: catColor }">{{ categoryLabel }}</span>
+          <span class="cat-count-badge">{{ displayCount }} 条资源</span>
         </div>
+        <p class="cat-desc">{{ categoryMeta?.desc || '' }}</p>
       </div>
     </div>
 
     <!-- 月份筛选 -->
     <div v-if="availableMonths.length > 1" class="month-filter">
       <button
-        :class="['month-pill', { active: !activeMonth }]"
+        :class="['pill', { active: !activeMonth }]"
         @click="setMonth(null)"
-      >
-        全部
-      </button>
+      >全部</button>
       <button
         v-for="m in availableMonths"
         :key="m"
-        :class="['month-pill', { active: activeMonth === m }]"
+        :class="['pill', { active: activeMonth === m }]"
         @click="setMonth(m)"
-      >
-        {{ formatMonth(m) }}
-      </button>
+      >{{ formatMonth(m) }}</button>
     </div>
 
     <!-- 搜索 & 排序 -->
     <div class="controls-row">
-      <input
-        v-model="localSearch"
-        type="text"
-        :placeholder="`在 ${categoryMeta?.label || category} 中搜索...`"
-        class="cat-search-input"
-      />
+      <div class="search-wrap">
+        <svg class="search-icon" viewBox="0 0 20 20" fill="none">
+          <circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M13.5 13.5L17 17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <input
+          v-model="localSearch"
+          type="text"
+          :placeholder="`在「${categoryLabel}」中搜索...`"
+          class="search-input"
+        />
+        <button v-if="localSearch" class="clear-btn" @click="localSearch = ''">
+          <svg viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </button>
+      </div>
       <select v-model="sortBy" class="sort-select">
         <option value="default">默认排序</option>
         <option value="title">按名称</option>
@@ -47,15 +51,13 @@
 
     <!-- 结果统计 -->
     <div class="results-bar">
-      <span v-if="filteredResources.length !== allResources.length">
-        显示 {{ displayCount }} / {{ filteredResources.length }} 条
+      <span v-if="localSearch || activeMonth">
+        共找到 {{ filteredResources.length }} 条
       </span>
       <span v-else>
         共 {{ filteredResources.length }} 条资源
       </span>
-      <button v-if="localSearch || activeMonth" class="reset-link" @click="reset">
-        重置筛选
-      </button>
+      <button v-if="localSearch || activeMonth" class="reset-btn" @click="reset">清除筛选</button>
     </div>
 
     <!-- 资源网格 -->
@@ -64,52 +66,61 @@
       :resources="displayResources"
       :columns="2"
     />
-    <div v-else class="no-results">
-      <div class="no-results-icon">🔍</div>
+    <div v-else class="empty-state">
+      <svg viewBox="0 0 48 48" fill="none">
+        <circle cx="24" cy="24" r="20" stroke="currentColor" stroke-width="2"/>
+        <path d="M16 24h16M24 16v16" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.3"/>
+      </svg>
       <p>未找到匹配的资源</p>
-      <button class="reset-btn" @click="reset">重置筛选</button>
+      <button class="reset-action" @click="reset">重置筛选</button>
     </div>
 
     <!-- 分页 -->
     <div v-if="totalPages > 1" class="pagination">
-      <button
-        class="page-btn"
-        :disabled="currentPage === 1"
-        @click="currentPage--"
-      >
-        ‹ 上一页
+      <button class="page-btn" :disabled="currentPage === 1" @click="currentPage--">
+        <svg viewBox="0 0 16 16" fill="none"><path d="M10 4l-4 4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        上一页
       </button>
-      <div class="page-numbers">
+      <div class="page-nums">
         <button
           v-for="p in visiblePages"
-          :key="p"
+          :key="String(p)"
           :class="['page-num', { active: p === currentPage, ellipsis: p === '...' }]"
           :disabled="p === '...'"
           @click="p !== '...' && (currentPage = Number(p))"
-        >
-          {{ p }}
-        </button>
+        >{{ p }}</button>
       </div>
-      <button
-        class="page-btn"
-        :disabled="currentPage === totalPages"
-        @click="currentPage++"
-      >
-        下一页 ›
+      <button class="page-btn" :disabled="currentPage === totalPages" @click="currentPage++">
+        下一页
+        <svg viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
     </div>
+
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
-import { useRoute } from 'vitepress'
 import ResourceGrid from './ResourceGrid.vue'
 
 const PAGE_SIZE = 24
 
+const CAT_COLORS: Record<string, string> = {
+  AIknowledge:        '#7c3aed',
+  book:               '#2563eb',
+  'chinese-traditional': '#dc2626',
+  'cross-border':     '#0891b2',
+  curriculum:         '#16a34a',
+  'edu-knowlege':     '#9333ea',
+  games:              '#ea580c',
+  healthy:            '#059669',
+  movies:             '#db2777',
+  'self-media':       '#ca8a04',
+  tools:              '#475569',
+  auto:               '#64748b',
+}
+
 const props = defineProps<{ category: string }>()
-const route = useRoute()
 
 const allResources = ref<any[]>([])
 const activeMonth = ref<string | null>(null)
@@ -117,20 +128,25 @@ const localSearch = ref('')
 const currentPage = ref(1)
 const sortBy = ref('default')
 
-const categoryMeta: Record<string, any> = {
-  AIknowledge:        { icon: '🤖', label: 'AI知识',        desc: '人工智能学习资料、提示词工程、AI工具教程、机器学习课程' },
-  book:               { icon: '📖', label: '书籍资料',        desc: '电子书、技术文档、学术论文、小说文学、专业教材' },
-  'chinese-traditional': { icon: '🏛️', label: '传统文化',   desc: '中医课程、传统文化资料等国学精华内容' },
-  'cross-border':     { icon: '🌍', label: '跨境电商',        desc: '亚马逊开店、TikTok营销、外贸实操、选品工具' },
-  curriculum:         { icon: '📝', label: '课程资料',        desc: '得到、网上流行课程等综合学习资料' },
-  'edu-knowlege':     { icon: '🎓', label: '教育知识',         desc: '从幼儿园到大学全阶段教育材料、考试资料' },
-  games:              { icon: '🎮', label: '游戏资源',         desc: 'PC游戏、主机游戏、安卓手游、MOD、修改器' },
-  healthy:            { icon: '💪', label: '健康养生',          desc: '健身教程、营养指南、心理健康、中医养生' },
-  movies:             { icon: '🎬', label: '影视媒体',         desc: '高清电影、纪录片、音乐资源、演唱会' },
-  'self-media':       { icon: '📱', label: '自媒体',            desc: '流量获取、内容创作、变现策略、短视频制作' },
-  tools:              { icon: '🔧', label: '工具合集',          desc: '软件工具、浏览器插件、系统优化、开发工具' },
-  auto:               { icon: '⚡', label: '自动化工具',        desc: '各种自动化脚本和工具，提升工作效率' },
+const categoryLabel = computed(() => categoryMetaMap[props.category]?.label || props.category)
+const catColor = computed(() => CAT_COLORS[props.category] || 'var(--vp-c-brand-1)')
+
+const categoryMetaMap: Record<string, any> = {
+  AIknowledge:        { label: 'AI知识',        desc: '人工智能学习资料、提示词工程、AI工具教程、机器学习课程' },
+  book:               { label: '书籍资料',        desc: '电子书、技术文档、学术论文、小说文学，专业教材' },
+  'chinese-traditional': { label: '传统文化',   desc: '中医课程、传统文化资料等国学精华内容' },
+  'cross-border':     { label: '跨境电商',        desc: '亚马逊开店、TikTok营销、外贸实操、选品工具' },
+  curriculum:         { label: '课程资料',        desc: '得到、网上流行课程等综合学习资料' },
+  'edu-knowlege':     { label: '教育知识',         desc: '从幼儿园到大学全阶段教育材料、考试资料' },
+  games:              { label: '游戏资源',         desc: 'PC游戏、主机游戏、安卓手游、MOD、修改器' },
+  healthy:            { label: '健康养生',          desc: '健身教程、营养指南、心理健康、中医养生' },
+  movies:             { label: '影视媒体',         desc: '高清电影、纪录片，音乐资源、演唱会' },
+  'self-media':       { label: '自媒体',            desc: '流量获取、内容创作、变现策略、短视频制作' },
+  tools:              { label: '工具合集',          desc: '软件工具、浏览器插件、系统优化、开发工具' },
+  auto:               { label: '自动化工具',        desc: '各种自动化脚本和工具，提升工作效率' },
 }
+
+const categoryMeta = computed(() => categoryMetaMap[props.category])
 
 const filteredResources = computed(() => {
   let list = allResources.value.filter(r => r.category === props.category)
@@ -139,9 +155,7 @@ const filteredResources = computed(() => {
     const q = localSearch.value.toLowerCase()
     list = list.filter(r => r.title.toLowerCase().includes(q))
   }
-  if (sortBy.value === 'title') {
-    list = [...list].sort((a, b) => a.title.localeCompare(b.title, 'zh-CN'))
-  }
+  if (sortBy.value === 'title') list = [...list].sort((a, b) => a.title.localeCompare(b.title, 'zh-CN'))
   return list
 })
 
@@ -150,7 +164,7 @@ const displayResources = computed(() => {
   const start = (currentPage.value - 1) * PAGE_SIZE
   return filteredResources.value.slice(start, start + PAGE_SIZE)
 })
-const displayCount = computed(() => displayResources.value.length)
+const displayCount = computed(() => filteredResources.value.length)
 
 const visiblePages = computed(() => {
   const tp = totalPages.value
@@ -165,38 +179,25 @@ const visiblePages = computed(() => {
 })
 
 const availableMonths = computed(() =>
-  [...new Set(
-    allResources.value.filter(r => r.category === props.category).map(r => r.month).filter(Boolean)
-  )].sort((a, b) => b.localeCompare(a))
+  [...new Set(allResources.value.filter(r => r.category === props.category).map(r => r.month).filter(Boolean))]
+    .sort((a, b) => b.localeCompare(a))
 )
 
 function formatMonth(m: string) {
-  if (m?.length === 6) return `${m.slice(0, 4)}/${m.slice(4, 6)}`
-  return m
+  return m?.length === 6 ? `${m.slice(0, 4)}/${m.slice(4, 6)}` : m
 }
 
-function setMonth(m: string | null) {
-  activeMonth.value = m
-  currentPage.value = 1
-}
-
-function reset() {
-  localSearch.value = ''
-  activeMonth.value = null
-  currentPage.value = 1
-}
+function setMonth(m: string | null) { activeMonth.value = m; currentPage.value = 1 }
+function reset() { localSearch.value = ''; activeMonth.value = null; currentPage.value = 1 }
 
 watch([localSearch, activeMonth], () => { currentPage.value = 1 })
 
 onMounted(async () => {
-          try {
-            const r = await fetch('/data/resources.json')
-            const data = await r.json()
-            allResources.value = data
-          } catch (e) {
-            console.error('Failed to load resources:', e)
-          }
-        })
+  try {
+    const r = await fetch('/data/resources.json')
+    allResources.value = await r.json()
+  } catch (e) { console.error('Failed to load resources:', e) }
+})
 </script>
 
 <style scoped>
@@ -209,58 +210,67 @@ onMounted(async () => {
   gap: 1.5rem;
 }
 
+/* Banner */
 .cat-banner {
-  display: flex;
-  align-items: flex-start;
-  gap: 1.5rem;
-  padding: 1.5rem 2rem;
-  background: linear-gradient(135deg, var(--vp-c-brand-soft) 0%, var(--vp-c-bg-soft) 100%);
+  padding: 1.5rem 1.75rem;
+  background: var(--vp-c-bg);
   border: 1px solid var(--vp-c-border);
-  border-radius: 16px;
+  border-left: 4px solid;
+  border-radius: 10px;
 }
 
-.cat-icon-lg { font-size: 3.5rem; flex-shrink: 0; }
-.cat-meta { flex: 1; }
-.cat-title {
-  font-size: 1.75rem;
-  font-weight: 800;
-  color: var(--vp-c-text-1);
-  margin: 0 0 0.4rem 0;
+.cat-info { display: flex; flex-direction: column; gap: 0.5rem; }
+
+.cat-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
-.cat-desc {
-  font-size: 0.9rem;
-  color: var(--vp-c-text-2);
-  margin: 0 0 0.75rem 0;
-  line-height: 1.5;
-}
-.cat-stats { display: flex; gap: 0.75rem; flex-wrap: wrap; }
-.stat-pill {
+
+.cat-tag {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
-  padding: 0.25rem 0.75rem;
-  background: var(--vp-c-bg);
-  border: 1px solid var(--vp-c-border);
-  border-radius: 20px;
-  font-size: 0.8rem;
-  color: var(--vp-c-text-2);
+  padding: 0.2rem 0.7rem;
+  border-radius: 5px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.03em;
 }
 
-/* 筛选 */
-.month-filter { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
-.month-pill {
-  padding: 0.4rem 1rem;
-  border-radius: 20px;
+.cat-count-badge {
+  font-size: 0.8rem;
+  color: var(--vp-c-text-3);
+}
+
+.cat-desc {
+  font-size: 0.875rem;
+  color: var(--vp-c-text-2);
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* 月份筛选 */
+.month-filter {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.pill {
+  padding: 0.35rem 0.9rem;
+  border-radius: 6px;
   border: 1px solid var(--vp-c-border);
   background: var(--vp-c-bg);
   color: var(--vp-c-text-2);
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.15s;
 }
-.month-pill:hover { border-color: var(--vp-c-brand-1); color: var(--vp-c-brand-1); }
-.month-pill.active { background: var(--vp-c-brand-1); border-color: var(--vp-c-brand-1); color: #fff; }
+.pill:hover { border-color: var(--vp-c-brand-1); color: var(--vp-c-brand-1); }
+.pill.active { background: var(--vp-c-brand-1); border-color: var(--vp-c-brand-1); color: #fff; }
 
 /* 控制行 */
 .controls-row {
@@ -269,70 +279,108 @@ onMounted(async () => {
   align-items: center;
 }
 
-.cat-search-input {
+.search-wrap {
   flex: 1;
-  padding: 0.7rem 1.1rem;
-  border: 2px solid var(--vp-c-border);
-  border-radius: 12px;
-  font-size: 0.9rem;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  position: absolute;
+  left: 0.85rem;
+  width: 16px;
+  height: 16px;
+  color: var(--vp-c-text-3);
+  pointer-events: none;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.65rem 2.5rem 0.65rem 2.5rem;
+  border: 1.5px solid var(--vp-c-border);
+  border-radius: 8px;
+  font-size: 0.875rem;
   background: var(--vp-c-bg);
   color: var(--vp-c-text-1);
   outline: none;
   transition: border-color 0.2s;
   box-sizing: border-box;
 }
-.cat-search-input:focus { border-color: var(--vp-c-brand-1); }
-.cat-search-input::placeholder { color: var(--vp-c-text-3); }
+.search-input:focus { border-color: var(--vp-c-brand-1); }
+.search-input::placeholder { color: var(--vp-c-text-3); }
+
+.clear-btn {
+  position: absolute;
+  right: 0.75rem;
+  background: none;
+  border: none;
+  padding: 0.2rem;
+  cursor: pointer;
+  color: var(--vp-c-text-3);
+  display: flex;
+  align-items: center;
+}
+.clear-btn svg { width: 14px; height: 14px; }
+.clear-btn:hover { color: var(--vp-c-text-2); }
 
 .sort-select {
-  padding: 0.7rem 1rem;
-  border: 2px solid var(--vp-c-border);
-  border-radius: 12px;
+  padding: 0.65rem 0.85rem;
+  border: 1.5px solid var(--vp-c-border);
+  border-radius: 8px;
   background: var(--vp-c-bg);
   color: var(--vp-c-text-1);
   font-size: 0.85rem;
   cursor: pointer;
   outline: none;
+  transition: border-color 0.2s;
 }
+.sort-select:focus { border-color: var(--vp-c-brand-1); }
 
 /* 结果栏 */
 .results-bar {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   color: var(--vp-c-text-3);
-  padding: 0 0.25rem;
+  padding: 0 0.2rem;
 }
 
-.reset-link {
+.reset-btn {
+  margin-left: auto;
   background: none;
   border: none;
   color: var(--vp-c-brand-1);
+  font-size: 0.8rem;
   cursor: pointer;
-  font-size: 0.82rem;
   padding: 0;
-  margin-left: auto;
 }
 
-/* 无结果 */
-.no-results {
+/* 空状态 */
+.empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 4rem 2rem;
-  text-align: center;
   color: var(--vp-c-text-3);
   gap: 0.75rem;
+  text-align: center;
 }
-.no-results-icon { font-size: 3rem; }
-.no-results p { font-size: 1.1rem; margin: 0; }
-.reset-btn {
-  padding: 0.5rem 1.25rem;
+
+.empty-state svg {
+  width: 48px;
+  height: 48px;
+  opacity: 0.4;
+}
+
+.empty-state p { font-size: 1rem; margin: 0; }
+
+.reset-action {
+  padding: 0.45rem 1.25rem;
   background: var(--vp-c-brand-1);
   color: #fff;
   border: none;
-  border-radius: 8px;
+  border-radius: 7px;
   font-size: 0.85rem;
   cursor: pointer;
 }
@@ -342,36 +390,41 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  padding-top: 1rem;
+  gap: 0.4rem;
+  padding-top: 0.5rem;
   flex-wrap: wrap;
 }
 
 .page-btn {
-  padding: 0.5rem 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.45rem 0.9rem;
   border: 1px solid var(--vp-c-border);
-  border-radius: 8px;
+  border-radius: 7px;
   background: var(--vp-c-bg);
   color: var(--vp-c-text-2);
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   cursor: pointer;
   transition: all 0.15s;
 }
 .page-btn:hover:not(:disabled) { border-color: var(--vp-c-brand-1); color: var(--vp-c-brand-1); }
 .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.page-btn svg { width: 14px; height: 14px; }
 
-.page-numbers { display: flex; gap: 0.35rem; align-items: center; }
+.page-nums { display: flex; gap: 0.3rem; align-items: center; }
+
 .page-num {
-  min-width: 36px;
-  height: 36px;
+  min-width: 34px;
+  height: 34px;
   display: flex;
   align-items: center;
   justify-content: center;
   border: 1px solid var(--vp-c-border);
-  border-radius: 8px;
+  border-radius: 7px;
   background: var(--vp-c-bg);
   color: var(--vp-c-text-2);
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   cursor: pointer;
   transition: all 0.15s;
 }
@@ -379,10 +432,10 @@ onMounted(async () => {
 .page-num.active { background: var(--vp-c-brand-1); border-color: var(--vp-c-brand-1); color: #fff; }
 .page-num.ellipsis { border: none; background: transparent; cursor: default; }
 
+/* Mobile */
 @media (max-width: 640px) {
-  .category-page { padding: 1.5rem 1rem 2rem; }
-  .cat-banner { padding: 1.25rem; flex-direction: column; gap: 1rem; }
-  .cat-title { font-size: 1.4rem; }
+  .category-page { padding: 1.5rem 1rem 2.5rem; }
+  .cat-banner { padding: 1.1rem 1.25rem; }
   .controls-row { flex-direction: column; }
   .results-bar { flex-wrap: wrap; }
 }
