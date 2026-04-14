@@ -1,13 +1,13 @@
 <template>
-  <div class="resource-card" @click="handleClick">
+  <div class="resource-card" @click="handleCardClick">
     <!-- Platform stripe -->
-    <div class="rc-platform-stripe" :style="{ background: platColor }"></div>
+    <div class="rc-platform-stripe" style="background: #4A90E2"></div>
 
     <!-- Header: title + badge -->
     <div class="rc-header">
       <h3 class="rc-title">{{ item.title }}</h3>
-      <span :class="['rc-badge', `rc-badge--${item.platform || 'unknown'}`]">
-        {{ platIcon(item.platform) }} {{ platName(item.platform) }}
+      <span class="rc-badge rc-badge--quark">
+        🥤 夸克
       </span>
     </div>
 
@@ -76,57 +76,18 @@
 import { ref } from 'vue'
 
 const props = defineProps({
-  item: {
-    type: Object,
-    required: true
-  }
+  item: { type: Object, required: true }
 })
 
 const emit = defineEmits(['click'])
 
 const copyLabel = ref('复制')
 
-const PLAT_COLORS = {
-  quark: '#4A90E2',
-  baidu: '#7B8EF5',
-  xunlei: '#2DBD6C',
-  aliyun: '#FF6D2E',
-  unknown: '#666680'
-}
-
-const PLAT_NAMES = {
-  quark: '夸克',
-  baidu: '百度',
-  xunlei: '迅雷',
-  aliyun: '阿里',
-  unknown: '其他'
-}
-
-const PLAT_ICONS = {
-  quark: '🥤',
-  baidu: '🔵',
-  xunlei: '⚡',
-  aliyun: '☁️',
-  unknown: '📦'
-}
-
 const CAT_LABELS = {
   'AIknowledge': 'AI知识', 'book': '书籍', 'curriculum': '课程',
   'tools': '工具', 'games': '游戏', 'movies': '影视',
   'healthy': '健康', 'self-media': '自媒体', 'edu-knowlege': '教育',
   'chinese-traditional': '传统文化', 'cross-border': '跨境', 'auto': '自动'
-}
-
-function platColor() {
-  return PLAT_COLORS[props.item.platform] || PLAT_COLORS.unknown
-}
-
-function platName(p) {
-  return PLAT_NAMES[p] || p
-}
-
-function platIcon(p) {
-  return PLAT_ICONS[p] || '📦'
 }
 
 function catLabel(cat) {
@@ -138,30 +99,27 @@ function fmtMonth(month) {
   return `${month.slice(0,4)}/${month.slice(4,6)}`
 }
 
-function handleClick() {
+function handleCardClick() {
   emit('click', props.item)
 }
 
 async function copyPwd() {
   try {
     await navigator.clipboard.writeText(props.item.pwd || '')
-    copyLabel.value = '✓ 已复制'
-    setTimeout(() => { copyLabel.value = '复制' }, 2000)
+    copyLabel.value = '✓'
+    setTimeout(() => { copyLabel.value = '复制' }, 1500)
   } catch {
-    copyLabel.value = '复制失败'
-    setTimeout(() => { copyLabel.value = '复制' }, 2000)
+    copyLabel.value = '失败'
+    setTimeout(() => { copyLabel.value = '复制' }, 1500)
   }
 }
 
 async function copyUrl() {
   try {
     await navigator.clipboard.writeText(props.item.url || '')
-  } catch {
-    // fallback
-  }
+  } catch { /* noop */ }
 }
 </script>
 
 <style scoped>
-/* inherit from global .resource-card */
 </style>

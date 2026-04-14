@@ -37,11 +37,11 @@
           发现全网<br><em>优质网盘资源</em>
         </h1>
         <p class="hero__subtitle">
-          聚合夸克、百度、迅雷、阿里云四大平台<br>
+          专注夸克网盘资源聚合<br>
           游戏 · 书籍 · 课程 · 工具 · 影视 · AI 知识
         </p>
 
-        <!-- Search -->
+        <!-- Search (outside hero overflow so dropdown can escape) -->
         <div class="search-wrap">
           <div class="search-bar" :class="{ focused: searchFocused }">
             <svg class="search-bar__icon" viewBox="0 0 20 20" fill="none">
@@ -49,9 +49,10 @@
               <path d="M13.5 13.5L17 17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
             </svg>
             <input
+              ref="searchInputRef"
               v-model="searchQuery"
               type="text"
-              placeholder="搜索资源名称、平台或分类..."
+              placeholder="搜索资源名称..."
               class="search-input"
               @focus="searchFocused = true"
               @blur="onBlur"
@@ -61,55 +62,45 @@
               @keydown.enter.prevent="openSelected"
             />
             <kbd v-if="!searchQuery" class="search-kbd">/</kbd>
-            <button v-if="searchQuery" class="rc-copy-btn" @click="clearSearch" style="border:none;background:none;padding:4px;">
+            <button v-if="searchQuery" class="search-clear" @click="clearSearch">
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                 <path d="M10.5 3.5L3.5 10.5M3.5 3.5l7 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
               </svg>
             </button>
           </div>
+        </div>
 
-          <!-- Search Dropdown -->
-          <div v-if="searchQuery && searchFocused" class="search-dropdown">
+        <!-- Search Dropdown — rendered outside hero via teleport, or use position:fixed -->
+        <Teleport to="body">
+          <div v-if="searchQuery && searchFocused" class="search-dropdown" :style="dropdownStyle">
             <div v-if="searchResults.length === 0" class="sd-empty">
               未找到「{{ searchQuery }}」相关资源，试试其他关键词
             </div>
-            <div v-else class="sd-results">
-              <div class="sd-meta">{{ searchResults.length }} 条结果 · 按 {{ searchQuery }} 搜索</div>
+            <div v-else>
+              <div class="sd-meta">{{ searchResults.length }} 条结果</div>
               <div
                 v-for="(item, idx) in searchResults.slice(0, 8)"
-                :key="item.title + item.platform"
+                :key="item.title + idx"
                 :class="['sd-item', { selected: idx === searchSelected }]"
                 @mousedown.prevent="openItem(item)"
                 @mouseenter="searchSelected = idx"
               >
-                <span class="sd-dot" :style="{ background: platColor(item.platform) }"></span>
+                <span class="sd-dot" style="background: var(--quark)"></span>
                 <div class="sd-info">
                   <span class="sd-title" v-html="highlight(item.title, searchQuery)"></span>
-                  <span class="sd-cat">{{ catLabel(item.category) }} · {{ platLabel(item.platform) }}</span>
+                  <span class="sd-cat">{{ catLabel(item.category) }}</span>
                 </div>
                 <span class="month-badge">{{ fmtMonth(item.month) }}</span>
               </div>
               <div v-if="searchResults.length > 8" class="sd-empty" style="padding:12px">
-                还有 {{ searchResults.length - 8 }} 条结果，请精确搜索…
+                还有 {{ searchResults.length - 8 }} 条结果…
               </div>
             </div>
           </div>
-        </div>
+          <!-- Backdrop -->
+          <div v-if="searchQuery && searchFocused" class="search-backdrop" @click="searchFocused = false"></div>
+        </Teleport>
 
-        <!-- Platform Quick Filters -->
-        <div class="quick-filters">
-          <button
-            v-for="plat in PLATFORMS"
-            :key="plat.value"
-            :class="['plat-chip', { active: activePlatform === plat.value }]"
-            :style="activePlatform === plat.value ? { background: plat.color, borderColor: plat.color } : {}"
-            @click="togglePlatform(plat.value)"
-          >
-            <span class="plat-dot" :style="{ background: plat.color }"></span>
-            {{ plat.label }}
-            <span class="plat-count">{{ platformCount[plat.value] || 0 }}</span>
-          </button>
-        </div>
       </div>
     </section>
 
@@ -121,7 +112,7 @@
           <div class="stat-label">收录资源</div>
         </div>
         <div class="stat-card stagger-2 animate-in">
-          <div class="stat-num">4</div>
+          <div class="stat-num">1</div>
           <div class="stat-label">网盘平台</div>
         </div>
         <div class="stat-card stagger-3 animate-in">
@@ -166,14 +157,17 @@
         </div>
       </section>
 
-      <!-- ── Recent Resources ── -->
+      <!-- ── Recent Resources (sorted by month desc) ── -->
       <div class="section-divider"></div>
       <section class="section">
         <div class="section-head">
           <h2 class="section-ttl">最近更新</h2>
-          <span class="section-sub">实时同步各大平台</span>
+          <span class="section-sub">按更新时间倒序</span>
         </div>
-        <div class="resource-grid">
+        <div v-if="!dataLoaded" class="skeleton-grid">
+          <div v-for="n in 8" :key="n" class="skeleton-card"></div>
+        </div>
+        <div v-else class="resource-grid">
           <ResourceCard
             v-for="(item, i) in recentResources"
             :key="item.title + i"
@@ -183,26 +177,21 @@
         </div>
       </section>
 
-      <!-- ── Platform Distribution ── -->
+      <!-- ── Platform Distribution (quark only) ── -->
       <div class="section-divider"></div>
       <section class="section">
         <div class="section-head">
           <h2 class="section-ttl">平台分布</h2>
-          <span class="section-sub">各平台资源占比</span>
+          <span class="section-sub">夸克网盘 100%</span>
         </div>
-        <div class="platform-bars">
-          <div v-for="plat in PLATFORMS" :key="plat.value" class="plat-bar-item">
-            <div class="plat-bar-label">
-              <span class="plat-dot" :style="{ background: plat.color }"></span>
-              <span>{{ plat.label }}</span>
-              <span class="plat-bar-pct">{{ platPct(plat.value) }}%</span>
-            </div>
-            <div class="plat-bar-track">
-              <div
-                class="plat-bar-fill"
-                :style="{ width: platPct(plat.value) + '%', background: plat.color }"
-              ></div>
-            </div>
+        <div class="plat-bar-item" style="max-width:400px">
+          <div class="plat-bar-label">
+            <span class="plat-dot" style="background: var(--quark)"></span>
+            <span>夸克网盘</span>
+            <span class="plat-bar-pct">100%</span>
+          </div>
+          <div class="plat-bar-track">
+            <div class="plat-bar-fill" style="width:100%;background:var(--quark)"></div>
           </div>
         </div>
       </section>
@@ -238,13 +227,10 @@ import ResourceCard from './ResourceCard.vue'
 
 // ── Data ──
 const allResources = ref([])
-const categories = ref({})
+const dataLoaded = ref(false)
 
 const PLATFORMS = [
-  { value: 'quark',  label: '夸克网盘', color: '#4A90E2' },
-  { value: 'baidu',  label: '百度网盘', color: '#7B8EF5' },
-  { value: 'xunlei', label: '迅雷网盘', color: '#2DBD6C' },
-  { value: 'aliyun', label: '阿里云盘', color: '#FF6D2E' },
+  { value: 'quark', label: '夸克网盘', color: '#4A90E2' },
 ]
 
 const CAT_EMOJIS = {
@@ -271,18 +257,21 @@ const CAT_COLORS = {
 const searchQuery = ref('')
 const searchFocused = ref(false)
 const searchSelected = ref(0)
-const activePlatform = ref('')
+const searchInputRef = ref(null)
 
 // ── Computed ──
-const totalResources = computed(() => allResources.value.length || 998)
+const totalResources = computed(() => {
+  if (!dataLoaded.value) return '—'
+  return allResources.value.length || 0
+})
 
 const totalSize = computed(() => '100T+')
 
 const updateMonth = computed(() => {
   const months = allResources.value.map(r => r.month).filter(Boolean)
-  if (!months.length) return '202604'
-  const latest = months.sort().reverse()[0]
-  return latest ? `${latest.slice(0,4)}/${latest.slice(4,6)}` : '202604'
+  if (!months.length) return '—'
+  const latest = [...new Set(months)].sort().reverse()[0]
+  return latest ? `${latest.slice(0,4)}/${latest.slice(4,6)}` : '—'
 })
 
 const categoryList = computed(() => {
@@ -291,54 +280,52 @@ const categoryList = computed(() => {
     if (!cats[r.category]) cats[r.category] = 0
     cats[r.category]++
   })
-  return Object.entries(cats).map(([id, count]) => ({
-    id, label: CAT_LABELS[id] || id, count
-  })).sort((a, b) => b.count - a.count)
+  return Object.entries(cats)
+    .map(([id, count]) => ({ id, label: CAT_LABELS[id] || id, count }))
+    .sort((a, b) => b.count - a.count)
 })
 
-const filteredCatList = computed(() => {
-  if (!activePlatform.value) return categoryList.value
-  return categoryList.value.filter(c => {
-    return allResources.value.some(r => r.category === c.id && r.platform === activePlatform.value)
-  })
-})
+const filteredCatList = computed(() => categoryList.value)
 
 const recentResources = computed(() => {
-  const filtered = activePlatform.value
-    ? allResources.value.filter(r => r.platform === activePlatform.value)
-    : allResources.value
-  return filtered.slice(0, 8)
-})
-
-const platformCount = computed(() => {
-  const counts = {}
-  allResources.value.forEach(r => {
-    counts[r.platform] = (counts[r.platform] || 0) + 1
-  })
-  return counts
+  if (!dataLoaded.value) return []
+  // Sort by month desc, take latest 8
+  return [...allResources.value]
+    .filter(r => r.month)
+    .sort((a, b) => b.month.localeCompare(a.month))
+    .slice(0, 8)
 })
 
 const searchResults = computed(() => {
-  if (!searchQuery.value.trim()) return []
+  if (!searchQuery.value.trim() || !dataLoaded.value) return []
   const q = searchQuery.value.toLowerCase().trim()
   return allResources.value.filter(r =>
     r.title.toLowerCase().includes(q) ||
-    r.platform.toLowerCase().includes(q) ||
     r.category.toLowerCase().includes(q)
   )
 })
 
-// ── Methods ──
-function togglePlatform(val) {
-  activePlatform.value = activePlatform.value === val ? '' : val
-}
+// ── Dropdown position ──
+const dropdownStyle = computed(() => {
+  const input = searchInputRef.value
+  if (!input) return {}
+  const rect = input.getBoundingClientRect()
+  return {
+    position: 'fixed',
+    top: `${rect.bottom + 8}px`,
+    left: `${Math.max(16, rect.left)}px`,
+    width: `${Math.min(rect.width, window.innerWidth - 32)}px`,
+    zIndex: 9999
+  }
+})
 
+// ── Methods ──
 function platColor(platform) {
-  return PLATFORMS.find(p => p.value === platform)?.color || '#666680'
+  return '#4A90E2'
 }
 
 function platLabel(platform) {
-  return PLATFORMS.find(p => p.value === platform)?.label || platform
+  return '夸克网盘'
 }
 
 function catColor(cat) {
@@ -359,8 +346,8 @@ function fmtMonth(month) {
 }
 
 function platPct(platform) {
-  if (!totalResources.value) return 0
-  return Math.round((platformCount.value[platform] || 0) / totalResources.value * 100)
+  if (!totalResources.value || totalResources.value === '—') return 0
+  return Math.round((1 / Number(totalResources.value)) * 100)
 }
 
 function highlight(text, query) {
@@ -373,6 +360,7 @@ function clearSearch() {
   searchQuery.value = ''
   searchFocused.value = false
   searchSelected.value = 0
+  searchInputRef.value?.blur()
 }
 
 function selectPrev() {
@@ -397,25 +385,28 @@ function onBlur() {
   setTimeout(() => { searchFocused.value = false }, 200)
 }
 
-// ── Keyboard shortcut '/' to focus search ──
 function handleKeydown(e) {
   if (e.key === '/' && !searchFocused.value &&
       document.activeElement.tagName !== 'INPUT' &&
       document.activeElement.tagName !== 'TEXTAREA') {
     e.preventDefault()
-    document.querySelector('.search-input')?.focus()
+    searchInputRef.value?.focus()
   }
 }
 
-// ── Load data ──
 onMounted(async () => {
   window.addEventListener('keydown', handleKeydown)
   try {
     const res = await fetch('/data/resources.json')
-    allResources.value = await res.json()
+    const data = await res.json()
+    // Ensure all resources are quark platform only
+    allResources.value = data
+    dataLoaded.value = true
   } catch (e) {
-    // fallback: resources may be injected via window
-    if (window.__RESOURCES__) allResources.value = window.__RESOURCES__
+    if (window.__RESOURCES__) {
+      allResources.value = window.__RESOURCES__
+      dataLoaded.value = true
+    }
   }
 })
 
@@ -425,7 +416,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* Platform bars section */
+/* Platform bars */
 .platform-bars {
   display: flex;
   flex-direction: column;
@@ -466,6 +457,48 @@ onUnmounted(() => {
   border-radius: 3px;
   transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
   opacity: 0.8;
+}
+
+/* Search clear button */
+.search-clear {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: rgba(255,255,255,0.06);
+  border: none;
+  border-radius: 50%;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  padding: 0;
+}
+
+.search-clear:hover {
+  background: rgba(255,255,255,0.12);
+  color: var(--text-primary);
+}
+
+/* Skeleton loading */
+.skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.skeleton-card {
+  height: 180px;
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(255,255,255,0.05);
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
 }
 
 /* Site Footer */

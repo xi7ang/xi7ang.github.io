@@ -9,7 +9,7 @@
           <span class="brand__name">PAN.NA</span>
         </a>
         <div class="masthead__stats">
-          <span class="masthead__stat"><strong>{{ filteredItems.length }}</strong> 条资源</span>
+          <span class="masthead__stat"><strong>{{ dataLoaded ? filteredItems.length : '—' }}</strong> 条资源</span>
         </div>
         <nav class="masthead__nav">
           <a href="/" class="nav-link">🏠 首页</a>
@@ -29,8 +29,8 @@
             <div class="cat-banner__info">
               <h1 class="cat-banner__name">{{ catLabel }}</h1>
               <p class="cat-banner__count">
-                共收录 <strong>{{ filteredItems.length }}</strong> 条资源 ·
-                来自 <strong>{{ platformCount }}</strong> 个平台
+                共收录 <strong>{{ dataLoaded ? filteredItems.length : '—' }}</strong> 条资源 ·
+                夸克网盘
               </p>
             </div>
           </div>
@@ -39,7 +39,7 @@
           <div class="month-filters">
             <button
               :class="['month-pill', { active: !activeMonth }]"
-              @click="activeMonth = ''"
+              @click="setMonth('')"
             >
               全部月份
             </button>
@@ -47,13 +47,13 @@
               v-for="m in availableMonths"
               :key="m"
               :class="['month-pill', { active: activeMonth === m }]"
-              @click="activeMonth = activeMonth === m ? '' : m"
+              @click="setMonth(m)"
             >
               {{ m.slice(0,4) }}/{{ m.slice(4,6) }}
             </button>
           </div>
 
-          <!-- Local search -->
+          <!-- Local fuzzy search -->
           <div class="search-wrap">
             <div class="search-bar">
               <svg class="search-bar__icon" viewBox="0 0 20 20" fill="none">
@@ -63,10 +63,10 @@
               <input
                 v-model="localSearch"
                 type="text"
-                :placeholder="`在 ${catLabel} 中搜索...`"
+                :placeholder="`在「${catLabel}」中搜索...`"
                 class="search-input"
               />
-              <button v-if="localSearch" class="rc-copy-btn" style="border:none;background:none;padding:4px;" @click="localSearch = ''">
+              <button v-if="localSearch" class="search-clear" @click="localSearch = ''">
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                   <path d="M10.5 3.5L3.5 10.5M3.5 3.5l7 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
                 </svg>
@@ -79,32 +79,49 @@
 
     <!-- ── Resource Grid ── -->
     <div class="container">
-      <div v-if="filteredItems.length === 0" class="empty-state">
+      <!-- Skeleton -->
+      <div v-if="!dataLoaded" class="skeleton-grid">
+        <div v-for="n in 12" :key="n" class="skeleton-card"></div>
+      </div>
+
+      <!-- Empty state -->
+      <div v-else-if="filteredItems.length === 0" class="empty-state">
         <div class="empty-state__icon">🔍</div>
         <div class="empty-state__title">暂无资源</div>
         <div class="empty-state__desc">
-          当前分类下没有找到资源，试试切换月份或返回首页浏览其他分类。
+          <span v-if="localSearch">没有找到「{{ localSearch }}」相关资源，试试其他关键词</span>
+          <span v-else>该分类下暂无资源，或切换月份试试</span>
         </div>
       </div>
 
-      <div v-else class="resource-grid" ref="gridEl">
-        <ResourceCard
-          v-for="(item, i) in filteredItems"
-          :key="item.title + i"
-          :item="item"
-          :class="`animate-in stagger-${(i % 4) + 1}`"
-          :style="{ animationDelay: `${(i % 4) * 80}ms` }"
-        />
-      </div>
+      <!-- Grid with pagination -->
+      <div v-else>
+        <div class="resource-grid">
+          <ResourceCard
+            v-for="(item, i) in displayedItems"
+            :key="item.title + i"
+            :item="item"
+            class="animate-in"
+            :style="{ animationDelay: `${(i % 4) * 60}ms` }"
+          />
+        </div>
 
-      <!-- Load more hint -->
-      <div v-if="filteredItems.length > 0" class="load-more-hint">
-        已展示全部 {{ filteredItems.length }} 条资源
+        <!-- Load More -->
+        <div v-if="hasMore" class="load-more-wrap">
+          <button class="load-more-btn" @click="loadMore" :disabled="loadingMore">
+            <span v-if="loadingMore">加载中…</span>
+            <span v-else>加载更多 ({{ remainingCount }} 条)</span>
+          </button>
+        </div>
+
+        <div class="load-count">
+          已展示 {{ displayedItems.length }} / {{ filteredItems.length }} 条
+        </div>
       </div>
     </div>
 
     <!-- ── Back to top ── -->
-    <button v-if="showBackTop" class="back-top" @click="scrollToTop">
+    <button v-show="showBackTop" class="back-top" @click="scrollToTop">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
         <path d="M8 13V3M3 8l5-5 5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
@@ -131,18 +148,30 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { useRoute } from 'vitepress'
 import ResourceCard from './ResourceCard.vue'
 
 const props = defineProps({
   category: { type: String, required: true }
 })
 
+const route = useRoute()
+
+// Resolve category from route if not passed as prop
+const currentCategory = computed(() => {
+  const seg = route.path.replace(/\/$/, '').split('/').filter(Boolean).pop()
+  return seg || props.category
+})
+
+const PAGE_SIZE = 48
 const allResources = ref([])
 const activeMonth = ref('')
 const localSearch = ref('')
 const showBackTop = ref(false)
-const gridEl = ref(null)
+const displayedCount = ref(PAGE_SIZE)
+const loadingMore = ref(false)
+const dataLoaded = ref(false)
 
 const CAT_EMOJIS = {
   'AIknowledge': '🤖', 'book': '📚', 'curriculum': '🎓', 'tools': '🔧',
@@ -164,12 +193,12 @@ const CAT_COLORS = {
   'chinese-traditional': '#C47A4A', 'cross-border': '#7AE44A', 'auto': '#888899'
 }
 
-const catLabel = computed(() => CAT_LABELS[props.category] || props.category)
-const catEmoji = computed(() => CAT_EMOJIS[props.category] || '📦')
-const catColor = computed(() => CAT_COLORS[props.category] || '#666680')
+const catLabel = computed(() => CAT_LABELS[currentCategory.value] || currentCategory.value)
+const catEmoji = computed(() => CAT_EMOJIS[currentCategory.value] || '📦')
+const catColor = computed(() => CAT_COLORS[currentCategory.value] || '#666680')
 
 const catResources = computed(() =>
-  allResources.value.filter(r => r.category === props.category)
+  allResources.value.filter(r => r.category === currentCategory.value)
 )
 
 const availableMonths = computed(() => {
@@ -183,16 +212,42 @@ const filteredItems = computed(() => {
     items = items.filter(r => r.month === activeMonth.value)
   }
   if (localSearch.value.trim()) {
-    const q = localSearch.value.toLowerCase()
-    items = items.filter(r => r.title.toLowerCase().includes(q))
+    const q = localSearch.value.toLowerCase().trim()
+    // Simple substring match (Fuse.js would be heavier for this size)
+    items = items.filter(r => {
+      const title = r.title.toLowerCase()
+      // Also search in pwds if present
+      const pwdMatch = r.pwd && r.pwd.toLowerCase().includes(q)
+      return title.includes(q) || pwdMatch
+    })
   }
-  return items
+  return items.sort((a, b) => b.month.localeCompare(a.month))
 })
 
-const platformCount = computed(() => {
-  const plats = new Set(catResources.value.map(r => r.platform))
-  return plats.size
-})
+const displayedItems = computed(() =>
+  filteredItems.value.slice(0, displayedCount.value)
+)
+
+const hasMore = computed(() =>
+  displayedCount.value < filteredItems.value.length
+)
+
+const remainingCount = computed(() =>
+  filteredItems.value.length - displayedCount.value
+)
+
+function setMonth(m) {
+  activeMonth.value = activeMonth.value === m ? '' : (m || '')
+  displayedCount.value = PAGE_SIZE // reset pagination on filter change
+}
+
+function loadMore() {
+  loadingMore.value = true
+  setTimeout(() => {
+    displayedCount.value += PAGE_SIZE
+    loadingMore.value = false
+  }, 300)
+}
 
 function scrollToTop() {
   window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -202,13 +257,23 @@ function onScroll() {
   showBackTop.value = window.scrollY > 400
 }
 
+// Reset pagination when search/month changes
+watch([localSearch, activeMonth], () => {
+  displayedCount.value = PAGE_SIZE
+})
+
 onMounted(async () => {
   window.addEventListener('scroll', onScroll)
   try {
     const res = await fetch('/data/resources.json')
-    allResources.value = await res.json()
+    const data = await res.json()
+    allResources.value = data
+    dataLoaded.value = true
   } catch {
-    if (window.__RESOURCES__) allResources.value = window.__RESOURCES__
+    if (window.__RESOURCES__) {
+      allResources.value = window.__RESOURCES__
+      dataLoaded.value = true
+    }
   }
 })
 
@@ -218,9 +283,81 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.load-more-hint {
+.search-clear {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: rgba(255,255,255,0.06);
+  border: none;
+  border-radius: 50%;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  padding: 0;
+}
+
+.search-clear:hover {
+  background: rgba(255,255,255,0.12);
+  color: var(--text-primary);
+}
+
+/* Skeleton */
+.skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.skeleton-card {
+  height: 180px;
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(255,255,255,0.05);
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+/* Load more */
+.load-more-wrap {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-xl) 0 var(--space-md);
+}
+
+.load-more-btn {
+  padding: 12px 32px;
+  background: var(--bg-card);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--radius-lg);
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.load-more-btn:hover:not(:disabled) {
+  background: var(--bg-card-hover);
+  color: var(--text-primary);
+  border-color: rgba(212,168,67,0.3);
+}
+
+.load-more-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.load-count {
   text-align: center;
-  padding: var(--space-2xl) 0;
+  padding: var(--space-md) 0 var(--space-2xl);
   font-size: 13px;
   color: var(--text-muted);
 }

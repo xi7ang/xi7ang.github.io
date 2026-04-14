@@ -269,7 +269,7 @@ a:hover {
 .hero {
   position: relative;
   padding: 80px 0 60px;
-  overflow: hidden;
+  /* overflow hidden removed — needed for search dropdown teleported elements */
 }
 
 .hero__bg {
@@ -447,6 +447,14 @@ a:hover {
   width: 8px;
   height: 8px;
   border-radius: 50%;
+}
+
+/* Search backdrop (click outside to close) */
+.search-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  background: transparent;
 }
 
 .sd-info {
@@ -958,9 +966,10 @@ a:hover {
 }
 
 .month-pill.active {
-  background: rgba(212,168,67,0.12);
-  border-color: rgba(212,168,67,0.3);
-  color: var(--accent-gold);
+  background: rgba(212,168,67,0.18);
+  border-color: rgba(212,168,67,0.5);
+  color: var(--accent-gold-light);
+  font-weight: 600;
 }
 
 /* ─── Resource Detail Page ─── */
@@ -1213,6 +1222,6 @@ mark {
   }
 
   .stat-num {
-    font-size: 28px;
+    font-size: 32px;
   }
 }
