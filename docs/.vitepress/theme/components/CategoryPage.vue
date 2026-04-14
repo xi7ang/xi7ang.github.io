@@ -286,9 +286,10 @@ function onScroll() {
 }
 
 // Reset pagination and clear highlight when user types or changes filter
+// Use queueMicrotask so onMounted's highlightedTitle assignment runs first
 watch([localSearch, activeMonth], () => {
   displayedCount.value = PAGE_SIZE
-  highlightedTitle.value = ''
+  queueMicrotask(() => { highlightedTitle.value = '' })
 })
 
 onMounted(async () => {
@@ -304,6 +305,7 @@ onMounted(async () => {
       localSearch.value = decoded
       highlightedTitle.value = decoded
       // Try scroll immediately (card may already be in first page)
+      await nextTick()
       const found = await scrollToTitle(decoded)
       // If not found, keep loading more until it appears
       if (!found) {
