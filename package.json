@@ -9,7 +9,7 @@
     "serve": "vitepress serve docs",
     "fetch-commits": "node scripts/fetch-commits.js",
     "build:search": "pagefind --site docs/.vitepress/dist --output-path docs/.vitepress/dist/pagefind",
-    "prebuild": "npm run generate-atom",
+    "prebuild": "node scripts/parse-resources.js && npm run generate-atom",
     "postbuild": "npm run build:search"
   },
   "devDependencies": {

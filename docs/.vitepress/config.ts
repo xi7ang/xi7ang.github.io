@@ -142,6 +142,11 @@ export default defineConfig({
 
     [
       'script',
+      {},
+      `window.__RESOURCES__ = window.__RESOURCES__ || []; fetch('/resources.json').then(r=>r.json()).then(d=>{window.__RESOURCES__=d;document.dispatchEvent(new Event('resources-ready'));}).catch(()=>{});`
+    ],
+    [
+      'script',
       {
         async: true,
         src: 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2634092855285462',
