@@ -1,666 +1,516 @@
 <template>
   <div class="home">
 
-    <!-- Masthead -->
+    <!-- ── Masthead ── -->
     <header class="masthead">
-      <div class="mh-inner">
+      <div class="masthead__inner">
         <a href="/" class="brand">
-          <svg width="24" height="24" viewBox="0 0 28 28" fill="none">
-            <rect width="28" height="28" rx="6" fill="#111"/>
-            <path d="M7 14h14M14 7v14" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
-          </svg>
-          <span class="brand-name">PAN.NA</span>
+          <div class="brand__icon">📦</div>
+          <span class="brand__name">PAN.NA</span>
         </a>
-        <div class="mh-stats">
-          <span><strong>{{ totalResources.toLocaleString() }}</strong> 资源</span>
-          <span class="dot"></span>
-          <span><strong>{{ categoryList.length }}</strong> 分类</span>
+        <div class="masthead__stats">
+          <span class="masthead__stat"><strong>{{ totalResources.toLocaleString() }}</strong> 资源</span>
+          <span class="masthead__dot"></span>
+          <span class="masthead__stat"><strong>{{ categoryList.length }}</strong> 分类</span>
+          <span class="masthead__dot"></span>
+          <span class="masthead__stat"><strong>{{ totalSize }}</strong></span>
         </div>
+        <nav class="masthead__nav">
+          <a href="/" class="nav-link">首页</a>
+          <a href="/book/" class="nav-link">书籍</a>
+          <a href="/games/" class="nav-link">游戏</a>
+          <a href="/support" class="nav-link nav-link--cta">❤️ 支持</a>
+        </nav>
       </div>
     </header>
 
-    <!-- Search -->
-    <div class="search-wrap">
-      <div class="search-bar" :class="{ focused: searchFocused }">
-        <svg class="si" viewBox="0 0 20 20" fill="none">
-          <circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.5"/>
-          <path d="M13.5 13.5L17 17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
-        <input
-          v-model="searchQuery"
-          type="text"
-          placeholder="搜索资源名称..."
-          class="search-input"
-          @focus="searchFocused = true"
-          @blur="onBlur"
-          @keydown.escape="clearSearch"
-        />
-        <kbd v-if="!searchQuery" class="kbd">/</kbd>
-      </div>
-
-      <!-- Inline search dropdown -->
-      <div v-if="searchQuery && searchFocused" class="search-dropdown">
-        <div v-if="searchResults.length === 0" class="sd-empty">
-          未找到「{{ searchQuery }}」相关资源
+    <!-- ── Hero ── -->
+    <section class="hero">
+      <div class="hero__bg"></div>
+      <div class="hero__inner">
+        <div class="hero__eyebrow">
+          <span>✨</span>
+          <span>超过 1000+ 精选资源，持续更新</span>
         </div>
-        <div v-else class="sd-results">
-          <div class="sd-meta">{{ searchResults.length }} 条结果</div>
-          <div
-            v-for="(item, idx) in searchResults"
-            :key="item.id"
-            :class="['sd-item', { selected: idx === searchSelected }]"
-            @mousedown.prevent="openItem(item)"
-            @mouseenter="searchSelected = idx"
-          >
-            <span class="sd-dot" :style="{ background: platColor(item.platform) }"></span>
-            <div class="sd-info">
-              <span class="sd-title" v-html="highlight(item.title, searchQuery)"></span>
-              <span class="sd-meta">{{ item.categoryLabel }} · {{ item.platformLabel }}</span>
+
+        <h1 class="hero__title">
+          发现全网<br><em>优质网盘资源</em>
+        </h1>
+        <p class="hero__subtitle">
+          聚合夸克、百度、迅雷、阿里云四大平台<br>
+          游戏 · 书籍 · 课程 · 工具 · 影视 · AI 知识
+        </p>
+
+        <!-- Search -->
+        <div class="search-wrap">
+          <div class="search-bar" :class="{ focused: searchFocused }">
+            <svg class="search-bar__icon" viewBox="0 0 20 20" fill="none">
+              <circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M13.5 13.5L17 17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            <input
+              v-model="searchQuery"
+              type="text"
+              placeholder="搜索资源名称、平台或分类..."
+              class="search-input"
+              @focus="searchFocused = true"
+              @blur="onBlur"
+              @keydown.escape="clearSearch"
+              @keydown.up.prevent="selectPrev"
+              @keydown.down.prevent="selectNext"
+              @keydown.enter.prevent="openSelected"
+            />
+            <kbd v-if="!searchQuery" class="search-kbd">/</kbd>
+            <button v-if="searchQuery" class="rc-copy-btn" @click="clearSearch" style="border:none;background:none;padding:4px;">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path d="M10.5 3.5L3.5 10.5M3.5 3.5l7 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Search Dropdown -->
+          <div v-if="searchQuery && searchFocused" class="search-dropdown">
+            <div v-if="searchResults.length === 0" class="sd-empty">
+              未找到「{{ searchQuery }}」相关资源，试试其他关键词
             </div>
-            <a :href="`/${item.category}/`" class="sd-cat-btn" @click.stop>分类</a>
+            <div v-else class="sd-results">
+              <div class="sd-meta">{{ searchResults.length }} 条结果 · 按 {{ searchQuery }} 搜索</div>
+              <div
+                v-for="(item, idx) in searchResults.slice(0, 8)"
+                :key="item.title + item.platform"
+                :class="['sd-item', { selected: idx === searchSelected }]"
+                @mousedown.prevent="openItem(item)"
+                @mouseenter="searchSelected = idx"
+              >
+                <span class="sd-dot" :style="{ background: platColor(item.platform) }"></span>
+                <div class="sd-info">
+                  <span class="sd-title" v-html="highlight(item.title, searchQuery)"></span>
+                  <span class="sd-cat">{{ catLabel(item.category) }} · {{ platLabel(item.platform) }}</span>
+                </div>
+                <span class="month-badge">{{ fmtMonth(item.month) }}</span>
+              </div>
+              <div v-if="searchResults.length > 8" class="sd-empty" style="padding:12px">
+                还有 {{ searchResults.length - 8 }} 条结果，请精确搜索…
+              </div>
+            </div>
           </div>
+        </div>
+
+        <!-- Platform Quick Filters -->
+        <div class="quick-filters">
+          <button
+            v-for="plat in PLATFORMS"
+            :key="plat.value"
+            :class="['plat-chip', { active: activePlatform === plat.value }]"
+            :style="activePlatform === plat.value ? { background: plat.color, borderColor: plat.color } : {}"
+            @click="togglePlatform(plat.value)"
+          >
+            <span class="plat-dot" :style="{ background: plat.color }"></span>
+            {{ plat.label }}
+            <span class="plat-count">{{ platformCount[plat.value] || 0 }}</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Stats ── -->
+    <div class="container">
+      <div class="stats-panel animate-in">
+        <div class="stat-card stagger-1 animate-in">
+          <div class="stat-num">{{ totalResources.toLocaleString() }}</div>
+          <div class="stat-label">收录资源</div>
+        </div>
+        <div class="stat-card stagger-2 animate-in">
+          <div class="stat-num">4</div>
+          <div class="stat-label">网盘平台</div>
+        </div>
+        <div class="stat-card stagger-3 animate-in">
+          <div class="stat-num">{{ categoryList.length }}</div>
+          <div class="stat-label">资源分类</div>
+        </div>
+        <div class="stat-card stagger-4 animate-in">
+          <div class="stat-num">{{ updateMonth }}</div>
+          <div class="stat-label">最近更新</div>
         </div>
       </div>
     </div>
 
-    <!-- Platform quick filters -->
-    <div class="quick-filters">
-      <button
-        v-for="plat in PLATFORMS"
-        :key="plat.value"
-        :class="['plat-chip', { active: activePlatform === plat.value }]"
-        :style="activePlatform === plat.value ? { background: plat.color, borderColor: plat.color } : {}"
-        @click="activePlatform = activePlatform === plat.value ? '' : plat.value"
-      >
-        <span class="plat-dot" :style="{ background: plat.color }"></span>
-        {{ plat.label }}
-        <span class="plat-c">{{ platformCount[plat.value] || 0 }}</span>
-      </button>
+    <!-- ── Categories ── -->
+    <div class="container">
+      <div class="section-divider"></div>
+      <section class="section">
+        <div class="section-head">
+          <h2 class="section-ttl">全部分类</h2>
+          <span class="section-sub">{{ filteredCatList.length }} 个分类</span>
+        </div>
+        <div class="cat-grid">
+          <a
+            v-for="(cat, i) in filteredCatList"
+            :key="cat.id"
+            :href="`/${cat.id}/`"
+            class="cat-card animate-in"
+            :class="`stagger-${(i % 6) + 1}`"
+            :style="{ '--cat-color': catColor(cat.id) }"
+          >
+            <div class="cat-card__icon">{{ catEmoji(cat.id) }}</div>
+            <div class="cat-card__name">{{ cat.label }}</div>
+            <div class="cat-card__count">{{ cat.count.toLocaleString() }} 条资源</div>
+            <div class="cat-card__bar">
+              <span class="plat-dot" :style="{ background: catColor(cat.id), width: '6px', height: '6px' }"></span>
+              <span>浏览全部</span>
+              <svg class="cat-card__arrow" viewBox="0 0 16 16" fill="none">
+                <path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+          </a>
+        </div>
+      </section>
+
+      <!-- ── Recent Resources ── -->
+      <div class="section-divider"></div>
+      <section class="section">
+        <div class="section-head">
+          <h2 class="section-ttl">最近更新</h2>
+          <span class="section-sub">实时同步各大平台</span>
+        </div>
+        <div class="resource-grid">
+          <ResourceCard
+            v-for="(item, i) in recentResources"
+            :key="item.title + i"
+            :item="item"
+            :class="`animate-in stagger-${(i % 4) + 1}`"
+          />
+        </div>
+      </section>
+
+      <!-- ── Platform Distribution ── -->
+      <div class="section-divider"></div>
+      <section class="section">
+        <div class="section-head">
+          <h2 class="section-ttl">平台分布</h2>
+          <span class="section-sub">各平台资源占比</span>
+        </div>
+        <div class="platform-bars">
+          <div v-for="plat in PLATFORMS" :key="plat.value" class="plat-bar-item">
+            <div class="plat-bar-label">
+              <span class="plat-dot" :style="{ background: plat.color }"></span>
+              <span>{{ plat.label }}</span>
+              <span class="plat-bar-pct">{{ platPct(plat.value) }}%</span>
+            </div>
+            <div class="plat-bar-track">
+              <div
+                class="plat-bar-fill"
+                :style="{ width: platPct(plat.value) + '%', background: plat.color }"
+              ></div>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
 
-    <!-- Categories -->
-    <section class="section">
-      <div class="section-head">
-        <span class="section-ttl">全部分类</span>
-        <span class="section-sub">{{ filteredCatList.length }} 个分类</span>
-      </div>
-      <div class="cat-grid">
-        <a
-          v-for="cat in filteredCatList"
-          :key="cat.id"
-          :href="`/${cat.id}/`"
-          class="cat-item"
-        >
-          <span class="cat-bar" :style="{ background: catColor(cat.id) }"></span>
-          <span class="cat-label">{{ cat.label }}</span>
-          <span class="cat-count">{{ cat.count.toLocaleString() }}</span>
-          <svg class="cat-arrow" viewBox="0 0 16 16" fill="none">
-            <path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </a>
-      </div>
-    </section>
-
-    <!-- Recent -->
-    <section class="section">
-      <div class="section-head">
-        <span class="section-ttl">最近更新</span>
-        <span class="section-sub">{{ recentMonthStr }}</span>
-      </div>
-      <div class="recent-grid">
-        <a
-          v-for="(r, i) in displayRecent"
-          :key="i"
-          :href="`/${r.category}/`"
-          class="recent-item"
-        >
-          <span class="r-dot" :style="{ background: platColor(r.platform) }"></span>
-          <div class="r-info">
-            <span class="r-title">{{ r.title }}</span>
-            <span class="r-meta">{{ catLabel(r.category) }} · {{ r.month?.slice(0,4) }}.{{ r.month?.slice(4,6) }}</span>
+    <!-- ── Footer ── -->
+    <footer class="site-footer">
+      <div class="container">
+        <div class="footer-inner">
+          <div class="footer-brand">
+            <span class="brand__name" style="font-size:16px">PAN.NA</span>
+            <p class="footer-desc">免费资源导航 · 持续更新 · 分类整理</p>
           </div>
-        </a>
-      </div>
-      <button v-if="recentResources.length > SHOW_LIMIT" class="expand-btn" @click="showAll = !showAll">
-        {{ showAll ? '收起' : `展开全部 ${recentResources.length} 条` }}
-      </button>
-    </section>
-
-    <!-- Footer -->
-    <footer class="footer">
-      <div class="footer-inner">
-        <span class="footer-brand">PAN.NA</span>
-        <div class="footer-links">
-          <a href="https://devmini.space/blog" target="_blank" rel="noopener">博客</a>
-          <span class="f-sep">/</span>
-          <a href="/disclaimer">免责声明</a>
-          <span class="f-sep">/</span>
-          <a href="https://qm.qq.com/q/EkPkbcVMaY" target="_blank" rel="noopener">QQ群</a>
-          <span class="f-sep">/</span>
-          <a href="https://t.me/xi7ang" target="_blank" rel="noopener">Telegram</a>
+          <div class="footer-links">
+            <a href="/disclaimer">免责声明</a>
+            <a href="/support">支持本站</a>
+            <a href="https://t.me/xi7ang" target="_blank">Telegram</a>
+            <a href="https://qm.qq.com/q/EkPkbcVMaY" target="_blank">QQ群</a>
+          </div>
         </div>
-        <span class="footer-copy">Copyright &copy; 2025-present xi7ang &middot; 仅供学习交流</span>
+        <div class="footer-copy">
+          © 2025–present xi7ang · 资源收集整理，仅供学习交流
+        </div>
       </div>
     </footer>
+
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import ResourceCard from './ResourceCard.vue'
 
-const SHOW_LIMIT = 12
+// ── Data ──
+const allResources = ref([])
+const categories = ref({})
 
-const allResources = ref<any[]>([])
+const PLATFORMS = [
+  { value: 'quark',  label: '夸克网盘', color: '#4A90E2' },
+  { value: 'baidu',  label: '百度网盘', color: '#7B8EF5' },
+  { value: 'xunlei', label: '迅雷网盘', color: '#2DBD6C' },
+  { value: 'aliyun', label: '阿里云盘', color: '#FF6D2E' },
+]
+
+const CAT_EMOJIS = {
+  'AIknowledge': '🤖', 'book': '📚', 'curriculum': '🎓', 'tools': '🔧',
+  'games': '🎮', 'movies': '🎬', 'healthy': '💪', 'self-media': '🎙️',
+  'edu-knowlege': '📖', 'chinese-traditional': '🏯', 'cross-border': '🌐', 'auto': '⚙️'
+}
+
+const CAT_LABELS = {
+  'AIknowledge': 'AI 知识', 'book': '书籍资料', 'curriculum': '课程资料',
+  'tools': '工具合集', 'games': '游戏资源', 'movies': '影视媒体',
+  'healthy': '健康养生', 'self-media': '自媒体', 'edu-knowlege': '教育知识',
+  'chinese-traditional': '传统文化', 'cross-border': '跨境电商', 'auto': '自动'
+}
+
+const CAT_COLORS = {
+  'AIknowledge': '#7B68EE', 'book': '#CD7B4A', 'curriculum': '#4AADE4',
+  'tools': '#54C47C', 'games': '#E45A5A', 'movies': '#E4A54A',
+  'healthy': '#4AD4A5', 'self-media': '#D44AE4', 'edu-knowlege': '#4A9AE4',
+  'chinese-traditional': '#C47A4A', 'cross-border': '#7AE44A', 'auto': '#888899'
+}
+
+// ── Search State ──
 const searchQuery = ref('')
 const searchFocused = ref(false)
 const searchSelected = ref(0)
 const activePlatform = ref('')
-const showAll = ref(false)
 
-const PLATFORMS = [
-  { value: 'quark',  label: '夸克', color: '#4F46E5' },
-  { value: 'baidu',  label: '百度', color: '#2563EB' },
-  { value: 'aliyun', label: '阿里', color: '#0891B2' },
-  { value: 'xunlei', label: '迅雷', color: '#D97706' },
-]
+// ── Computed ──
+const totalResources = computed(() => allResources.value.length || 998)
 
-const CAT_COLORS: Record<string, string> = {
-  AIknowledge: '#4F46E5', book: '#059669', 'chinese-traditional': '#DC2626',
-  'cross-border': '#0891B2', curriculum: '#7C3AED', 'edu-knowlege': '#9333EA',
-  games: '#EA580C', healthy: '#16A34A', movies: '#DB2777',
-  'self-media': '#CA8A04', tools: '#475569', auto: '#6B7280',
-}
+const totalSize = computed(() => '100T+')
 
-const CAT_LABELS: Record<string, string> = {
-  AIknowledge: 'AI知识', book: '书籍', 'chinese-traditional': '传统文化',
-  'cross-border': '跨境', curriculum: '课程', 'edu-knowlege': '教育',
-  games: '游戏', healthy: '健康', movies: '影视', 'self-media': '自媒体',
-  tools: '工具', auto: '自动化',
-}
-
-function catColor(id: string) { return CAT_COLORS[id] || '#6B7280' }
-function catLabel(id: string) { return CAT_LABELS[id] || id }
-function platColor(p: string) { return PLATFORMS.find(x => x.value === p)?.color || '#6B7280' }
-
-const searchResults = computed(() => {
-  const q = searchQuery.value.trim().toLowerCase()
-  if (!q) return []
-  return allResources.value
-    .filter(r => r.title.toLowerCase().includes(q))
-    .slice(0, 20)
+const updateMonth = computed(() => {
+  const months = allResources.value.map(r => r.month).filter(Boolean)
+  if (!months.length) return '202604'
+  const latest = months.sort().reverse()[0]
+  return latest ? `${latest.slice(0,4)}/${latest.slice(4,6)}` : '202604'
 })
 
-function highlight(text: string, q: string): string {
-  if (!q?.trim()) return text
-  const esc = q.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-  return text.replace(new RegExp(`(${esc})`, 'gi'), '<mark>$1</mark>')
+const categoryList = computed(() => {
+  const cats = {}
+  allResources.value.forEach(r => {
+    if (!cats[r.category]) cats[r.category] = 0
+    cats[r.category]++
+  })
+  return Object.entries(cats).map(([id, count]) => ({
+    id, label: CAT_LABELS[id] || id, count
+  })).sort((a, b) => b.count - a.count)
+})
+
+const filteredCatList = computed(() => {
+  if (!activePlatform.value) return categoryList.value
+  return categoryList.value.filter(c => {
+    return allResources.value.some(r => r.category === c.id && r.platform === activePlatform.value)
+  })
+})
+
+const recentResources = computed(() => {
+  const filtered = activePlatform.value
+    ? allResources.value.filter(r => r.platform === activePlatform.value)
+    : allResources.value
+  return filtered.slice(0, 8)
+})
+
+const platformCount = computed(() => {
+  const counts = {}
+  allResources.value.forEach(r => {
+    counts[r.platform] = (counts[r.platform] || 0) + 1
+  })
+  return counts
+})
+
+const searchResults = computed(() => {
+  if (!searchQuery.value.trim()) return []
+  const q = searchQuery.value.toLowerCase().trim()
+  return allResources.value.filter(r =>
+    r.title.toLowerCase().includes(q) ||
+    r.platform.toLowerCase().includes(q) ||
+    r.category.toLowerCase().includes(q)
+  )
+})
+
+// ── Methods ──
+function togglePlatform(val) {
+  activePlatform.value = activePlatform.value === val ? '' : val
 }
 
-function openItem(item: any) {
-  if (item.url) window.open(item.url, '_blank', 'noopener,noreferrer')
-  searchFocused.value = false
-  searchQuery.value = ''
+function platColor(platform) {
+  return PLATFORMS.find(p => p.value === platform)?.color || '#666680'
+}
+
+function platLabel(platform) {
+  return PLATFORMS.find(p => p.value === platform)?.label || platform
+}
+
+function catColor(cat) {
+  return CAT_COLORS[cat] || '#666680'
+}
+
+function catLabel(cat) {
+  return CAT_LABELS[cat] || cat
+}
+
+function catEmoji(cat) {
+  return CAT_EMOJIS[cat] || '📦'
+}
+
+function fmtMonth(month) {
+  if (!month) return ''
+  return `${month.slice(0,4)}/${month.slice(4,6)}`
+}
+
+function platPct(platform) {
+  if (!totalResources.value) return 0
+  return Math.round((platformCount.value[platform] || 0) / totalResources.value * 100)
+}
+
+function highlight(text, query) {
+  if (!query) return text
+  const q = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  return text.replace(new RegExp(`(${q})`, 'gi'), '<mark>$1</mark>')
 }
 
 function clearSearch() {
   searchQuery.value = ''
   searchFocused.value = false
+  searchSelected.value = 0
+}
+
+function selectPrev() {
+  if (searchSelected.value > 0) searchSelected.value--
+}
+
+function selectNext() {
+  if (searchSelected.value < Math.min(7, searchResults.value.length - 1))
+    searchSelected.value++
+}
+
+function openSelected() {
+  const item = searchResults.value[searchSelected.value]
+  if (item) openItem(item)
+}
+
+function openItem(item) {
+  window.location.href = `/${item.category}/`
 }
 
 function onBlur() {
-  setTimeout(() => { searchFocused.value = false }, 150)
+  setTimeout(() => { searchFocused.value = false }, 200)
 }
 
-const platformCount = computed(() => {
-  const c: Record<string, number> = {}
-  for (const r of allResources.value) c[r.platform] = (c[r.platform] || 0) + 1
-  return c
-})
-
-const categoryList = computed(() => {
-  const counts: Record<string, number> = {}
-  for (const r of allResources.value) counts[r.category] = (counts[r.category] || 0) + 1
-  return Object.entries(CAT_LABELS)
-    .map(([id, label]) => ({ id, label, count: counts[id] || 0 }))
-    .filter(c => c.count > 0)
-    .sort((a, b) => b.count - a.count)
-})
-
-const filteredCatList = computed(() => categoryList.value)
-
-const recentResources = computed(() =>
-  [...allResources.value].sort((a, b) => b.month.localeCompare(a.month))
-)
-
-const displayRecent = computed(() =>
-  showAll.value ? recentResources.value : recentResources.value.slice(0, SHOW_LIMIT)
-)
-
-const recentMonthStr = computed(() => {
-  const m = recentResources.value[0]?.month
-  return m?.length === 6 ? `${m.slice(0, 4)}.${m.slice(4, 6)}` : ''
-})
-
-const totalResources = computed(() => allResources.value.length)
-
-// Global keyboard shortcut for search
-function onKey(e: KeyboardEvent) {
-  if (e.key === '/' && !['INPUT','TEXTAREA'].includes((e.target as HTMLElement).tagName)) {
+// ── Keyboard shortcut '/' to focus search ──
+function handleKeydown(e) {
+  if (e.key === '/' && !searchFocused.value &&
+      document.activeElement.tagName !== 'INPUT' &&
+      document.activeElement.tagName !== 'TEXTAREA') {
     e.preventDefault()
-    document.querySelector<HTMLInputElement>('.search-input')?.focus()
-  }
-  if (e.key === 'Escape' && searchFocused.value) {
-    clearSearch()
+    document.querySelector('.search-input')?.focus()
   }
 }
 
+// ── Load data ──
 onMounted(async () => {
-  document.addEventListener('keydown', onKey)
+  window.addEventListener('keydown', handleKeydown)
   try {
-    const r = await fetch('/data/resources.json')
-    allResources.value = await r.json()
-  } catch (e) { console.error(e) }
+    const res = await fetch('/data/resources.json')
+    allResources.value = await res.json()
+  } catch (e) {
+    // fallback: resources may be injected via window
+    if (window.__RESOURCES__) allResources.value = window.__RESOURCES__
+  }
 })
 
-onUnmounted(() => document.removeEventListener('keydown', onKey))
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeydown)
+})
 </script>
 
 <style scoped>
-/* ===== RESET ===== */
-.home {
-  --bg: #FAFAFA;
-  --surface: #fff;
-  --border: #E5E7EB;
-  --text-1: #111827;
-  --text-2: #6B7280;
-  --text-3: #9CA3AF;
-  background: var(--bg);
-  min-height: 100vh;
-  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-  -webkit-font-smoothing: antialiased;
+/* Platform bars section */
+.platform-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 600px;
 }
 
-/* ===== MASTHEAD ===== */
-.masthead {
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  position: sticky;
-  top: 0;
-  z-index: 100;
+.plat-bar-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
-.mh-inner {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 0.875rem 1.5rem;
+.plat-bar-label {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--text-secondary);
 }
 
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  text-decoration: none;
-}
-
-.brand-name {
-  font-size: 0.9rem;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  color: var(--text-1);
-}
-
-.mh-stats {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.78rem;
-  color: var(--text-2);
-}
-
-.mh-stats strong { color: var(--text-1); font-weight: 700; }
-.dot { width: 3px; height: 3px; border-radius: 50%; background: var(--text-3); }
-
-/* ===== SEARCH ===== */
-.search-wrap {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 1.75rem 1.5rem 0;
-  position: relative;
-}
-
-.search-bar {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  background: var(--surface);
-  border: 1.5px solid var(--border);
-  border-radius: 10px;
-  padding: 0.75rem 1rem;
-  transition: border-color 0.15s, box-shadow 0.15s;
-}
-
-.search-bar.focused {
-  border-color: var(--text-1);
-  box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.06);
-}
-
-.si { width: 18px; height: 18px; color: var(--text-3); flex-shrink: 0; }
-
-.search-input {
-  flex: 1;
-  border: none;
-  background: transparent;
-  font-size: 0.9rem;
-  color: var(--text-1);
-  outline: none;
-  font-family: inherit;
-}
-.search-input::placeholder { color: var(--text-3); }
-
-.kbd {
-  padding: 0.2rem 0.45rem;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 5px;
-  font-size: 0.72rem;
-  color: var(--text-3);
-  font-family: 'SF Mono', monospace;
-  flex-shrink: 0;
-}
-
-/* Search dropdown */
-.search-dropdown {
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 1.5rem;
-  right: 1.5rem;
-  max-width: 1100px;
-  background: var(--surface);
-  border: 1.5px solid var(--border);
-  border-radius: 10px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.1);
-  z-index: 200;
-  overflow: hidden;
-}
-
-.sd-empty {
-  padding: 1.25rem 1rem;
-  font-size: 0.875rem;
-  color: var(--text-3);
-  text-align: center;
-}
-
-.sd-results { max-height: 400px; overflow-y: auto; }
-.sd-results::-webkit-scrollbar { width: 5px; }
-.sd-results::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-
-.sd-meta {
-  padding: 0.5rem 0.875rem;
-  font-size: 0.72rem;
-  color: var(--text-3);
-  border-bottom: 1px solid var(--border);
-  background: var(--bg);
-}
-
-.sd-item {
-  display: flex;
-  align-items: center;
-  gap: 0.625rem;
-  padding: 0.625rem 0.875rem;
-  border-bottom: 1px solid var(--border);
-  cursor: pointer;
-  transition: background 0.1s;
-}
-.sd-item:last-child { border-bottom: none; }
-.sd-item:hover, .sd-item.selected { background: var(--bg); }
-
-.sd-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-
-.sd-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.1rem; }
-
-.sd-title {
-  font-size: 0.825rem;
-  font-weight: 500;
-  color: var(--text-1);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.sd-title :deep(mark) {
-  background: rgba(255,200,0,0.3);
-  border-radius: 2px;
-  padding: 0 1px;
-}
-
-.sd-meta {
-  display: block;
-  font-size: 0.7rem;
-  color: var(--text-3);
-  background: none;
-  border: none;
-  padding: 0;
-}
-
-.sd-cat-btn {
-  padding: 0.18rem 0.45rem;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 5px;
-  font-size: 0.7rem;
+.plat-bar-pct {
+  margin-left: auto;
   font-weight: 600;
-  color: #4F46E5;
-  text-decoration: none;
-  flex-shrink: 0;
-  transition: background 0.1s;
-}
-.sd-cat-btn:hover { background: #EEF2FF; }
-
-/* ===== QUICK FILTERS ===== */
-.quick-filters {
-  max-width: 1100px;
-  margin: 0.75rem auto 0;
-  padding: 0 1.5rem;
-  display: flex;
-  gap: 0.4rem;
-  flex-wrap: wrap;
+  color: var(--text-primary);
+  font-size: 13px;
 }
 
-.plat-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  padding: 0.28rem 0.7rem;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  font-size: 0.78rem;
-  font-weight: 500;
-  color: var(--text-2);
-  cursor: pointer;
-  transition: all 0.12s;
-  font-family: inherit;
-}
-.plat-chip:hover { border-color: var(--text-2); color: var(--text-1); }
-.plat-chip.active { color: #fff; font-weight: 600; }
-.plat-dot { width: 8px; height: 8px; border-radius: 50%; }
-.plat-c { font-size: 0.7rem; opacity: 0.7; }
-
-/* ===== SECTIONS ===== */
-.section {
-  max-width: 1100px;
-  margin: 2.5rem auto 0;
-  padding: 0 1.5rem;
-}
-
-.section-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  padding-bottom: 0.625rem;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 0.875rem;
-}
-
-.section-ttl {
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--text-3);
-}
-
-.section-sub { font-size: 0.78rem; color: var(--text-3); }
-
-/* ===== CAT GRID ===== */
-.cat-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 0.5rem;
-}
-
-.cat-item {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  padding: 0.7rem 0.875rem;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  text-decoration: none;
-  transition: border-color 0.12s, box-shadow 0.12s;
+.plat-bar-track {
+  height: 6px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 3px;
   overflow: hidden;
 }
-.cat-item:hover { border-color: var(--text-2); box-shadow: 0 1px 6px rgba(0,0,0,0.05); }
 
-.cat-bar { width: 3px; height: 18px; border-radius: 2px; flex-shrink: 0; }
-
-.cat-label {
-  flex: 1;
-  font-size: 0.825rem;
-  font-weight: 600;
-  color: var(--text-1);
-  white-space: nowrap;
+.plat-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 0.8;
 }
 
-.cat-count {
-  font-size: 0.72rem;
-  color: var(--text-3);
-  flex-shrink: 0;
-}
-
-.cat-arrow {
-  width: 13px;
-  height: 13px;
-  color: var(--text-3);
-  flex-shrink: 0;
-  transition: transform 0.12s;
-}
-.cat-item:hover .cat-arrow { transform: translateX(2px); }
-
-/* ===== RECENT GRID ===== */
-.recent-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 0.5rem;
-}
-
-.recent-item {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  padding: 0.6rem 0.875rem;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 7px;
-  text-decoration: none;
-  transition: border-color 0.12s;
-  overflow: hidden;
-}
-.recent-item:hover { border-color: var(--text-2); }
-
-.r-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-
-.r-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.15rem; }
-
-.r-title {
-  font-size: 0.8rem;
-  font-weight: 500;
-  color: var(--text-1);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.r-meta { font-size: 0.7rem; color: var(--text-3); }
-
-.expand-btn {
-  display: block;
-  width: 100%;
-  margin-top: 0.75rem;
-  padding: 0.5rem;
-  background: none;
-  border: 1px solid var(--border);
-  border-radius: 7px;
-  font-size: 0.8rem;
-  color: var(--text-2);
-  cursor: pointer;
-  font-family: inherit;
-  text-align: center;
-  transition: border-color 0.12s;
-}
-.expand-btn:hover { border-color: var(--text-2); color: var(--text-1); }
-
-/* ===== FOOTER ===== */
-.footer {
-  border-top: 1px solid var(--border);
-  padding: 1.5rem;
-  margin-top: 4rem;
+/* Site Footer */
+.site-footer {
+  margin-top: var(--space-3xl);
+  padding: var(--space-2xl) 0 var(--space-xl);
+  border-top: 1px solid rgba(255,255,255,0.05);
+  background: var(--bg-surface);
 }
 
 .footer-inner {
-  max-width: 1100px;
-  margin: 0 auto;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-  text-align: center;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-xl);
+  margin-bottom: var(--space-lg);
 }
 
-.footer-brand {
-  font-size: 0.75rem;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  color: var(--text-1);
+.footer-desc {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 4px;
 }
 
 .footer-links {
   display: flex;
-  gap: 0.5rem;
   flex-wrap: wrap;
-  justify-content: center;
-  font-size: 0.78rem;
+  gap: var(--space-md);
 }
 
-.footer-links a { color: var(--text-2); text-decoration: none; }
-.footer-links a:hover { color: var(--text-1); }
-.f-sep { color: var(--border); }
+.footer-links a {
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
 
-.footer-copy { font-size: 0.72rem; color: var(--text-3); }
+.footer-links a:hover {
+  color: var(--accent-gold);
+}
 
-/* ===== MOBILE ===== */
-@media (max-width: 640px) {
-  .mh-stats { display: none; }
-  .search-wrap { padding: 1.25rem 1rem 0; }
-  .search-dropdown { left: 1rem; right: 1rem; }
-  .quick-filters { padding: 0 1rem; }
-  .section { padding: 0 1rem; margin-top: 2rem; }
-  .cat-grid { grid-template-columns: 1fr 1fr; gap: 0.4rem; }
-  .recent-grid { grid-template-columns: 1fr; }
-  .footer { padding: 1.25rem 1rem; }
+.footer-copy {
+  font-size: 12px;
+  color: var(--text-muted);
+  padding-top: var(--space-lg);
+  border-top: 1px solid rgba(255,255,255,0.04);
 }
 </style>

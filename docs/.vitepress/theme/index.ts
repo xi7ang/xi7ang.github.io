@@ -1,4 +1,5 @@
-import Layout from './layouts/Layout.vue'
+import Layout from './components/Layout.vue'
+import './style.css'
 
 export default {
   Layout,

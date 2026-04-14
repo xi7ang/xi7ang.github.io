@@ -1,29 +1,42 @@
-<script setup>
-import DefaultTheme from 'vitepress/theme'
-import { useData } from 'vitepress'
-import CommitHistory from './CommitHistory.vue'
-import PagefindSearch from './PagefindSearch.vue'
-
-const { frontmatter } = useData()
-</script>
-
 <template>
-  <DefaultTheme.Layout>
-    <!-- 注入搜索组件到导航栏内容区 -->
-    <template #nav-bar-content-before>
-      <PagefindSearch class="navbar-search" />
-    </template>
-
-    <!-- CommitHistory 仍在首页 hero 下方 -->
-    <template #home-hero-after>
-      <CommitHistory />
-    </template>
-  </DefaultTheme.Layout>
+  <component :is="currentLayout" v-bind="layoutProps" />
 </template>
 
-<style scoped>
-/* PagefindSearch 在导航栏中的定位 */
-:deep(.navbar-search) {
-  margin-left: auto;
-}
-</style>
+<script setup>
+import { computed } from 'vue'
+import HomepageHero from '../components/HomepageHero.vue'
+import CategoryPage from '../components/CategoryPage.vue'
+
+const props = defineProps({
+  frontmatter: { type: Object, default: () => ({}) }
+})
+
+const route = typeof window !== 'undefined' ? window.location.pathname : '/'
+
+const isHome = computed(() => route === '/' || route === '/index.html')
+
+const CATEGORIES = [
+  'AIknowledge', 'book', 'curriculum', 'tools', 'games',
+  'movies', 'healthy', 'self-media', 'edu-knowlege',
+  'chinese-traditional', 'cross-border', 'auto'
+]
+
+const currentCategory = computed(() => {
+  const parts = route.replace(/\/$/, '').split('/')
+  const cat = parts[parts.length - 1]
+  return CATEGORIES.includes(cat) ? cat : null
+})
+
+const currentLayout = computed(() => {
+  if (isHome.value) return HomepageHero
+  if (currentCategory.value) return CategoryPage
+  return HomepageHero // fallback
+})
+
+const layoutProps = computed(() => {
+  if (currentCategory.value) {
+    return { category: currentCategory.value }
+  }
+  return {}
+})
+</script>
