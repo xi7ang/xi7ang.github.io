@@ -19,6 +19,17 @@
           <a href="/" class="nav-link">首页</a>
           <a href="/book/" class="nav-link">书籍</a>
           <a href="/games/" class="nav-link">游戏</a>
+          <button class="theme-toggle" @click="toggleTheme" :title="theme === 'dark' ? '切换日间模式' : '切换夜间模式'">
+            <!-- Sun icon (show in dark mode) -->
+            <svg v-if="theme === 'dark'" width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="1.8"/>
+              <path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+            <!-- Moon icon (show in light mode) -->
+            <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
           <a href="/support" class="nav-link nav-link--cta">❤️ 支持</a>
         </nav>
       </div>
@@ -219,11 +230,14 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useTheme } from '../composables/useTheme'
 import ResourceCard from './ResourceCard.vue'
 
 // ── Data ──
 const allResources = ref([])
 const dataLoaded = ref(false)
+
+const { theme, toggleTheme } = useTheme()
 
 const PLATFORMS = [
   { value: 'quark', label: '夸克网盘', color: '#4A90E2' },
