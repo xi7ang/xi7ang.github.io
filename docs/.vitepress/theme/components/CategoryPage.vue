@@ -5,16 +5,17 @@
     <header class="masthead">
       <div class="masthead__inner">
         <a href="/" class="brand">
-          <div class="brand__icon">📦</div>
-          <span class="brand__name">PAN.NA</span>
+          <svg class="brand__icon" viewBox="0 0 24 24" fill="none" width="22" height="22">
+            <path d="M12 2L3 7v10l9 5 9-5V7L12 2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+            <path d="M12 22V12M3 7l9 5 9-5" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+          </svg>
+          <span class="brand__name">devmini</span>
         </a>
         <div class="masthead__stats">
           <span class="masthead__stat"><strong>{{ dataLoaded ? filteredItems.length : '—' }}</strong> 条资源</span>
         </div>
         <nav class="masthead__nav">
-          <a href="/" class="nav-link">🏠 首页</a>
-          <a href="/book/" class="nav-link">📚 书籍</a>
-          <a href="/games/" class="nav-link">🎮 游戏</a>
+          <a href="/" class="nav-link">首页</a>
           <button class="theme-toggle" @click="toggleTheme" :title="theme === 'dark' ? '切换日间模式' : '切换夜间模式'">
             <svg v-if="theme === 'dark'" width="16" height="16" viewBox="0 0 24 24" fill="none">
               <circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="1.8"/>
@@ -142,7 +143,7 @@
       <div class="container">
         <div class="footer-inner">
           <div>
-            <span class="brand__name" style="font-size:16px">PAN.NA</span>
+            <span class="brand__name" style="font-size:16px">devmini</span>
             <p class="footer-desc">免费资源导航 · {{ catLabel }}分类</p>
           </div>
           <div class="footer-links">

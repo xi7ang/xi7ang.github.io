@@ -5,32 +5,24 @@
     <header class="masthead">
       <div class="masthead__inner">
         <a href="/" class="brand">
-          <div class="brand__icon">📦</div>
-          <span class="brand__name">PAN.NA</span>
+          <svg class="brand__icon" viewBox="0 0 24 24" fill="none" width="22" height="22">
+            <path d="M12 2L3 7v10l9 5 9-5V7L12 2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+            <path d="M12 22V12M3 7l9 5 9-5" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+          </svg>
+          <span class="brand__name">devmini</span>
         </a>
-        <div class="masthead__stats">
-          <span class="masthead__stat"><strong>{{ totalResources.toLocaleString() }}</strong> 资源</span>
-          <span class="masthead__dot"></span>
-          <span class="masthead__stat"><strong>{{ categoryList.length }}</strong> 分类</span>
-          <span class="masthead__dot"></span>
-          <span class="masthead__stat"><strong>{{ totalSize }}</strong></span>
-        </div>
+
         <nav class="masthead__nav">
-          <a href="/" class="nav-link">首页</a>
-          <a href="/book/" class="nav-link">书籍</a>
-          <a href="/games/" class="nav-link">游戏</a>
+          <a href="/" class="nav-link" @click.prevent="scrollToCategories">资源导航</a>
           <button class="theme-toggle" @click="toggleTheme" :title="theme === 'dark' ? '切换日间模式' : '切换夜间模式'">
-            <!-- Sun icon (show in dark mode) -->
             <svg v-if="theme === 'dark'" width="16" height="16" viewBox="0 0 24 24" fill="none">
               <circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="1.8"/>
               <path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
             </svg>
-            <!-- Moon icon (show in light mode) -->
             <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none">
               <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </button>
-          <a href="/support" class="nav-link nav-link--cta">❤️ 支持</a>
         </nav>
       </div>
     </header>
@@ -136,7 +128,7 @@
     <!-- ── Categories ── -->
     <div class="container">
       <div class="section-divider"></div>
-      <section class="section">
+      <section id="categories-section" class="section">
         <div class="section-head">
           <h2 class="section-ttl">全部分类</h2>
           <span class="section-sub">{{ filteredCatList.length }} 个分类</span>
@@ -209,7 +201,7 @@
       <div class="container">
         <div class="footer-inner">
           <div class="footer-brand">
-            <span class="brand__name" style="font-size:16px">PAN.NA</span>
+            <span class="brand__name" style="font-size:16px">devmini</span>
             <p class="footer-desc">免费资源导航 · 持续更新 · 分类整理</p>
           </div>
           <div class="footer-links">
@@ -377,6 +369,10 @@ function openSelected() {
 function openItem(item) {
   // Direct open quark link in new tab
   window.open(item.url, '_blank', 'noopener,noreferrer')
+}
+
+function scrollToCategories() {
+  document.querySelector('#categories-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
 function onBlur() {
