@@ -1,5 +1,5 @@
 <template>
-  <div class="resource-card" @click="openLink">
+  <div class="resource-card">
     <!-- Platform stripe -->
     <div class="rc-platform-stripe" style="background: #4A90E2"></div>
 
@@ -98,9 +98,6 @@ function fmtMonth(month) {
   return `${month.slice(0,4)}/${month.slice(4,6)}`
 }
 
-function openLink() {
-  window.open(props.item.url, '_blank', 'noopener,noreferrer')
-}
 
 async function copyPwd() {
   try {

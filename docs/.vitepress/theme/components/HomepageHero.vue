@@ -103,26 +103,29 @@
       </div>
     </section>
 
-    <!-- ── Stats ── -->
+    <!-- ── Main Content: 最近更新 + 全部分类 ── -->
     <div class="container">
-      <div class="stats-panel animate-in">
-        <div class="stat-card stagger-1 animate-in">
-          <div class="stat-num">{{ totalResources.toLocaleString() }}</div>
-          <div class="stat-label">收录资源</div>
+      <!-- 最近更新 -->
+      <div class="section-divider"></div>
+      <section class="section">
+        <div class="section-head">
+          <h2 class="section-ttl">最近更新</h2>
+          <span class="section-sub">按更新时间倒序</span>
         </div>
-        <div class="stat-card stagger-2 animate-in">
-          <div class="stat-num">{{ categoryList.length }}</div>
-          <div class="stat-label">资源分类</div>
+        <div v-if="!dataLoaded" class="skeleton-grid">
+          <div v-for="n in 8" :key="n" class="skeleton-card"></div>
         </div>
-        <div class="stat-card stagger-3 animate-in">
-          <div class="stat-num">{{ updateMonth }}</div>
-          <div class="stat-label">最近更新</div>
+        <div v-else class="resource-grid">
+          <ResourceCard
+            v-for="(item, i) in recentResources"
+            :key="item.title + i"
+            :item="item"
+            :class="`animate-in stagger-${(i % 4) + 1}`"
+          />
         </div>
-      </div>
-    </div>
+      </section>
 
-    <!-- ── Categories ── -->
-    <div class="container">
+      <!-- 全部分类 -->
       <div class="section-divider"></div>
       <section id="categories-section" class="section">
         <div class="section-head">
@@ -151,28 +154,24 @@
           </a>
         </div>
       </section>
+    </div>
 
-      <!-- ── Recent Resources (sorted by month desc) ── -->
-      <div class="section-divider"></div>
-      <section class="section">
-        <div class="section-head">
-          <h2 class="section-ttl">最近更新</h2>
-          <span class="section-sub">按更新时间倒序</span>
+    <!-- ── Stats Panel ── -->
+    <div class="container">
+      <div class="stats-panel animate-in">
+        <div class="stat-card stagger-1 animate-in">
+          <div class="stat-num">{{ totalResources.toLocaleString() }}</div>
+          <div class="stat-label">收录资源</div>
         </div>
-        <div v-if="!dataLoaded" class="skeleton-grid">
-          <div v-for="n in 8" :key="n" class="skeleton-card"></div>
+        <div class="stat-card stagger-2 animate-in">
+          <div class="stat-num">{{ categoryList.length }}</div>
+          <div class="stat-label">资源分类</div>
         </div>
-        <div v-else class="resource-grid">
-          <ResourceCard
-            v-for="(item, i) in recentResources"
-            :key="item.title + i"
-            :item="item"
-            :class="`animate-in stagger-${(i % 4) + 1}`"
-          />
+        <div class="stat-card stagger-3 animate-in">
+          <div class="stat-num">{{ updateMonth }}</div>
+          <div class="stat-label">最近更新</div>
         </div>
-      </section>
-
-
+      </div>
     </div>
 
     <!-- ── Footer ── -->
