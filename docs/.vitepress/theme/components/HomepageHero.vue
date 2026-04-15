@@ -111,14 +111,10 @@
           <div class="stat-label">收录资源</div>
         </div>
         <div class="stat-card stagger-2 animate-in">
-          <div class="stat-num">1</div>
-          <div class="stat-label">网盘平台</div>
-        </div>
-        <div class="stat-card stagger-3 animate-in">
           <div class="stat-num">{{ categoryList.length }}</div>
           <div class="stat-label">资源分类</div>
         </div>
-        <div class="stat-card stagger-4 animate-in">
+        <div class="stat-card stagger-3 animate-in">
           <div class="stat-num">{{ updateMonth }}</div>
           <div class="stat-label">最近更新</div>
         </div>
@@ -176,24 +172,7 @@
         </div>
       </section>
 
-      <!-- ── Platform Distribution (quark only) ── -->
-      <div class="section-divider"></div>
-      <section class="section">
-        <div class="section-head">
-          <h2 class="section-ttl">平台分布</h2>
-          <span class="section-sub">夸克网盘 100%</span>
-        </div>
-        <div class="plat-bar-item" style="max-width:400px">
-          <div class="plat-bar-label">
-            <span class="plat-dot" style="background: var(--quark)"></span>
-            <span>夸克网盘</span>
-            <span class="plat-bar-pct">100%</span>
-          </div>
-          <div class="plat-bar-track">
-            <div class="plat-bar-fill" style="width:100%;background:var(--quark)"></div>
-          </div>
-        </div>
-      </section>
+
     </div>
 
     <!-- ── Footer ── -->

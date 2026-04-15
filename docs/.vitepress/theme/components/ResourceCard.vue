@@ -1,5 +1,5 @@
 <template>
-  <div class="resource-card" @click="handleCardClick">
+  <div class="resource-card" @click="openLink">
     <!-- Platform stripe -->
     <div class="rc-platform-stripe" style="background: #4A90E2"></div>
 
@@ -43,7 +43,7 @@
           <rect x="3.5" y="1" width="6.5" height="8" rx="1" stroke="currentColor" stroke-width="1.1"/>
           <rect x="1" y="2.5" width="6.5" height="8" rx="1" fill="var(--bg-card)" stroke="currentColor" stroke-width="1.1"/>
         </svg>
-        {{ copyLabel }}
+        {{ pwdCopied ? '已复制' : '复制' }}
       </button>
     </div>
 
@@ -66,7 +66,7 @@
           <rect x="4.5" y="1" width="7.5" height="9.5" rx="1" stroke="currentColor" stroke-width="1.1"/>
           <rect x="1" y="2.5" width="7.5" height="9.5" rx="1" fill="var(--bg-card)" stroke="currentColor" stroke-width="1.1"/>
         </svg>
-        复制链接
+        {{ urlCopied ? '已复制' : '复制链接' }}
       </button>
     </div>
   </div>
@@ -79,9 +79,8 @@ const props = defineProps({
   item: { type: Object, required: true }
 })
 
-const emit = defineEmits(['click'])
-
-const copyLabel = ref('复制')
+const pwdCopied = ref(false)
+const urlCopied = ref(false)
 
 const CAT_LABELS = {
   'AIknowledge': 'AI知识', 'book': '书籍', 'curriculum': '课程',
@@ -99,24 +98,23 @@ function fmtMonth(month) {
   return `${month.slice(0,4)}/${month.slice(4,6)}`
 }
 
-function handleCardClick() {
-  emit('click', props.item)
+function openLink() {
+  window.open(props.item.url, '_blank', 'noopener,noreferrer')
 }
 
 async function copyPwd() {
   try {
     await navigator.clipboard.writeText(props.item.pwd || '')
-    copyLabel.value = '✓'
-    setTimeout(() => { copyLabel.value = '复制' }, 1500)
-  } catch {
-    copyLabel.value = '失败'
-    setTimeout(() => { copyLabel.value = '复制' }, 1500)
-  }
+    pwdCopied.value = true
+    setTimeout(() => { pwdCopied.value = false }, 1500)
+  } catch { /* noop */ }
 }
 
 async function copyUrl() {
   try {
     await navigator.clipboard.writeText(props.item.url || '')
+    urlCopied.value = true
+    setTimeout(() => { urlCopied.value = false }, 1500)
   } catch { /* noop */ }
 }
 </script>
