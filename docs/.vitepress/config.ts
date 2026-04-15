@@ -150,10 +150,6 @@ export default defineConfig({
     ['link', { rel: 'preconnect', href: 'https://js.stripe.com' }],
     ['link', { rel: 'dns-prefetch', href: 'https://busuanzi.ibruce.info' }],
     ['link', { rel: 'dns-prefetch', href: 'https://pagead2.googlesyndication.com' }],
-    ['link', { rel: 'preconnect', href: 'https://fonts.googleapis.com' }],
-    ['link', { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' }],
-    // Google Fonts: async non-blocking load (eliminates ~3s render-blocking)
-    ['script', { defer: true, src: '/load-fonts.js' }],
     ['link', { rel: 'dns-prefetch', href: 'https://js.stripe.com' }],
 
     ['script', { src: '/init.js' }],
