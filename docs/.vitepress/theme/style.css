@@ -324,11 +324,25 @@ a:hover {
 
 [data-theme="light"] .theme-toggle {
   background: rgba(44, 36, 32, 0.06);
-  color: var(--text-secondary);
+  color: rgba(44, 36, 32, 0.5);
 }
 
 [data-theme="light"] .theme-toggle:hover {
   color: var(--accent-gold);
+}
+
+/* Light mode: nav links use lighter text */
+[data-theme="light"] .nav-link {
+  color: rgba(44, 36, 32, 0.5);
+}
+
+[data-theme="light"] .nav-link:hover {
+  color: var(--accent-gold);
+}
+
+/* Light mode: primary button text white */
+[data-theme="light"] .rc-btn--primary {
+  color: #FFFFFF;
 }
 
 /* ─── Hero Section ─── */
