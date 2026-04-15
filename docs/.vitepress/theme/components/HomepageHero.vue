@@ -361,9 +361,8 @@ function openSelected() {
 }
 
 function openItem(item) {
-  // Navigate to category page with ?q=searchTerm so it can scroll to the item
-  const q = encodeURIComponent(searchQuery.value.trim())
-  window.location.href = `/${item.category}/?q=${q}`
+  // Direct open quark link in new tab
+  window.open(item.url, '_blank', 'noopener,noreferrer')
 }
 
 function onBlur() {
