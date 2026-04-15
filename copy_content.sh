@@ -122,18 +122,19 @@ for REPO in "${CONTENT_REPOS[@]}"; do
     echo "  - Warning: README.md not found in $REPO"
   fi
 
-  find "$TARGET_REPO_PATH" -maxdepth 1 -type f -name '20*.md' -delete
+  # NOTE: 20*.md files are NOT copied to docs/{category}/ to avoid VitePress
+  # compiling them into giant JS chunks. They only live in docs/public/{category}/
+  # where ResourceTabs reads them as static files at runtime.
   find "$TARGET_PUBLIC_REPO_PATH" -maxdepth 1 -type f -name '20*.md' -delete
 
   md_files_count=0
   for md_file_src in "$SOURCE_REPO_PATH"/20*.md; do
     if [ -f "$md_file_src" ] && [[ "$(basename "$md_file_src")" =~ ^20[0-9]{4}\.md$ ]]; then
-      cp "$md_file_src" "$TARGET_REPO_PATH/"
       cp "$md_file_src" "$TARGET_PUBLIC_REPO_PATH/"
       md_files_count=$((md_files_count + 1))
     fi
   done
-  echo "  - Synced $md_files_count month .md files to $REPO/ and public/$REPO/"
+  echo "  - Synced $md_files_count month .md files to public/$REPO/ only"
 
   update_resource_tabs_months "$SOURCE_REPO_PATH" "$TARGET_REPO_PATH/index.md"
   update_resource_tabs_months "$SOURCE_REPO_PATH" "$TARGET_PUBLIC_REPO_PATH/index.md"
