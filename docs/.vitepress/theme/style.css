@@ -336,6 +336,11 @@ a:hover {
   color: #FFFFFF;
 }
 
+/* Light mode: footer brand name matches muted text */
+[data-theme="light"] .site-footer .brand__name {
+  color: var(--text-muted);
+}
+
 /* Light mode: nav links use lighter text */
 [data-theme="light"] .nav-link {
   color: rgba(255, 255, 255, 0.9);
