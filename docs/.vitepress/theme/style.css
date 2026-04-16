@@ -293,6 +293,43 @@ a:hover {
   transform: scaleX(1);
 }
 
+/* ─── Nav CTA Buttons ─── */
+.nav-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+  margin-left: 2px;
+}
+.nav-cta:hover {
+  transform: translateY(-1px) scale(1.04);
+  opacity: 0.9;
+}
+.nav-cta--telegram {
+  background: linear-gradient(135deg, #0088cc, #00aaff);
+  color: #fff;
+  animation: telegram-pulse 2.5s ease-in-out infinite;
+}
+.nav-cta--qq {
+  background: linear-gradient(135deg, #07c160, #04b154);
+  color: #fff;
+  animation: qq-bounce 3s ease-in-out infinite;
+}
+@keyframes telegram-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0,136,204,0.5); }
+  50% { box-shadow: 0 0 0 7px rgba(0,136,204,0); }
+}
+@keyframes qq-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+
 /* ─── Theme Toggle ─── */
 .theme-toggle {
   display: flex;

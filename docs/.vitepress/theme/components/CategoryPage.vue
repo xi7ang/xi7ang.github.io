@@ -16,6 +16,8 @@
         </div>
         <nav class="masthead__nav">
           <a href="/" class="nav-link">首页</a>
+          <a href="https://t.me/xi7ang" target="_blank" class="nav-cta nav-cta--telegram">✈️ 加入 Telegram</a>
+          <a href="https://qm.qq.com/q/EkPkbcVMaY" target="_blank" class="nav-cta nav-cta--qq">💬 加入 QQ群</a>
           <button class="theme-toggle" @click="toggleTheme" :title="theme === 'dark' ? '切换日间模式' : '切换夜间模式'">
             <svg v-if="theme === 'dark'" width="16" height="16" viewBox="0 0 24 24" fill="none">
               <circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="1.8"/>
