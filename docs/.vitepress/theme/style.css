@@ -1359,6 +1359,23 @@ mark {
   .detail-actions {
     flex-direction: column;
   }
+
+  /* Mobile nav: tighter spacing, smaller text */
+  .masthead__nav {
+    gap: 3px;
+  }
+
+  .masthead__nav .nav-link {
+    font-size: 13px;
+    padding: 6px 8px;
+  }
+
+  .nav-cta {
+    padding: 4px 8px;
+    font-size: 11px;
+    margin-left: 2px;
+    border-radius: 12px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -1369,6 +1386,29 @@ mark {
 
   .stat-num {
     font-size: 32px;
+  }
+
+  /* Mobile nav: further compact */
+  .brand__name {
+    font-size: 15px;
+  }
+
+  .masthead__nav {
+    gap: 2px;
+  }
+
+  .masthead__nav .nav-link {
+    font-size: 12px;
+    padding: 6px 5px;
+  }
+
+  .nav-cta {
+    padding: 4px 6px;
+    font-size: 10px;
+  }
+
+  .masthead__inner {
+    padding: 0 var(--space-sm);
   }
 }
 
