@@ -205,6 +205,21 @@ a:hover {
   gap: 10px;
   text-decoration: none;
   flex-shrink: 0;
+  position: relative;
+}
+.brand::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 100%;
+  height: 1.5px;
+  background: linear-gradient(90deg, transparent, var(--accent-gold), transparent);
+  animation: brand-line-pulse 3s ease-in-out infinite;
+}
+@keyframes brand-line-pulse {
+  0%, 100% { opacity: 0.3; transform: scaleX(0.7); }
+  50%       { opacity: 0.8; transform: scaleX(1); }
 }
 
 .brand__icon {
@@ -212,20 +227,27 @@ a:hover {
   display: flex;
   align-items: center;
   flex-shrink: 0;
-  filter: drop-shadow(0 0 6px rgba(212, 168, 67, 0.4));
-  transition: filter var(--transition-base);
+  filter: drop-shadow(0 0 8px rgba(212, 168, 67, 0.5));
+  animation: icon-glow 3s ease-in-out infinite;
+}
+@keyframes icon-glow {
+  0%, 100% { filter: drop-shadow(0 0 6px rgba(212, 168, 67, 0.4)); }
+  50%       { filter: drop-shadow(0 0 14px rgba(212, 168, 67, 0.8)); }
 }
 
 .brand:hover .brand__icon {
-  filter: drop-shadow(0 0 10px rgba(212, 168, 67, 0.7));
+  filter: drop-shadow(0 0 16px rgba(212, 168, 67, 0.9));
 }
 
 .brand__name {
   font-family: var(--font-display);
   font-size: 18px;
   font-weight: 700;
-  color: var(--text-primary);
-  letter-spacing: 0.03em;
+  background: linear-gradient(135deg, var(--accent-gold-light) 0%, var(--accent-gold) 50%, var(--accent-gold-dark) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
 }
 
 .masthead__stats {
@@ -368,12 +390,15 @@ a:hover {
 
 /* Light mode: brand name white */
 [data-theme="light"] .brand__name {
-  color: #FFFFFF;
+  -webkit-text-fill-color: initial;
+  color: var(--accent-gold);
+  filter: drop-shadow(0 1px 3px rgba(180, 140, 40, 0.25));
 }
 
 /* Light mode: footer brand name matches muted text */
 [data-theme="light"] .site-footer .brand__name {
   color: var(--text-muted);
+  -webkit-text-fill-color: initial;
 }
 
 /* Light mode: nav links use lighter text */
