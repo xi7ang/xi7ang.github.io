@@ -82,6 +82,9 @@ req = urllib.request.Request(
     method='POST',
 )
 print('DEBUG RESEND_KEY prefix:', os.environ.get('RESEND_KEY', 'NOT SET')[:10])
-with urllib.request.urlopen(req) as resp:
-    result = json.loads(resp.read())
-    print('Broadcast sent! ID: ' + str(result.get('data', {}).get('id', 'unknown')))
+try:
+    with urllib.request.urlopen(req) as resp:
+        result = json.loads(resp.read())
+        print('Broadcast sent! ID: ' + str(result.get('data', {}).get('id', 'unknown')))
+except urllib.error.HTTPError as e:
+    print('HTTP Error:', e.code, e.read().decode())
