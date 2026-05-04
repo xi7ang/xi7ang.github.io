@@ -102,6 +102,8 @@
           </div>
         </div>
 
+        <SubscribeForm />
+
       </div>
     </section>
 
@@ -204,6 +206,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useTheme } from '../composables/useTheme'
 import ResourceCard from './ResourceCard.vue'
+import SubscribeForm from './SubscribeForm.vue'
 
 // ── Data ──
 const allResources = ref([])

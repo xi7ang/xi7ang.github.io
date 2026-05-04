@@ -1,0 +1,46 @@
+name: Email Subscription
+
+on:
+  repository_dispatch:
+    types: [subscribe]
+
+jobs:
+  subscribe:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Add subscriber via Resend API
+        run: |
+          EMAIL="${{ github.event.client_payload.email }}"
+          
+          # Validate email format
+          if [[ ! "$EMAIL" =~ ^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; then
+            echo "Invalid email format: $EMAIL"
+            exit 1
+          fi
+
+          # Add to Resend audience (creates contact if not exists)
+          curl -s -X POST "https://api.resend.com/audiences/devmini.subscribers/contacts" \
+            -H "Authorization: Bearer ${{ secrets.RESEND_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"email\": \"$EMAIL\",
+              \"unsubscribed\": false
+            }"
+
+      - name: Send welcome email via Resend
+        run: |
+          EMAIL="${{ github.event.client_payload.email }}"
+          
+          curl -s -X POST "https://api.resend.com/emails" \
+            -H "Authorization: Bearer ${{ secrets.RESEND_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"from\": \"subscribe@devmini.space\",
+              \"to\": [\"$EMAIL\"],
+              \"subject\": \"🎉 欢迎订阅 devmini 资源更新\",
+              \"html\": \"<!DOCTYPE html><html><body style=\\\"font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;\\\">\n<h2 style=\\\"color: #F5A623;\\\">🎉 订阅成功！</h2>\n<p>你好，</p>\n<p>感谢你订阅 <strong>devmini</strong> 资源更新通知。我们会在有新的优质资源更新时，通过邮件第一时间通知你。</p>\n<hr style=\\\"border: none; border-top: 1px solid #eee; margin: 20px 0;\\\">\n<p style=\\\"color: #666; font-size: 13px;\\\">如果这不是你操作的，请忽略此邮件或<a href=\\\"https://devmini.space\\\">访问网站</a>取消订阅。</p>\n</body></html>\"
+            }"

@@ -9,6 +9,10 @@ node_modules/
 # Generated site artifacts
 docs/.vitepress/dist/
 
+# Environment variables (contains secrets)
+.env.local
+.env*.*
+
 # Generated site artifacts
 docs/public/atom.xml
 .vitepress/cache/
