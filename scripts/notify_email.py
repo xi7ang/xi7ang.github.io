@@ -81,6 +81,7 @@ req = urllib.request.Request(
     headers={'Authorization': 'Bearer ' + os.environ['RESEND_KEY'], 'Content-Type': 'application/json'},
     method='POST',
 )
+print('DEBUG RESEND_KEY prefix:', os.environ.get('RESEND_KEY', 'NOT SET')[:10])
 with urllib.request.urlopen(req) as resp:
     result = json.loads(resp.read())
     print('Broadcast sent! ID: ' + str(result.get('data', {}).get('id', 'unknown')))
