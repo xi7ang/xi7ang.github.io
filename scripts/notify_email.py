@@ -1,9 +1,16 @@
 #!/usr/bin/env python3
-"""Send resource update notification email via Resend Broadcast API."""
-import os, json, urllib.request
+"""Send resource update notification via Resend Broadcast API."""
+import os, json, urllib.request, sys
 
-count = int(os.environ.get('COUNT', '0'))
-files = json.loads(os.environ.get('NEW_FILES_JSON', '[]'))
+filepath = sys.argv[1] if len(sys.argv) > 1 else '/tmp/new_files.txt'
+
+try:
+    with open(filepath) as f:
+        files = [line.strip() for line in f if line.strip()]
+except:
+    files = []
+
+count = len(files)
 
 cat_map = {
     'AIknowledge': ('🔥', 'AI知识'),
@@ -22,7 +29,7 @@ cat_map = {
 
 resource_html = ''
 for filepath in files:
-    parts = filepath.strip().split('/')
+    parts = filepath.split('/')
     if len(parts) < 3:
         continue
     category, filename = parts[1], parts[2]
@@ -67,22 +74,13 @@ html = (
     '</div></body></html>'
 )
 
-payload = {
-    'from': 'subscribe@devmini.space',
-    'to': ['devmini.subscribers'],
-    'subject': subject,
-    'html': html,
-}
+payload = {'from': 'subscribe@devmini.space', 'to': ['devmini.subscribers'], 'subject': subject, 'html': html}
 req = urllib.request.Request(
     'https://api.resend.com/broadcasts',
     data=json.dumps(payload).encode('utf-8'),
-    headers={
-        'Authorization': 'Bearer ' + os.environ['RESEND_KEY'],
-        'Content-Type': 'application/json',
-    },
+    headers={'Authorization': 'Bearer ' + os.environ['RESEND_KEY'], 'Content-Type': 'application/json'},
     method='POST',
 )
 with urllib.request.urlopen(req) as resp:
     result = json.loads(resp.read())
-    bid = result.get('data', {}).get('id', 'unknown')
-    print('Broadcast sent! ID: ' + str(bid))
+    print('Broadcast sent! ID: ' + str(result.get('data', {}).get('id', 'unknown')))

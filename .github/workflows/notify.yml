@@ -4,11 +4,6 @@ on:
   schedule:
     - cron: '0 9 * * 1'
   workflow_dispatch:
-    inputs:
-      force:
-        description: Force send even if no new resources
-        required: false
-        default: 'false'
 
 jobs:
   notify:
@@ -23,14 +18,14 @@ jobs:
           fetch-depth: 0
 
       - name: Find last notify tag
-        id: last-tag
         run: |
           TAG=$(git describe --tags --match 'notify-*' --sort=-version:refname 2>/dev/null | head -n1)
           echo "tag=${TAG:-none}" >> $GITHUB_OUTPUT
           echo "tag=${TAG:-none}" >> $GITHUB_ENV
 
-      - name: Detect new resource files
-        id: detect
+      - name: Detect new files and send notification
+        env:
+          RESEND_KEY: ${{ secrets.RESEND_API_KEY }}
         run: |
           LAST_TAG="${{ env.tag }}"
           if [ "$LAST_TAG" = "none" ]; then
@@ -38,33 +33,15 @@ jobs:
           else
             FILES=$(git diff $LAST_TAG..HEAD --name-status --diff-filter=A --format='' | grep '^A\s.*docs/.*\.md$' | awk '{print $2}' | sort -u)
           fi
-          printf '%s\n' "$FILES" | grep 'docs/.*\.md$' | jq -R . | jq -s . > /tmp/new_files.json
-          COUNT=$(printf '%s\n' "$FILES" | grep -c 'docs/.*\.md$' || echo 0)
-          echo "count=$COUNT" >> $GITHUB_OUTPUT
-          echo "count=$COUNT" >> $GITHUB_ENV
-          echo "has_new=$([ "$COUNT" -gt 0 ] && echo "true" || echo "false")" >> $GITHUB_OUTPUT
-          echo "new_files_json=$(cat /tmp/new_files.json)" >> $GITHUB_OUTPUT
-
-      - name: Send notification
-        if: steps.detect.outputs.has_new == 'true' || github.event.inputs.force == 'true'
-        env:
-          RESEND_KEY: ${{ secrets.RESEND_API_KEY }}
-          NEW_FILES_JSON: ${{ steps.detect.outputs.new_files_json }}
-          COUNT: ${{ steps.detect.outputs.count }}
-        run: |
-          python3 scripts/notify_email.py
-
-      - name: Create notify tag
-        if: steps.detect.outputs.has_new == 'true'
-        run: |
+          printf '%s\n' $FILES | grep 'docs/.*\.md$' > /tmp/new_files.txt
+          COUNT=$(wc -l < /tmp/new_files.txt)
+          if [ "$COUNT" -eq 0 ] || [ -z "$COUNT" ]; then
+            echo "No new resources. Skipping."
+            exit 0
+          fi
+          python3 scripts/notify_email.py /tmp/new_files.txt
           TAG="notify-$(date +%Y-%m-%d)"
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
-          git tag -a "$TAG" -m "Notification sent for $(date +%Y-%m-%d)"
+          git tag -a "$TAG" -m "Notify sent $(date +%Y-%m-%d)"
           git push origin "$TAG"
-          echo "Created tag: $TAG"
-
-      - name: No new resources
-        if: steps.detect.outputs.has_new == 'false'
-        run: |
-          echo "No new resources detected. No notification sent (correct behavior)."
