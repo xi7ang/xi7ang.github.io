@@ -1,0 +1,204 @@
+name: Resource Update Notification
+
+on:
+  schedule:
+    # 每周一 09:00 UTC = 每周一 17:00 北京时间
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Force send even if no new resources (for testing)'
+        required: false
+        default: 'false'
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Find last notify tag
+        id: last-tag
+        run: |
+          TAG=$(git describe --tags --match 'notify-*' --sort=-version:refname 2>/dev/null | head -n1)
+          echo "tag=${TAG:-none}" >> $GITHUB_OUTPUT
+          echo "tag=${TAG:-none}" >> $GITHUB_ENV
+
+      - name: Detect new resource files
+        id: detect
+        run: |
+          LAST_TAG="${{ env.tag }}"
+          
+          if [ "$LAST_TAG" = "none" ]; then
+            # 首次运行：取最近7天内的变更文件
+            FILES=$(git log --since='7 days ago' --name-status --diff-filter=A --format='' | grep '^A\s.*docs/.*\.md$' | awk '{print $2}' | sort -u)
+          else
+            FILES=$(git diff $LAST_TAG..HEAD --name-status --diff-filter=A --format='' | grep '^A\s.*docs/.*\.md$' | awk '{print $2}' | sort -u)
+          fi
+
+          echo "DETECTED_FILES<<EOF" >> $GITHUB_ENV
+          echo "$FILES" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+          COUNT=$(echo "$FILES" | grep -c 'docs/.*\.md$' || echo 0)
+          echo "count=$COUNT" >> $GITHUB_OUTPUT
+          echo "count=$COUNT" >> $GITHUB_ENV
+          echo "has_new=$([ "$COUNT" -gt 0 ] && echo "true" || echo "false")" >> $GITHUB_OUTPUT
+
+      - name: Build email content
+        if: steps.detect.outputs.has_new == 'true' || github.event.inputs.force == 'true'
+        id: build
+        run: |
+          COUNT=${{ env.count }}
+          echo "count=$COUNT"
+          
+          # 解析每个资源文件，生成 HTML 行
+          RESOURCE_HTML=""
+          
+          while IFS= read -r file; do
+            [ -z "$file" ] && continue
+            # 从文件路径提取分类目录名
+            CATEGORY=$(echo "$file" | cut -d'/' -f2)
+            FILENAME=$(basename "$file" .md)
+
+            # 映射分类显示名和 emoji
+            case "$CATEGORY" in
+              AIknowledge) EMOJI="🤖"; CAT_LABEL="AI知识" ;;
+              book) EMOJI="📚"; CAT_LABEL="书籍资料" ;;
+              curriculum) EMOJI="🎓"; CAT_LABEL="课程资料" ;;
+              tools) EMOJI="🔧"; CAT_LABEL="工具合集" ;;
+              games) EMOJI="🎮"; CAT_LABEL="游戏资源" ;;
+              movies) EMOJI="🎬"; CAT_LABEL="影视媒体" ;;
+              healthy) EMOJI="💪"; CAT_LABEL="健康养生" ;;
+              self-media) EMOJI="🎙️"; CAT_LABEL="自媒体" ;;
+              edu-knowlege) EMOJI="📖"; CAT_LABEL="教育知识" ;;
+              chinese-traditional) EMOJI="🏯"; CAT_LABEL="传统文化" ;;
+              cross-border) EMOJI="🌐"; CAT_LABEL="跨境电商" ;;
+              auto) EMOJI="⚙️"; CAT_LABEL="自动" ;;
+              *) EMOJI="📦"; CAT_LABEL="$CATEGORY" ;;
+            esac
+
+            RESOURCE_HTML="${RESOURCE_HTML}<a href=\"https://pan.devmini.space/${CATEGORY}/${FILENAME}\" style=\"display:flex;align-items:center;padding:14px 16px;border-bottom:1px solid #f0f0f0;text-decoration:none;transition:background 0.2s;\" onmouseover=\"this.style.background='#f9f9f9'\" onmouseout=\"this.style.background='transparent'\">
+              <span style=\"font-size:22px;margin-right:12px;\">${EMOJI}</span>
+              <div>
+                <div style=\"font-weight:600;color:#222;font-size:14px;\">${FILENAME}</div>
+                <div style=\"color:#888;font-size:12px;\">${CAT_LABEL}</div>
+              </div>
+              <span style=\"margin-left:auto;color:#F5A623;font-size:13px;font-weight:500;\">查看 →</span>
+            </a>"
+          done <<< "$DETECTED_FILES"
+
+          echo "RESOURCE_HTML<<EOF" >> $GITHUB_ENV
+          echo "$RESOURCE_HTML" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+          # 生成邮件主题
+          if [ "$COUNT" -le 3 ]; then
+            SUBJECT="🔥 新鲜出炉！${COUNT}个资源已更新，速来查看"
+          elif [ "$COUNT" -le 10 ]; then
+            SUBJECT="🎉 本周${COUNT}个新资源上线，建议收藏"
+          else
+            SUBJECT="🔥 炸裂！本周${COUNT}个优质资源更新，点击查看"
+          fi
+          echo "EMAIL_SUBJECT=${SUBJECT}" >> $GITHUB_ENV
+
+      - name: Send notification via Resend Broadcast
+        if: steps.detect.outputs.has_new == 'true' || github.event.inputs.force == 'true'
+        env:
+          RESEND_KEY: ${{ secrets.RESEND_API_KEY }}
+          SUBJECT: ${{ env.EMAIL_SUBJECT }}
+          RESOURCES: ${{ env.RESOURCE_HTML }}
+          COUNT: ${{ env.count }}
+        run: |
+          # 构建完整 HTML 邮件
+          HTML=$(cat << 'HTMLEOF'
+          <!DOCTYPE html>
+          <html>
+          <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; background: #f5f5f5;">
+            <!-- Header -->
+            <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); padding: 32px 24px; text-align: center;">
+              <div style="font-size: 28px; margin-bottom: 8px;">🔥</div>
+              <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 700;">devmini 本周资源更新</h1>
+              <p style="color: rgba(255,255,255,0.75); margin: 8px 0 0; font-size: 14px;">精选资源 · 持续更新 · 免费下载</p>
+            </div>
+            
+            <!-- Content -->
+            <div style="padding: 24px 20px; background: #ffffff;">
+              <h2 style="font-size: 15px; color: #666; margin: 0 0 16px; font-weight: 500;">
+                📦 本周新增 ${COUNT} 个资源
+              </h2>
+              
+              <div style="border: 1px solid #e8e8e8; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+                ${RESOURCES}
+              </div>
+              
+              <a href="https://pan.devmini.space" style="display: block; text-align: center; background: #F5A623; color: #fff; text-decoration: none; padding: 15px; border-radius: 10px; font-weight: 600; font-size: 15px; margin-top: 20px; box-shadow: 0 4px 12px rgba(245,166,35,0.3);">
+                → 查看全部资源
+              </a>
+              
+              <div style="margin-top: 24px; padding: 16px; background: #f0f7ff; border-radius: 8px; border-left: 4px solid #4A90E2;">
+                <p style="margin: 0; font-size: 13px; color: #555; line-height: 1.6;">
+                  💡 <strong>提示：</strong>资源收集整理自全网，优先更新夸克网盘资源。如链接失效请在网站留言或加入社群反馈。
+                </p>
+              </div>
+            </div>
+            
+            <!-- Footer -->
+            <div style="padding: 20px; background: #f0f2f5; text-align: center; border-top: 1px solid #e0e0e0;">
+              <p style="margin: 0 0 6px; font-size: 12px; color: #999;">
+                你收到这封邮件是因为订阅了 devmini 资源更新通知 · 每周一更新
+              </p>
+              <div>
+                <a href="https://pan.devmini.space" style="color: #4A90E2; font-size: 12px; text-decoration: none;">访问网站</a>
+                <span style="color: #ccc; margin: 0 8px;">|</span>
+                <a href="https://t.me/xi7ang" style="color: #4A90E2; font-size: 12px; text-decoration: none;">Telegram社群</a>
+                <span style="color: #ccc; margin: 0 8px;">|</span>
+                <a href="https://qm.qq.com/q/EkPkbcVMaY" style="color: #4A90E2; font-size: 12px; text-decoration: none;">QQ群</a>
+              </div>
+            </div>
+          </body>
+          </html>
+HTMLEOF
+          )
+
+          # URL encode subject
+          ENCODED_SUBJECT=$(python3 -c "import urllib.parse; print(urllib.parse.quote('$SUBJECT'))")
+
+          curl -s -X POST "https://api.resend.com/broadcasts" \
+            -H "Authorization: Bearer $RESEND_KEY" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"from\": \"subscribe@devmini.space\",
+              \"to\": [\"devmini.subscribers\"],
+              \"subject\": \"$SUBJECT\",
+              \"html\": $(echo "$HTML" | python3 -c "import json,sys; print(json.dumps(sys.stdin.read()))")
+            }" | python3 -c "
+import sys, json
+r = json.load(sys.stdin)
+if r.get('error'):
+    print('ERROR:', r['error'])
+    exit(1)
+else:
+    print('✅ Broadcast sent successfully! broadcast_id:', r.get('data', {}).get('id', 'unknown'))
+"
+
+      - name: Create notify tag
+        if: steps.detect.outputs.has_new == 'true'
+        run: |
+          TAG="notify-$(date +%Y-%m-%d)"
+          git config user.name "GitHub Actions" 
+          git config user.email "actions@github.com"
+          git tag -a "$TAG" -m "Notification sent for $(date +%Y-%m-%d)"
+          git push origin "$TAG" 2>&1
+          echo "✅ Created and pushed tag: $TAG"
+
+      - name: No new resources
+        if: steps.detect.outputs.has_new == 'false'
+        run: |
+          echo "✅ No new resources detected. No notification sent. (This is the desired behavior)"
