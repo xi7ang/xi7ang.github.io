@@ -41,7 +41,8 @@ jobs:
           fi
           python3 scripts/notify_email.py /tmp/new_files.txt
           TAG="notify-$(date +%Y-%m-%d)"
+          git tag -d "$TAG" 2>/dev/null || true
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
-          git tag -a "$TAG" -m "Notify sent $(date +%Y-%m-%d)"
-          git push origin "$TAG"
+          git tag -a "$TAG" -f -m "Notify sent $(date +%Y-%m-%d)"
+          git push origin "$TAG" --force

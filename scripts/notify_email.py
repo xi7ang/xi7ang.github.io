@@ -85,6 +85,6 @@ print('DEBUG RESEND_KEY prefix:', os.environ.get('RESEND_KEY', 'NOT SET')[:10])
 try:
     with urllib.request.urlopen(req) as resp:
         result = json.loads(resp.read())
-        print('Broadcast sent! ID: ' + str(result.get('data', {}).get('id', 'unknown')))
+        print('Broadcast sent! ID: ' + str(result.get('id', 'unknown')))
 except urllib.error.HTTPError as e:
     print('HTTP Error:', e.code, e.read().decode())
