@@ -78,7 +78,7 @@ payload = {'from': 'subscribe@devmini.space', 'segment_id': '0d91d539-9540-4cba-
 req = urllib.request.Request(
     'https://api.resend.com/broadcasts',
     data=json.dumps(payload).encode('utf-8'),
-    headers={'Authorization': 'Bearer ' + os.environ['RESEND_KEY'], 'Content-Type': 'application/json'},
+    headers={'Authorization': 'Bearer ' + os.environ['RESEND_KEY'], 'Content-Type': 'application/json', 'User-Agent': 'resend-python/1.0'},
     method='POST',
 )
 print('DEBUG RESEND_KEY prefix:', os.environ.get('RESEND_KEY', 'NOT SET')[:10])
