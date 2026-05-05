@@ -1,12 +1,20 @@
 <template>
   <div class="subscribe-form">
-    <div class="subscribe-form__inner">
+    <div class="subscribe-form__card">
+      <!-- Header -->
+      <div class="subscribe-form__header">
+        <span class="subscribe-form__icon">📬</span>
+        <span class="subscribe-form__title">订阅资源更新通知</span>
+      </div>
+      <p class="subscribe-form__desc">新资源上架，第一时间通知你</p>
+
+      <!-- Input Row -->
       <div class="subscribe-form__input-row">
         <div class="subscribe-form__input-wrap">
           <input
             v-model="localEmail"
             type="text"
-            placeholder="输入你的邮箱"
+            placeholder="输入邮箱"
             class="subscribe-form__input"
             :class="{ 'shake': shaking }"
             @keydown.enter.prevent="handleSubscribe"
@@ -27,7 +35,7 @@
           </select>
         </div>
         <button class="subscribe-form__btn" @click="handleSubscribe" :disabled="loading || !emailValid">
-          <span v-if="!loading">📬 订阅</span>
+          <span v-if="!loading">订阅</span>
           <span v-else class="subscribe-form__spinner"></span>
         </button>
       </div>
@@ -114,13 +122,45 @@ async function handleSubscribe() {
 <style scoped>
 .subscribe-form {
   width: 100%;
-  margin-top: 16px;
+  margin-top: 20px;
 }
 
-.subscribe-form__inner {
+.subscribe-form__card {
   width: 100%;
   max-width: 540px;
   margin: 0 auto;
+  background: rgba(245, 166, 35, 0.06);
+  border: 1.5px solid rgba(245, 166, 35, 0.3);
+  border-radius: 14px;
+  padding: 20px 20px 18px;
+  box-shadow:
+    0 0 0 1px rgba(245, 166, 35, 0.08),
+    0 4px 24px rgba(245, 166, 35, 0.08);
+}
+
+.subscribe-form__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.subscribe-form__icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.subscribe-form__title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--accent-gold, #F5A623);
+  letter-spacing: 0.3px;
+}
+
+.subscribe-form__desc {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 0 0 14px 0;
 }
 
 .subscribe-form__input-row {
@@ -133,15 +173,16 @@ async function handleSubscribe() {
   flex: 1;
   display: flex;
   align-items: center;
-  background: rgba(255, 255, 255, 0.07);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
   border-radius: 10px;
   padding: 0 12px;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .subscribe-form__input-wrap:focus-within {
-  border-color: rgba(255, 255, 255, 0.3);
+  border-color: rgba(245, 166, 35, 0.5);
+  box-shadow: 0 0 0 3px rgba(245, 166, 35, 0.1);
 }
 
 .subscribe-form__at {
@@ -157,8 +198,9 @@ async function handleSubscribe() {
   outline: none;
   font-size: 14px;
   color: var(--text-primary);
-  padding: 10px 8px;
+  padding: 12px 8px;
   min-width: 0;
+  min-height: 48px;
 }
 
 .subscribe-form__input::placeholder {
@@ -167,14 +209,6 @@ async function handleSubscribe() {
 
 .subscribe-form__input.shake {
   animation: shake 0.4s ease;
-}
-
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  20% { transform: translateX(-6px); }
-  40% { transform: translateX(6px); }
-  60% { transform: translateX(-4px); }
-  80% { transform: translateX(4px); }
 }
 
 .subscribe-form__suffix {
@@ -186,32 +220,40 @@ async function handleSubscribe() {
   cursor: pointer;
   padding: 4px 2px;
   direction: ltr;
+  min-height: 48px;
 }
 
 .subscribe-form__btn {
   flex-shrink: 0;
-  padding: 0 20px;
-  background: var(--accent-gold, #F5A623);
+  padding: 0 24px;
+  background: linear-gradient(135deg, #F5A623 0%, #FF8C00 100%);
   border: none;
   border-radius: 10px;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   color: #1a1a1a;
   cursor: pointer;
   transition: all 0.2s;
-  min-width: 90px;
+  min-width: 88px;
+  min-height: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
+  letter-spacing: 0.3px;
 }
 
 .subscribe-form__btn:hover:not(:disabled) {
-  background: #f7b84b;
+  background: linear-gradient(135deg, #f7b84b 0%, #ffa033 100%);
   transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(245, 166, 35, 0.3);
+}
+
+.subscribe-form__btn:active:not(:disabled) {
+  transform: translateY(0);
 }
 
 .subscribe-form__btn:disabled {
-  opacity: 0.5;
+  opacity: 0.45;
   cursor: not-allowed;
 }
 
@@ -228,6 +270,14 @@ async function handleSubscribe() {
   to { transform: rotate(360deg); }
 }
 
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+
 .subscribe-form__error {
   margin-top: 8px;
   font-size: 12px;
@@ -240,5 +290,49 @@ async function handleSubscribe() {
   font-size: 12px;
   color: #51cf66;
   text-align: center;
+  font-weight: 600;
+}
+
+/* ── Mobile Responsive ── */
+@media (max-width: 480px) {
+  .subscribe-form__card {
+    padding: 16px 14px 14px;
+    border-radius: 12px;
+  }
+
+  .subscribe-form__input-row {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .subscribe-form__input-wrap {
+    padding: 0 10px;
+  }
+
+  .subscribe-form__btn {
+    width: 100%;
+    padding: 0;
+    min-height: 48px;
+    border-radius: 10px;
+    font-size: 15px;
+  }
+
+  .subscribe-form__input {
+    padding: 14px 6px;
+    font-size: 15px;
+  }
+
+  .subscribe-form__suffix {
+    font-size: 14px;
+    padding: 4px 0;
+  }
+
+  .subscribe-form__header {
+    justify-content: center;
+  }
+
+  .subscribe-form__desc {
+    text-align: center;
+  }
 }
 </style>

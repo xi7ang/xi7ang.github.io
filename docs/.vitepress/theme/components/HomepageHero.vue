@@ -102,7 +102,10 @@
           </div>
         </div>
 
-        <SubscribeForm />
+        <!-- Subscribe Banner -->
+        <div class="subscribe-banner">
+          <SubscribeForm />
+        </div>
 
       </div>
     </section>
@@ -158,6 +161,14 @@
           </a>
         </div>
       </section>
+
+/* ── Subscribe Banner ── */
+.subscribe-banner {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
     </div>
 
     <!-- ── Stats Panel ── -->
