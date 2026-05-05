@@ -201,7 +201,7 @@ async function requestCode() {
   loading.value = true
 
   try {
-    const res = await fetch('https://subscribe-email-resend-worker.wsheng-980210.workers.dev/request-code', {
+    const res = await fetch('https://subscribe-email-worker.wsheng-980210.workers.dev/request-code', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -241,7 +241,7 @@ async function confirmSubscribe() {
   errorMsg.value = ''
 
   try {
-    const res = await fetch('https://subscribe-email-resend-worker.wsheng-980210.workers.dev/subscribe', {
+    const res = await fetch('https://subscribe-email-worker.wsheng-980210.workers.dev/subscribe', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
