@@ -20,14 +20,13 @@ jobs:
       - name: Find last notify tag
         run: |
           TAG=$(git describe --tags --match 'notify-*' --sort=-version:refname 2>/dev/null | head -n1)
-          echo "tag=${TAG:-none}" >> $GITHUB_OUTPUT
-          echo "tag=${TAG:-none}" >> $GITHUB_ENV
+          echo "${TAG:-none}" > /tmp/last_tag.txt
 
       - name: Detect new files and send notification
         env:
           RESEND_KEY: ${{ secrets.RESEND_API_KEY }}
         run: |
-          LAST_TAG="${{ env.tag }}"
+          LAST_TAG=$(cat /tmp/last_tag.txt 2>/dev/null || echo "none")
           # Detect added files matching docs/public/*/NNNNNN.md (6 digits starting with 20)
           if [ "$LAST_TAG" = "none" ]; then
             FILES=$(git log --since='7 days ago' --name-status --diff-filter=A --format='' | awk '{print $2}' | grep -E 'docs/public/.*/[0-9]{6}\.md$' | sort -u)
