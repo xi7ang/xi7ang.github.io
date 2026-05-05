@@ -1,6 +1,7 @@
 <template>
   <div class="subscribe-form">
     <div class="subscribe-form__card">
+
       <!-- Header -->
       <div class="subscribe-form__header">
         <span class="subscribe-form__icon">📬</span>
@@ -10,31 +11,20 @@
 
       <!-- ── Step 1: Email + Get Code ── -->
       <div v-if="step === 'email'" class="subscribe-form__step">
-        <div class="subscribe-form__input-row">
-          <div class="subscribe-form__input-wrap">
-            <input
-              v-model="localEmail"
-              type="text"
-              placeholder="输入邮箱"
-              class="subscribe-form__input"
-              :class="{ 'shake': shaking }"
-              @keydown.enter.prevent="requestCode"
-              @focus="inputFocused = true"
-              @blur="onBlur"
-            />
-            <span class="subscribe-form__at">@</span>
-            <select v-model="suffix" class="subscribe-form__suffix" @focus="inputFocused = true" @blur="onBlur">
-              <option value="gmail.com">gmail.com</option>
-              <option value="qq.com">qq.com</option>
-              <option value="163.com">163.com</option>
-              <option value="outlook.com">outlook.com</option>
-              <option value="126.com">126.com</option>
-              <option value="hotmail.com">hotmail.com</option>
-              <option value="icloud.com">icloud.com</option>
-              <option value="yahoo.com">yahoo.com</option>
-              <option value="protonmail.com">protonmail.com</option>
-            </select>
-          </div>
+        <!-- 邮箱输入框 -->
+        <input
+          v-model="localEmail"
+          type="email"
+          placeholder="请输入邮箱地址"
+          class="subscribe-form__email-input"
+          :class="{ 'shake': shaking }"
+          @keydown.enter.prevent="requestCode"
+          @focus="inputFocused = true"
+          @blur="onBlur"
+        />
+
+        <!-- 按钮 + Turnstile 垂直堆叠 -->
+        <div class="subscribe-form__action-group">
           <button
             class="subscribe-form__btn subscribe-form__btn--code"
             @click="requestCode"
@@ -44,7 +34,13 @@
             <span v-else-if="loading"><span class="spinner"></span></span>
             <span v-else>获取验证码</span>
           </button>
+
+          <!-- Turnstile 嵌入在按钮下方 -->
+          <div class="subscribe-form__turnstile-wrap">
+            <div id="turnstile-container"></div>
+          </div>
         </div>
+
         <div v-if="errorMsg" class="subscribe-form__error">{{ errorMsg }}</div>
         <div v-if="successMsg" class="subscribe-form__success">{{ successMsg }}</div>
       </div>
@@ -54,7 +50,7 @@
         <div class="subscribe-form__code-row">
           <div class="subscribe-form__code-info">
             <span class="subscribe-form__code-hint">验证码已发送至</span>
-            <span class="subscribe-form__code-email">{{ displayEmail }}</span>
+            <span class="subscribe-form__code-email">{{ localEmail }}</span>
           </div>
           <div class="subscribe-form__code-inputs">
             <input
@@ -82,7 +78,7 @@
               <span v-else class="spinner"></span>
             </button>
             <button
-              class="subscribe-form__btn subscribe-form__btn--code subscribe-form__btn--small"
+              class="subscribe-form__btn subscribe-form__btn--small"
               @click="resendCode"
               :disabled="countDown > 0"
             >
@@ -99,10 +95,8 @@
         <div class="subscribe-form__success-text">订阅成功！</div>
         <div class="subscribe-form__success-sub">资源更新时，你会第一时间收到通知</div>
       </div>
-    </div>
 
-    <!-- Turnstile container (invisible) -->
-    <div id="turnstile-container" class="subscribe-form__turnstile" :class="{ 'hidden': step !== 'email' }"></div>
+    </div>
   </div>
 </template>
 
@@ -110,7 +104,6 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 
 const localEmail = ref('')
-const suffix = ref('gmail.com')
 const step = ref('email')
 const loading = ref(false)
 const errorMsg = ref('')
@@ -119,20 +112,11 @@ const shaking = ref(false)
 const inputFocused = ref(false)
 const countDown = ref(0)
 const turnstileToken = ref('')
-const turnstileWidgetId = ref(null)
-const turnstileContainer = ref(null)
-const codeInputs = ref([])
+const turnstileWidgetId = ref<number | null>(null)
+const codeInputs = ref<HTMLInputElement[]>([])
 const codeDigits = ref(['', '', '', '', '', ''])
 
-const displayEmail = computed(() => {
-  const e = localEmail.value.trim()
-  return e ? `${e}@${suffix.value}` : ''
-})
-
-const email = computed(() => {
-  const e = localEmail.value.trim()
-  return e ? `${e}@${suffix.value}` : ''
-})
+const email = computed(() => localEmail.value.trim())
 
 const emailValid = computed(() => {
   const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -141,7 +125,7 @@ const emailValid = computed(() => {
 
 const codeStr = computed(() => codeDigits.value.join(''))
 
-let countdownTimer = null
+let countdownTimer: ReturnType<typeof setInterval> | null = null
 
 function onBlur() {
   setTimeout(() => { inputFocused.value = false }, 200)
@@ -157,13 +141,13 @@ function startCountdown(seconds = 60) {
   countdownTimer = setInterval(() => {
     countDown.value--
     if (countDown.value <= 0) {
-      clearInterval(countdownTimer)
+      if (countdownTimer) clearInterval(countdownTimer)
       countdownTimer = null
     }
   }, 1000)
 }
 
-function onCodeKeydown(e, i) {
+function onCodeKeydown(e: KeyboardEvent, i: number) {
   if (e.key === 'Backspace' && !codeDigits.value[i] && i > 0) {
     codeInputs.value[i - 1]?.focus()
   }
@@ -172,15 +156,15 @@ function onCodeKeydown(e, i) {
   }
 }
 
-function onCodeInput(e, i) {
-  const val = e.target.value.replace(/\D/g, '').slice(-1)
+function onCodeInput(e: Event, i: number) {
+  const val = (e.target as HTMLInputElement).value.replace(/\D/g, '').slice(-1)
   codeDigits.value[i] = val
   if (val && i < 5) {
     codeInputs.value[i + 1]?.focus()
   }
 }
 
-function onCodePaste(e) {
+function onCodePaste(e: ClipboardEvent) {
   const paste = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '').slice(0, 6)
   for (let i = 0; i < 6; i++) {
     codeDigits.value[i] = paste[i] || ''
@@ -223,7 +207,6 @@ async function requestCode() {
       successMsg.value = '验证码已发送，请查收邮件'
       step.value = 'code'
       startCountdown(60)
-      // auto-focus first code input
       setTimeout(() => codeInputs.value[0]?.focus(), 50)
     } else {
       errorMsg.value = data.error || '请求失败，请稍后重试'
@@ -291,23 +274,25 @@ async function resendCode() {
 
 // ── Turnstile ─────────────────────────────────────────────────────────────
 
-onMounted(() => {
-  function tryInit() {
-    const fn = (window as any).turnstile
-    if (fn && typeof fn.render === 'function') {
-      turnstileWidgetId.value = fn.render('#turnstile-container', {
-        sitekey: '0x4AAAAAADJOkTQV45736fjS',
-        callback: (token: string) => { turnstileToken.value = token },
-        'error-callback': () => { turnstileToken.value = '' },
-        'expired-callback': () => { turnstileToken.value = '' },
-        theme: 'dark',
-        size: 'compact',
-      })
-    } else {
-      requestAnimationFrame(tryInit)
-    }
+function initTurnstile() {
+  const fn = (window as any).turnstile
+  if (fn && typeof fn.render === 'function') {
+    turnstileWidgetId.value = fn.render('turnstile-container', {
+      sitekey: '0x4AAAAAADJOkTQV45736fjS',
+      callback: (token: string) => { turnstileToken.value = token },
+      'error-callback': () => { turnstileToken.value = '' },
+      'expired-callback': () => { turnstileToken.value = '' },
+      theme: 'dark',
+      size: 'compact',
+    })
   }
-  requestAnimationFrame(tryInit)
+}
+
+onMounted(() => {
+  // Small delay to ensure the DOM element is ready
+  requestAnimationFrame(() => {
+    requestAnimationFrame(initTurnstile)
+  })
 })
 
 onUnmounted(() => {
@@ -315,6 +300,7 @@ onUnmounted(() => {
   if (fn && turnstileWidgetId.value !== null) {
     fn.remove(turnstileWidgetId.value)
   }
+  if (countdownTimer) clearInterval(countdownTimer)
 })
 </script>
 
@@ -366,71 +352,47 @@ onUnmounted(() => {
   /* empty */
 }
 
-/* ── Input Row ── */
-.subscribe-form__input-row {
-  display: flex;
-  gap: 8px;
+/* ── Email Input ── */
+.subscribe-form__email-input {
   width: 100%;
-}
-
-.subscribe-form__input-wrap {
-  flex: 1;
-  display: flex;
-  align-items: center;
   background: rgba(255, 255, 255, 0.08);
   border: 1.5px solid rgba(255, 255, 255, 0.12);
   border-radius: 10px;
-  padding: 0 12px;
+  padding: 14px 16px;
+  font-size: 15px;
+  font-family: inherit;
+  color: var(--text-primary);
+  outline: none;
   transition: border-color 0.2s, box-shadow 0.2s;
+  caret-color: var(--accent-gold);
+  min-height: 50px;
+  box-sizing: border-box;
 }
 
-.subscribe-form__input-wrap:focus-within {
+.subscribe-form__email-input::placeholder {
+  color: var(--text-muted);
+}
+
+.subscribe-form__email-input:focus {
   border-color: rgba(245, 166, 35, 0.5);
   box-shadow: 0 0 0 3px rgba(245, 166, 35, 0.1);
 }
 
-.subscribe-form__at {
-  color: var(--text-muted);
-  font-size: 16px;
-  flex-shrink: 0;
-}
-
-.subscribe-form__input {
-  flex: 1;
-  background: none;
-  border: none;
-  outline: none;
-  font-size: 14px;
-  color: var(--text-primary);
-  padding: 12px 8px;
-  min-width: 0;
-  min-height: 48px;
-}
-
-.subscribe-form__input::placeholder {
-  color: var(--text-muted);
-}
-
-.subscribe-form__input.shake {
+.subscribe-form__email-input.shake {
   animation: shake 0.4s ease;
 }
 
-.subscribe-form__suffix {
-  background: rgba(255, 255, 255, 0.05);
-  border: none;
-  outline: none;
-  font-size: 13px;
-  color: var(--text-secondary);
-  cursor: pointer;
-  padding: 4px 2px;
-  direction: ltr;
-  min-height: 48px;
+/* ── Action Group (button + turnstile) ── */
+.subscribe-form__action-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  margin-top: 14px;
 }
 
 /* ── Buttons ── */
 .subscribe-form__btn {
-  flex-shrink: 0;
-  padding: 0 20px;
   background: linear-gradient(135deg, #F5A623 0%, #FF8C00 100%);
   border: none;
   border-radius: 10px;
@@ -439,8 +401,7 @@ onUnmounted(() => {
   color: #1a1a1a;
   cursor: pointer;
   transition: all 0.2s;
-  min-width: 88px;
-  min-height: 48px;
+  font-family: inherit;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -462,15 +423,41 @@ onUnmounted(() => {
   cursor: not-allowed;
 }
 
+/* 代码按钮 — 最大宽度限制，居中显示 */
 .subscribe-form__btn--code {
-  min-width: 108px;
+  width: 100%;
+  max-width: 240px;
+  min-height: 48px;
+  padding: 0 20px;
 }
 
 .subscribe-form__btn--small {
-  min-width: 120px;
   min-height: 40px;
   font-size: 12px;
   padding: 0 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  color: var(--text-secondary);
+  border-radius: 8px;
+}
+
+.subscribe-form__btn--small:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+  transform: none;
+  box-shadow: none;
+}
+
+/* ── Turnstile container ── */
+.subscribe-form__turnstile-wrap {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+#turnstile-container {
+  display: flex;
+  justify-content: center;
 }
 
 /* ── Code Input ── */
@@ -535,6 +522,8 @@ onUnmounted(() => {
 
 .subscribe-form__btn--confirm {
   width: 100%;
+  max-width: 240px;
+  min-height: 48px;
   background: linear-gradient(135deg, #51cf66 0%, #3db854 100%);
 }
 
@@ -571,14 +560,14 @@ onUnmounted(() => {
 
 /* ── Feedback ── */
 .subscribe-form__error {
-  margin-top: 8px;
+  margin-top: 10px;
   font-size: 12px;
   color: #ff6b6b;
   text-align: center;
 }
 
 .subscribe-form__success {
-  margin-top: 8px;
+  margin-top: 10px;
   font-size: 12px;
   color: #51cf66;
   text-align: center;
@@ -608,54 +597,51 @@ onUnmounted(() => {
   80% { transform: translateX(4px); }
 }
 
-/* ── Turnstile container ── */
-#turnstile-container {
-  display: flex;
-  justify-content: center;
-  margin-top: 12px;
+/* ── Responsive: Tablet ── */
+@media (min-width: 600px) {
+  .subscribe-form__action-group {
+    flex-direction: row;
+    justify-content: center;
+  }
+
+  .subscribe-form__btn--code {
+    width: auto;
+    max-width: none;
+    min-width: 140px;
+  }
+
+  .subscribe-form__btn--confirm {
+    width: auto;
+    max-width: none;
+    flex: 1;
+    max-width: 240px;
+  }
 }
 
-#turnstile-container.hidden {
-  display: none;
-}
-
-/* ── Mobile ── */
-@media (max-width: 480px) {
+/* ── Responsive: Mobile (<600px) ── */
+@media (max-width: 599px) {
   .subscribe-form__card {
     padding: 16px 14px 14px;
     border-radius: 12px;
   }
 
-  .subscribe-form__input-row {
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .subscribe-form__input-wrap {
-    padding: 0 10px;
-  }
-
-  .subscribe-form__btn {
-    width: 100%;
-    padding: 0;
-    min-height: 48px;
-    border-radius: 10px;
+  .subscribe-form__email-input {
     font-size: 15px;
+    padding: 14px 16px;
+  }
+
+  .subscribe-form__action-group {
+    gap: 12px;
   }
 
   .subscribe-form__btn--code {
-    min-width: unset;
-    width: 100%;
-  }
-
-  .subscribe-form__input {
-    padding: 14px 6px;
     font-size: 15px;
   }
 
-  .subscribe-form__suffix {
-    font-size: 14px;
-    padding: 4px 0;
+  .subscribe-form__code-digit {
+    width: 42px;
+    height: 48px;
+    font-size: 20px;
   }
 
   .subscribe-form__header {
@@ -665,11 +651,17 @@ onUnmounted(() => {
   .subscribe-form__desc {
     text-align: center;
   }
+}
 
+@media (max-width: 480px) {
   .subscribe-form__code-digit {
-    width: 42px;
-    height: 48px;
-    font-size: 20px;
+    width: 38px;
+    height: 44px;
+    font-size: 18px;
+  }
+
+  .subscribe-form__code-inputs {
+    gap: 5px;
   }
 }
 </style>
