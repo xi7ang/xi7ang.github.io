@@ -94,8 +94,7 @@
     </div>
 
     <!-- Turnstile container (invisible) -->
-    <!-- Turnstile visible widget -->
-    <div ref="turnstileContainer" class="cf-turnstile" data-sitekey="0x4AAAAAADJOkTQV45736fjS" data-theme="dark" data-size="compact" data-retry-limit="never"></div>
+    <div id="turnstile-container" class="subscribe-form__turnstile"></div>
   </div>
 </template>
 
@@ -112,6 +111,8 @@ const shaking = ref(false)
 const inputFocused = ref(false)
 const countDown = ref(0)
 const turnstileToken = ref('')
+const turnstileWidgetId = ref(null)
+const turnstileContainer = ref(null)
 const codeInputs = ref([])
 const codeDigits = ref(['', '', '', '', '', ''])
 
@@ -283,10 +284,31 @@ async function resendCode() {
 
 // ── Turnstile ─────────────────────────────────────────────────────────────
 
-// Turnstile uses implicit rendering — no JS render call needed.
-// data-sitekey is hardcoded in the HTML div above.
+onMounted(() => {
+  function tryInit() {
+    const fn = (window as any).turnstile
+    if (fn && typeof fn.render === 'function') {
+      turnstileWidgetId.value = fn.render('#turnstile-container', {
+        sitekey: '0x4AAAAAADJOkTQV45736fjS',
+        callback: (token: string) => { turnstileToken.value = token },
+        'error-callback': () => { turnstileToken.value = '' },
+        'expired-callback': () => { turnstileToken.value = '' },
+        theme: 'dark',
+        size: 'compact',
+      })
+    } else {
+      requestAnimationFrame(tryInit)
+    }
+  }
+  requestAnimationFrame(tryInit)
+})
 
-
+onUnmounted(() => {
+  const fn = (window as any).turnstile
+  if (fn && turnstileWidgetId.value !== null) {
+    fn.remove(turnstileWidgetId.value)
+  }
+})
 </script>
 
 <style scoped>
@@ -579,7 +601,8 @@ async function resendCode() {
   80% { transform: translateX(4px); }
 }
 
-.cf-turnstile {
+/* ── Turnstile container ── */
+#turnstile-container {
   display: flex;
   justify-content: center;
   margin-top: 12px;

@@ -156,7 +156,7 @@ export default defineConfig({
     ],
     // Turnstile
     ['meta', { name: 'turnstile-sitekey', content: 'TURNSTILE_PLACEHOLDER' }],
-    ['script', { src: 'https://challenges.cloudflare.com/turnstile/v0/api.js', async: true, defer: true }],
+    ['script', { src: 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit', async: true, defer: true }],
     ['link', { rel: 'preconnect', href: 'https://busuanzi.ibruce.info' }],
     ['link', { rel: 'preconnect', href: 'https://pagead2.googlesyndication.com' }],
     ['link', { rel: 'preconnect', href: 'https://js.stripe.com' }],
