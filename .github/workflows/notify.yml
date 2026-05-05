@@ -23,35 +23,24 @@ jobs:
         run: |
           set -x
 
-          # Use .notify-last file to track last notified HEAD SHA
-          LAST_SHA=$(cat .notify-last 2>/dev/null || echo "")
-          CURRENT_SHA=$(git rev-parse HEAD)
+          # Use .notify-last as sole baseline — no tag fallback
+          BASELINE=$(cat .notify-last 2>/dev/null || echo "")
+          if [ -z "$BASELINE" ]; then
+            echo "No baseline found. Please run workflow once to establish baseline."
+            exit 1
+          fi
 
-          # Skip if already notified this exact commit
-          if [ -n "$LAST_SHA" ] && [ "$CURRENT_SHA" = "$LAST_SHA" ]; then
+          CURRENT_SHA=$(git rev-parse HEAD)
+          if [ "$BASELINE" = "$CURRENT_SHA" ]; then
             echo "Already notified for HEAD $CURRENT_SHA. Skipping."
             exit 0
           fi
 
-          # Find last notify tag as baseline for diff (or use 7-day window if no tag)
-          if LAST_TAG=$(git describe --tags --match 'notify-*' --sort=-version:refname 2>/dev/null) && [ -n "$LAST_TAG" ]; then
-            FILES=$(git diff $LAST_TAG..HEAD --name-status --diff-filter=M --format='' | awk '{print $2}' | grep -E 'docs/public/.*/[0-9]{6}\.md$' | sort -u)
-            BASELINE="$LAST_TAG"
-          else
-            FILES=$(git log --since='7 days ago' --name-status --diff-filter=M --format='' | awk '{print $2}' | grep -E 'docs/public/.*/[0-9]{6}\.md$' | sort -u)
-            FIRST=$(git log --since='7 days ago' --format=%H --reverse -- docs/public 2>/dev/null | head -1)
-            BASELINE="${FIRST:-HEAD~1}"
-          fi
+          # Detect modified files matching docs/public/*/NNNNNN.md (6 digits starting with 20)
+          FILES=$(git diff $BASELINE..HEAD --name-status --diff-filter=M --format='' | awk '{print $2}' | grep -E 'docs/public/.*/[0-9]{6}\.md$' | sort -u)
 
           if [ -z "$FILES" ]; then
             echo "No new resources. Skipping."
-            # Record SHA even if no resources (avoid repeated empty runs)
-            echo "$CURRENT_SHA" > .notify-last
-            git add .notify-last
-            git config user.name "GitHub Actions"
-            git config user.email "actions@github.com"
-            git commit -m "chore: update notify last SHA (no resources)"
-            git push
             exit 0
           fi
 
@@ -68,7 +57,7 @@ jobs:
 
           python3 scripts/notify_email.py <<< "$JSON"
 
-          # Record notified SHA and push tag
+          # Record notified SHA
           echo "$CURRENT_SHA" > .notify-last
           TAG="notify-$(date +%Y-%m-%d)"
           git add .notify-last
