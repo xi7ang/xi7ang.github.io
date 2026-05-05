@@ -17,16 +17,13 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Find last notify tag
-        run: |
-          TAG=$(git describe --tags --match 'notify-*' --sort=-version:refname 2>/dev/null | head -n1)
-          echo "${TAG:-none}" > /tmp/last_tag.txt
-
       - name: Detect new files and send notification
         env:
           RESEND_KEY: ${{ secrets.RESEND_API_KEY }}
         run: |
-          LAST_TAG=$(cat /tmp/last_tag.txt 2>/dev/null || echo "none")
+          # Find last notify tag
+          LAST_TAG=$(git describe --tags --match 'notify-*' --sort=-version:refname 2>/dev/null | head -n1 || echo "none")
+
           # Detect added files matching docs/public/*/NNNNNN.md (6 digits starting with 20)
           if [ "$LAST_TAG" = "none" ]; then
             FILES=$(git log --since='7 days ago' --name-status --diff-filter=A --format='' | awk '{print $2}' | grep -E 'docs/public/.*/[0-9]{6}\.md$' | sort -u)
@@ -42,18 +39,14 @@ jobs:
           # Extract newly added resource lines for each file
           JSON='[]'
           for FILE in $FILES; do
-            # Get category from path e.g. docs/public/games/202605.md -> games
             CATEGORY=$(echo "$FILE" | cut -d/ -f3)
-            # Extract added lines: git diff gives +-lines, we want only added resource lines
             LINES=$(git diff $LAST_TAG..HEAD -- "$FILE" | grep '^+' | grep '^- ' | sed 's/^+ //' | head -15)
             if [ -n "$LINES" ]; then
-              # Build JSON array entry: {"category":"games","file":"docs/public/games/202605.md","lines":[...]}
               ESCAPED_LINES=$(printf '%s\n' "$LINES" | python3 -c "import json,sys; lines=[l.rstrip() for l in sys.stdin if l.strip()]; print(json.dumps({'category':'$CATEGORY','file':'$FILE','lines':lines}))")
               JSON=$(python3 -c "import json,sys; arr=json.loads(sys.stdin.read()); n=json.loads('$ESCAPED_LINES'); arr.append(n); print(json.dumps(arr))" <<< "$JSON")
             fi
           done
 
-          echo "resources_json=$JSON" >> $GITHUB_OUTPUT
           python3 scripts/notify_email.py <<< "$JSON"
 
           TAG="notify-$(date +%Y-%m-%d)"
