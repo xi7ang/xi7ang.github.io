@@ -23,7 +23,11 @@ jobs:
         run: |
           set -x
           # Find last notify tag
-          LAST_TAG=$(git describe --tags --match 'notify-*' --sort=-version:refname 2>/dev/null | head -n1 || echo "none")
+          if LAST_TAG=$(git describe --tags --match 'notify-*' --sort=-version:refname 2>/dev/null) && [ -n "$LAST_TAG" ]; then
+            : # LAST_TAG set
+          else
+            LAST_TAG="none"
+          fi
 
           # Detect added files matching docs/public/*/NNNNNN.md (6 digits starting with 20)
           if [ "$LAST_TAG" = "none" ]; then
