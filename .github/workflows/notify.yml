@@ -45,7 +45,11 @@ jobs:
           JSON='[]'
           for FILE in $FILES; do
             CATEGORY=$(echo "$FILE" | cut -d/ -f3)
-            LINES=$(git diff $LAST_TAG..HEAD -- "$FILE" | grep '^+' | grep '^- ' | sed 's/^+ //' | head -15)
+            if [ "$LAST_TAG" = "none" ]; then
+              LINES=$(git log --since='7 days ago' --format='' --diff-filter=A -- "$FILE" | grep '^- ' | sed 's/^- //' | head -15)
+            else
+              LINES=$(git diff $LAST_TAG..HEAD -- "$FILE" | grep '^+' | grep '^- ' | sed 's/^+ //' | head -15)
+            fi
             if [ -n "$LINES" ]; then
               ESCAPED_LINES=$(printf '%s\n' "$LINES" | python3 -c "import json,sys; lines=[l.rstrip() for l in sys.stdin if l.strip()]; print(json.dumps({'category':'$CATEGORY','file':'$FILE','lines':lines}))")
               JSON=$(python3 -c "import json,sys; arr=json.loads(sys.stdin.read()); n=json.loads('$ESCAPED_LINES'); arr.append(n); print(json.dumps(arr))" <<< "$JSON")
