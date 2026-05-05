@@ -22,34 +22,37 @@ jobs:
           RESEND_KEY: ${{ secrets.RESEND_API_KEY }}
         run: |
           set -x
-          # Find last notify tag
-          if LAST_TAG=$(git describe --tags --match 'notify-*' --sort=-version:refname 2>/dev/null) && [ -n "$LAST_TAG" ]; then
-            : # LAST_TAG set
-          else
-            LAST_TAG="none"
+
+          # Use .notify-last file to track last notified HEAD SHA
+          LAST_SHA=$(cat .notify-last 2>/dev/null || echo "")
+          CURRENT_SHA=$(git rev-parse HEAD)
+
+          # Skip if already notified this exact commit
+          if [ -n "$LAST_SHA" ] && [ "$CURRENT_SHA" = "$LAST_SHA" ]; then
+            echo "Already notified for HEAD $CURRENT_SHA. Skipping."
+            exit 0
           fi
 
-          # Detect modified files matching docs/public/*/NNNNNN.md (6 digits starting with 20)
-          if [ "$LAST_TAG" = "none" ]; then
-            FILES=$(git log --since='7 days ago' --name-status --diff-filter=M --format='' | awk '{print $2}' | grep -E 'docs/public/.*/[0-9]{6}\.md$' | sort -u)
-            BASELINE=$(git log --since='7 days ago' --format=%H --reverse | head -1)
-          else
+          # Find last notify tag as baseline for diff (or use 7-day window if no tag)
+          if LAST_TAG=$(git describe --tags --match 'notify-*' --sort=-version:refname 2>/dev/null) && [ -n "$LAST_TAG" ]; then
             FILES=$(git diff $LAST_TAG..HEAD --name-status --diff-filter=M --format='' | awk '{print $2}' | grep -E 'docs/public/.*/[0-9]{6}\.md$' | sort -u)
             BASELINE="$LAST_TAG"
+          else
+            FILES=$(git log --since='7 days ago' --name-status --diff-filter=M --format='' | awk '{print $2}' | grep -E 'docs/public/.*/[0-9]{6}\.md$' | sort -u)
+            FIRST=$(git log --since='7 days ago' --format=%H --reverse -- docs/public 2>/dev/null | head -1)
+            BASELINE="${FIRST:-HEAD~1}"
           fi
 
           if [ -z "$FILES" ]; then
             echo "No new resources. Skipping."
+            # Record SHA even if no resources (avoid repeated empty runs)
+            echo "$CURRENT_SHA" > .notify-last
+            git add .notify-last
+            git config user.name "GitHub Actions"
+            git config user.email "actions@github.com"
+            git commit -m "chore: update notify last SHA (no resources)"
+            git push
             exit 0
-          fi
-
-          # Double-check: verify actual changes between LAST_TAG and HEAD
-          if [ "$LAST_TAG" != "none" ]; then
-            CHECK=$(git diff $LAST_TAG..HEAD --name-only | grep -E 'docs/public/.*/[0-9]{6}\.md$' | wc -l)
-            if [ "$CHECK" -eq 0 ]; then
-              echo "No actual changes between $LAST_TAG and HEAD. Skipping."
-              exit 0
-            fi
           fi
 
           # Extract newly added resource lines for each file
@@ -65,9 +68,13 @@ jobs:
 
           python3 scripts/notify_email.py <<< "$JSON"
 
+          # Record notified SHA and push tag
+          echo "$CURRENT_SHA" > .notify-last
           TAG="notify-$(date +%Y-%m-%d)"
-          git tag -d "$TAG" 2>/dev/null || true
+          git add .notify-last
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
+          git commit -m "chore: update notify last SHA"
           git tag -a "$TAG" -f -m "Notify sent $(date +%Y-%m-%d)"
           git push origin "$TAG" --force
+          git push
