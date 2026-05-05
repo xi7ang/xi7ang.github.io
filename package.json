@@ -10,8 +10,9 @@
     "fetch-commits": "node scripts/fetch-commits.js",
     "build:search": "pagefind --site docs/.vitepress/dist --output-path docs/.vitepress/dist/pagefind",
     "prebuild": "npm run generate-atom",
-    "postbuild": "npm run build:search",
-    "sync": "node scripts/sync-content.js"
+    "postbuild": "npm run build:search && npm run replace:turnstile",
+    "sync": "node scripts/sync-content.js",
+    "replace:turnstile": "node -e \"const fs=require('fs');const key=process.env.TURNSTILE_SITE_KEY||'TURNSTILE_PLACEHOLDER';const d='docs/.vitepress/dist';fs.readdirSync(d).forEach(f=>{if(f.endsWith('.html')){const path=d+'/'+f;const c=fs.readFileSync(path,'utf8');if(c.includes('TURNSTILE_PLACEHOLDER')){fs.writeFileSync(path,c.replace(/TURNSTILE_PLACEHOLDER/g,key));console.log('Replaced in',path)}}})\""
   },
   "devDependencies": {
     "@pagefind/default-ui": "^1.5.0",

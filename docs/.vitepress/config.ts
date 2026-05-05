@@ -3,6 +3,16 @@ import { defineConfig } from 'vitepress'
 import fs from 'node:fs'
 import path from 'node:path'
 
+// Replace placeholder before build
+function replaceTurnstilePlaceholder() {
+  return {
+    name: 'replace-turnstile-placeholder',
+    closeBundle() {
+      // noop — placeholder replaced in build step via envsubst
+    }
+  }
+}
+
 // Inject init.js as the FIRST script in HTML via Vite transform
 function injectInitScript() {
   return {
@@ -144,7 +154,9 @@ export default defineConfig({
         content: 'lI-wB0SQ6fXo-tUmUtTvz_9Qa65EMnPl_9PUuxhCJoI'
       }
     ],
-    // Preconnect 加速第三方资源加载
+    // Turnstile
+    ['meta', { name: 'turnstile-sitekey', content: 'TURNSTILE_PLACEHOLDER' }],
+    ['script', { src: 'https://challenges.cloudflare.com/turnstile/v0/api.js', async: true, defer: true }],
     ['link', { rel: 'preconnect', href: 'https://busuanzi.ibruce.info' }],
     ['link', { rel: 'preconnect', href: 'https://pagead2.googlesyndication.com' }],
     ['link', { rel: 'preconnect', href: 'https://js.stripe.com' }],

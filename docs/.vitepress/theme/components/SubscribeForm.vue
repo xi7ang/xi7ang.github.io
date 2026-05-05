@@ -8,53 +8,118 @@
       </div>
       <p class="subscribe-form__desc">新资源上架，第一时间通知你</p>
 
-      <!-- Input Row -->
-      <div class="subscribe-form__input-row">
-        <div class="subscribe-form__input-wrap">
-          <input
-            v-model="localEmail"
-            type="text"
-            placeholder="输入邮箱"
-            class="subscribe-form__input"
-            :class="{ 'shake': shaking }"
-            @keydown.enter.prevent="handleSubscribe"
-            @focus="inputFocused = true"
-            @blur="onBlur"
-          />
-          <span class="subscribe-form__at">@</span>
-          <select v-model="suffix" class="subscribe-form__suffix" @focus="inputFocused = true" @blur="onBlur">
-            <option value="gmail.com">gmail.com</option>
-            <option value="qq.com">qq.com</option>
-            <option value="163.com">163.com</option>
-            <option value="outlook.com">outlook.com</option>
-            <option value="126.com">126.com</option>
-            <option value="hotmail.com">hotmail.com</option>
-            <option value="icloud.com">icloud.com</option>
-            <option value="yahoo.com">yahoo.com</option>
-            <option value="protonmail.com">protonmail.com</option>
-          </select>
+      <!-- ── Step 1: Email + Get Code ── -->
+      <div v-if="step === 'email'" class="subscribe-form__step">
+        <div class="subscribe-form__input-row">
+          <div class="subscribe-form__input-wrap">
+            <input
+              v-model="localEmail"
+              type="text"
+              placeholder="输入邮箱"
+              class="subscribe-form__input"
+              :class="{ 'shake': shaking }"
+              @keydown.enter.prevent="requestCode"
+              @focus="inputFocused = true"
+              @blur="onBlur"
+            />
+            <span class="subscribe-form__at">@</span>
+            <select v-model="suffix" class="subscribe-form__suffix" @focus="inputFocused = true" @blur="onBlur">
+              <option value="gmail.com">gmail.com</option>
+              <option value="qq.com">qq.com</option>
+              <option value="163.com">163.com</option>
+              <option value="outlook.com">outlook.com</option>
+              <option value="126.com">126.com</option>
+              <option value="hotmail.com">hotmail.com</option>
+              <option value="icloud.com">icloud.com</option>
+              <option value="yahoo.com">yahoo.com</option>
+              <option value="protonmail.com">protonmail.com</option>
+            </select>
+          </div>
+          <button
+            class="subscribe-form__btn subscribe-form__btn--code"
+            @click="requestCode"
+            :disabled="loading || !emailValid || countDown > 0"
+          >
+            <span v-if="countDown > 0">{{ countDown }}s</span>
+            <span v-else-if="loading"><span class="spinner"></span></span>
+            <span v-else>获取验证码</span>
+          </button>
         </div>
-        <button class="subscribe-form__btn" @click="handleSubscribe" :disabled="loading || !emailValid">
-          <span v-if="!loading">订阅</span>
-          <span v-else class="subscribe-form__spinner"></span>
-        </button>
+        <div v-if="errorMsg" class="subscribe-form__error">{{ errorMsg }}</div>
+        <div v-if="successMsg" class="subscribe-form__success">{{ successMsg }}</div>
       </div>
-      <div v-if="errorMsg" class="subscribe-form__error">{{ errorMsg }}</div>
-      <div v-if="successMsg" class="subscribe-form__success">{{ successMsg }}</div>
+
+      <!-- ── Step 2: Code Input ── -->
+      <div v-if="step === 'code'" class="subscribe-form__step">
+        <div class="subscribe-form__code-row">
+          <div class="subscribe-form__code-info">
+            <span class="subscribe-form__code-hint">验证码已发送至</span>
+            <span class="subscribe-form__code-email">{{ displayEmail }}</span>
+          </div>
+          <div class="subscribe-form__code-inputs">
+            <input
+              v-for="(_, i) in codeDigits"
+              :key="i"
+              :ref="el => codeInputs[i] = el as HTMLInputElement"
+              v-model="codeDigits[i]"
+              type="text"
+              inputmode="numeric"
+              maxlength="1"
+              class="subscribe-form__code-digit"
+              :class="{ 'shake': shaking }"
+              @keydown="onCodeKeydown($event, i)"
+              @input="onCodeInput($event, i)"
+              @paste="onCodePaste($event)"
+            />
+          </div>
+          <div class="subscribe-form__code-actions">
+            <button
+              class="subscribe-form__btn subscribe-form__btn--code subscribe-form__btn--small"
+              @click="resendCode"
+              :disabled="countDown > 0"
+            >
+              {{ countDown > 0 ? `${countDown}s 后重发` : '重新获取' }}
+            </button>
+          </div>
+          <div v-if="errorMsg" class="subscribe-form__error">{{ errorMsg }}</div>
+        </div>
+      </div>
+
+      <!-- ── Step 3: Success ── -->
+      <div v-if="step === 'success'" class="subscribe-form__step subscribe-form__success-panel">
+        <div class="subscribe-form__success-icon">✅</div>
+        <div class="subscribe-form__success-text">订阅成功！</div>
+        <div class="subscribe-form__success-sub">资源更新时，你会第一时间收到通知</div>
+      </div>
     </div>
+
+    <!-- Turnstile container (invisible) -->
+    <div ref="turnstileContainer" class="subscribe-form__turnstile" data-sitekey=""></div>
   </div>
 </template>
 
-<script setup>
-import { ref, computed } from 'vue'
+<script setup lang="ts">
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 
 const localEmail = ref('')
 const suffix = ref('gmail.com')
+const step = ref('email')
 const loading = ref(false)
 const errorMsg = ref('')
 const successMsg = ref('')
 const shaking = ref(false)
 const inputFocused = ref(false)
+const countDown = ref(0)
+const turnstileToken = ref('')
+const turnstileWidgetId = ref(null)
+const turnstileContainer = ref(null)
+const codeInputs = ref([])
+const codeDigits = ref(['', '', '', '', '', ''])
+
+const displayEmail = computed(() => {
+  const e = localEmail.value.trim()
+  return e ? `${e}@${suffix.value}` : ''
+})
 
 const email = computed(() => {
   const e = localEmail.value.trim()
@@ -66,6 +131,10 @@ const emailValid = computed(() => {
   return re.test(email.value)
 })
 
+const codeStr = computed(() => codeDigits.value.join(''))
+
+let countdownTimer = null
+
 function onBlur() {
   setTimeout(() => { inputFocused.value = false }, 200)
 }
@@ -75,7 +144,45 @@ function triggerShake() {
   setTimeout(() => { shaking.value = false }, 500)
 }
 
-async function handleSubscribe() {
+function startCountdown(seconds = 60) {
+  countDown.value = seconds
+  countdownTimer = setInterval(() => {
+    countDown.value--
+    if (countDown.value <= 0) {
+      clearInterval(countdownTimer)
+      countdownTimer = null
+    }
+  }, 1000)
+}
+
+function onCodeKeydown(e, i) {
+  if (e.key === 'Backspace' && !codeDigits.value[i] && i > 0) {
+    codeInputs.value[i - 1]?.focus()
+  }
+  if (e.key === 'Enter') {
+    confirmSubscribe()
+  }
+}
+
+function onCodeInput(e, i) {
+  const val = e.target.value.replace(/\D/g, '').slice(-1)
+  codeDigits.value[i] = val
+  if (val && i < 5) {
+    codeInputs.value[i + 1]?.focus()
+  }
+}
+
+function onCodePaste(e) {
+  const paste = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '').slice(0, 6)
+  for (let i = 0; i < 6; i++) {
+    codeDigits.value[i] = paste[i] || ''
+  }
+  codeInputs.value[Math.min(paste.length, 5)]?.focus()
+  e.preventDefault()
+}
+
+// ── Step 1: Request Code ─────────────────────────────────────────────────
+async function requestCode() {
   errorMsg.value = ''
   successMsg.value = ''
 
@@ -94,29 +201,125 @@ async function handleSubscribe() {
   loading.value = true
 
   try {
-    const response = await fetch(
-      'https://subscribe-email-resend-worker.wsheng-980210.workers.dev/',
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.value })
-      }
-    )
+    const res = await fetch('https://subscribe-email-worker.xi7ang.workers.dev/request-code', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: email.value,
+        turnstileToken: turnstileToken.value || ''
+      })
+    })
+    const data = await res.json().catch(() => ({}))
 
-    const data = await response.json().catch(() => ({}))
-
-    if (response.ok && data.success) {
-      successMsg.value = '✅ 订阅成功！请查收确认邮件'
-      localEmail.value = ''
+    if (res.ok && data.success) {
+      successMsg.value = '验证码已发送，请查收邮件'
+      step.value = 'code'
+      startCountdown(60)
+      // auto-focus first code input
+      setTimeout(() => codeInputs.value[0]?.focus(), 50)
     } else {
-      errorMsg.value = data.error || '订阅失败，请稍后重试'
+      errorMsg.value = data.error || '请求失败，请稍后重试'
+      triggerShake()
     }
   } catch (e) {
     errorMsg.value = '网络错误，请稍后重试'
+    triggerShake()
   } finally {
     loading.value = false
   }
 }
+
+// ── Step 2: Confirm Subscribe ────────────────────────────────────────────
+async function confirmSubscribe() {
+  if (codeStr.value.length !== 6) {
+    errorMsg.value = '请输入完整的6位验证码'
+    triggerShake()
+    return
+  }
+
+  loading.value = true
+  errorMsg.value = ''
+
+  try {
+    const res = await fetch('https://subscribe-email-worker.xi7ang.workers.dev/subscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: email.value,
+        code: codeStr.value,
+        turnstileToken: turnstileToken.value || ''
+      })
+    })
+    const data = await res.json().catch(() => ({}))
+
+    if (res.ok && data.success) {
+      step.value = 'success'
+      localEmail.value = ''
+      codeDigits.value = ['', '', '', '', '', '']
+    } else {
+      errorMsg.value = data.error || '订阅失败，请稍后重试'
+      if (data.error?.includes('过期') || data.error?.includes('次数')) {
+        step.value = 'email'
+        codeDigits.value = ['', '', '', '', '', '']
+      }
+      triggerShake()
+    }
+  } catch (e) {
+    errorMsg.value = '网络错误，请稍后重试'
+    triggerShake()
+  } finally {
+    loading.value = false
+  }
+}
+
+// ── Resend code ───────────────────────────────────────────────────────────
+async function resendCode() {
+  step.value = 'email'
+  successMsg.value = ''
+  errorMsg.value = ''
+  codeDigits.value = ['', '', '', '', '', '']
+  startCountdown(60)
+  await requestCode()
+}
+
+// ── Turnstile ─────────────────────────────────────────────────────────────
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function initTurnstile(siteKey: string) {
+  if (!siteKey || !turnstileContainer.value) return
+
+  const turnstileFn = (window as any).turnstile
+  if (turnstileFn) {
+    turnstileWidgetId.value = turnstileFn.render(turnstileContainer.value, {
+      sitekey: siteKey,
+      callback: (token: string) => {
+        turnstileToken.value = token
+      },
+      'error-callback': () => {
+        turnstileToken.value = ''
+      },
+      'expired-callback': () => {
+        turnstileToken.value = ''
+      },
+      theme: 'dark',
+    })
+  }
+}
+
+onMounted(() => {
+  // Read sitekey from meta (injected by VitePress config)
+  const meta = document.querySelector('meta[name="turnstile-sitekey"]')
+  const siteKey = meta?.getAttribute('content') || ''
+  if (siteKey) {
+    initTurnstile(siteKey)
+  }
+})
+
+onUnmounted(() => {
+  if (countdownTimer) clearInterval(countdownTimer)
+  if (typeof (window as any).turnstile !== 'undefined' && turnstileWidgetId.value !== null) {
+    (window as any).turnstile.remove(turnstileWidgetId.value)
+  }
+})
 </script>
 
 <style scoped>
@@ -163,6 +366,11 @@ async function handleSubscribe() {
   margin: 0 0 14px 0;
 }
 
+.subscribe-form__step {
+  /* empty */
+}
+
+/* ── Input Row ── */
 .subscribe-form__input-row {
   display: flex;
   gap: 8px;
@@ -223,9 +431,10 @@ async function handleSubscribe() {
   min-height: 48px;
 }
 
+/* ── Buttons ── */
 .subscribe-form__btn {
   flex-shrink: 0;
-  padding: 0 24px;
+  padding: 0 20px;
   background: linear-gradient(135deg, #F5A623 0%, #FF8C00 100%);
   border: none;
   border-radius: 10px;
@@ -257,9 +466,134 @@ async function handleSubscribe() {
   cursor: not-allowed;
 }
 
-.subscribe-form__spinner {
-  width: 16px;
-  height: 16px;
+.subscribe-form__btn--code {
+  min-width: 108px;
+}
+
+.subscribe-form__btn--small {
+  min-width: 120px;
+  min-height: 40px;
+  font-size: 12px;
+  padding: 0 12px;
+}
+
+/* ── Code Input ── */
+.subscribe-form__code-row {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.subscribe-form__code-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.subscribe-form__code-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.subscribe-form__code-email {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.subscribe-form__code-inputs {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.subscribe-form__code-digit {
+  width: 48px;
+  height: 52px;
+  text-align: center;
+  font-size: 22px;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  direction: ltr;
+  caret-color: var(--accent-gold);
+}
+
+.subscribe-form__code-digit:focus {
+  border-color: rgba(245, 166, 35, 0.6);
+  box-shadow: 0 0 0 3px rgba(245, 166, 35, 0.12);
+}
+
+.subscribe-form__code-digit.shake {
+  animation: shake 0.4s ease;
+}
+
+.subscribe-form__code-actions {
+  display: flex;
+  justify-content: center;
+}
+
+.subscribe-form__btn--confirm {
+  width: 100%;
+  background: linear-gradient(135deg, #51cf66 0%, #3db854 100%);
+}
+
+.subscribe-form__btn--confirm:hover:not(:disabled) {
+  background: linear-gradient(135deg, #69d779 0%, #4dc464 100%);
+  box-shadow: 0 4px 12px rgba(81, 207, 102, 0.25);
+}
+
+/* ── Success Panel ── */
+.subscribe-form__success-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 0;
+}
+
+.subscribe-form__success-icon {
+  font-size: 36px;
+  line-height: 1;
+}
+
+.subscribe-form__success-text {
+  font-size: 17px;
+  font-weight: 700;
+  color: #51cf66;
+}
+
+.subscribe-form__success-sub {
+  font-size: 13px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* ── Feedback ── */
+.subscribe-form__error {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #ff6b6b;
+  text-align: center;
+}
+
+.subscribe-form__success {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #51cf66;
+  text-align: center;
+  font-weight: 600;
+}
+
+/* ── Spinner ── */
+.spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
   border: 2px solid rgba(0,0,0,0.2);
   border-top-color: #1a1a1a;
   border-radius: 50%;
@@ -278,22 +612,15 @@ async function handleSubscribe() {
   80% { transform: translateX(4px); }
 }
 
-.subscribe-form__error {
-  margin-top: 8px;
-  font-size: 12px;
-  color: #ff6b6b;
-  text-align: center;
+/* ── Turnstile (invisible container) ── */
+.subscribe-form__turnstile {
+  height: 0;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
 }
 
-.subscribe-form__success {
-  margin-top: 8px;
-  font-size: 12px;
-  color: #51cf66;
-  text-align: center;
-  font-weight: 600;
-}
-
-/* ── Mobile Responsive ── */
+/* ── Mobile ── */
 @media (max-width: 480px) {
   .subscribe-form__card {
     padding: 16px 14px 14px;
@@ -317,6 +644,11 @@ async function handleSubscribe() {
     font-size: 15px;
   }
 
+  .subscribe-form__btn--code {
+    min-width: unset;
+    width: 100%;
+  }
+
   .subscribe-form__input {
     padding: 14px 6px;
     font-size: 15px;
@@ -333,6 +665,12 @@ async function handleSubscribe() {
 
   .subscribe-form__desc {
     text-align: center;
+  }
+
+  .subscribe-form__code-digit {
+    width: 42px;
+    height: 48px;
+    font-size: 20px;
   }
 }
 </style>
