@@ -283,35 +283,34 @@ async function resendCode() {
 }
 
 // ── Turnstile ─────────────────────────────────────────────────────────────
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function initTurnstile(siteKey: string) {
-  if (!siteKey || !turnstileContainer.value) return
-
-  const turnstileFn = (window as any).turnstile
-  if (turnstileFn) {
-    turnstileWidgetId.value = turnstileFn.render(turnstileContainer.value, {
-      sitekey: siteKey,
-      callback: (token: string) => {
-        turnstileToken.value = token
-      },
-      'error-callback': () => {
-        turnstileToken.value = ''
-      },
-      'expired-callback': () => {
-        turnstileToken.value = ''
-      },
-      theme: 'dark',
-    })
-  }
-}
 
 onMounted(() => {
-  // Read sitekey from meta (injected by VitePress config)
   const meta = document.querySelector('meta[name="turnstile-sitekey"]')
   const siteKey = meta?.getAttribute('content') || ''
-  if (siteKey) {
-    initTurnstile(siteKey)
+  if (!siteKey) return
+
+  // Wait for turnstile API script to fully load before calling render
+  function tryInit() {
+    const turnstileFn = (window as any).turnstile
+    if (turnstileFn && typeof turnstileFn.render === 'function') {
+      turnstileWidgetId.value = turnstileFn.render(turnstileContainer.value, {
+        sitekey: siteKey,
+        callback: (token: string) => {
+          turnstileToken.value = token
+        },
+        'error-callback': () => {
+          turnstileToken.value = ''
+        },
+        'expired-callback': () => {
+          turnstileToken.value = ''
+        },
+        theme: 'dark',
+      })
+    } else {
+      requestAnimationFrame(tryInit)
+    }
   }
+  requestAnimationFrame(tryInit)
 })
 
 onUnmounted(() => {
