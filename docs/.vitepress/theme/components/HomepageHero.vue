@@ -35,7 +35,7 @@
       <div class="hero__inner">
         <div class="hero__eyebrow">
           <span>✨</span>
-          <span>超过 1000+ 精选资源，持续更新</span>
+          <span>超过 1000+ 精选资源,持续更新</span>
         </div>
 
         <h1 class="hero__title">
@@ -45,6 +45,11 @@
           专注夸克网盘资源聚合<br>
           游戏 · 书籍 · 课程 · 工具 · 影视 · AI 知识
         </p>
+
+        <!-- Subscribe Banner -->
+        <div class="subscribe-banner">
+          <SubscribeForm />
+        </div>
 
         <!-- Search — dropdown is inside search-wrap so they scroll together -->
         <div class="search-wrap">
@@ -74,10 +79,10 @@
             </button>
           </div>
 
-          <!-- Search Dropdown — absolute inside search-wrap, scrolls with page -->
+          <!-- Search Dropdown - absolute inside search-wrap, scrolls with page -->
           <div v-if="searchQuery && searchFocused" class="search-dropdown">
             <div v-if="searchResults.length === 0" class="sd-empty">
-              未找到「{{ searchQuery }}」相关资源，试试其他关键词
+              未找到「{{ searchQuery }}」相关资源,试试其他关键词
             </div>
             <div v-else>
               <div class="sd-meta">{{ searchResults.length }} 条结果</div>
@@ -96,15 +101,10 @@
                 <span class="month-badge">{{ fmtMonth(item.month) }}</span>
               </div>
               <div v-if="searchResults.length > 8" class="sd-empty" style="padding:12px">
-                还有 {{ searchResults.length - 8 }} 条结果…
+                还有 {{ searchResults.length - 8 }} 条结果...
               </div>
             </div>
           </div>
-        </div>
-
-        <!-- Subscribe Banner -->
-        <div class="subscribe-banner">
-          <SubscribeForm />
         </div>
 
       </div>
@@ -205,7 +205,7 @@
           </div>
         </div>
         <div class="footer-copy">
-          © 2025–present xi7ang · 资源收集整理，仅供学习交流
+          © 2025-present xi7ang · 资源收集整理,仅供学习交流
         </div>
       </div>
     </footer>
@@ -257,7 +257,7 @@ const searchInputRef = ref(null)
 
 // ── Computed ──
 const totalResources = computed(() => {
-  if (!dataLoaded.value) return '—'
+  if (!dataLoaded.value) return '-'
   return allResources.value.length || 0
 })
 
@@ -265,9 +265,9 @@ const totalSize = computed(() => '100T+')
 
 const updateMonth = computed(() => {
   const months = allResources.value.map(r => r.month).filter(Boolean)
-  if (!months.length) return '—'
+  if (!months.length) return '-'
   const latest = [...new Set(months)].sort().reverse()[0]
-  return latest ? `${latest.slice(0,4)}/${latest.slice(4,6)}` : '—'
+  return latest ? `${latest.slice(0,4)}/${latest.slice(4,6)}` : '-'
 })
 
 const categoryList = computed(() => {
@@ -329,7 +329,7 @@ function fmtMonth(month) {
 }
 
 function platPct(platform) {
-  if (!totalResources.value || totalResources.value === '—') return 0
+  if (!totalResources.value || totalResources.value === '-') return 0
   return Math.round((1 / Number(totalResources.value)) * 100)
 }
 
