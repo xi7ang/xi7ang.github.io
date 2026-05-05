@@ -21,6 +21,7 @@ jobs:
         env:
           RESEND_KEY: ${{ secrets.RESEND_API_KEY }}
         run: |
+          set -x
           # Find last notify tag
           LAST_TAG=$(git describe --tags --match 'notify-*' --sort=-version:refname 2>/dev/null | head -n1 || echo "none")
 
