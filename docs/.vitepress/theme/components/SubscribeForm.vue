@@ -94,7 +94,8 @@
     </div>
 
     <!-- Turnstile container (invisible) -->
-    <div ref="turnstileContainer" class="subscribe-form__turnstile" data-theme="dark" data-retry-limit="never"></div>
+    <!-- Turnstile visible widget -->
+    <div ref="turnstileContainer" class="cf-turnstile" data-sitekey="0x4AAAAAADJOkTQV45736fjS" data-theme="dark" data-size="compact" data-retry-limit="never"></div>
   </div>
 </template>
 
@@ -111,8 +112,6 @@ const shaking = ref(false)
 const inputFocused = ref(false)
 const countDown = ref(0)
 const turnstileToken = ref('')
-const turnstileWidgetId = ref(null)
-const turnstileContainer = ref(null)
 const codeInputs = ref([])
 const codeDigits = ref(['', '', '', '', '', ''])
 
@@ -284,41 +283,10 @@ async function resendCode() {
 
 // ── Turnstile ─────────────────────────────────────────────────────────────
 
-onMounted(() => {
-  const meta = document.querySelector('meta[name="turnstile-sitekey"]')
-  const siteKey = meta?.getAttribute('content') || ''
-  if (!siteKey) return
+// Turnstile uses implicit rendering — no JS render call needed.
+// data-sitekey is hardcoded in the HTML div above.
 
-  // Wait for turnstile API script to fully load before calling render
-  function tryInit() {
-    const turnstileFn = (window as any).turnstile
-    if (turnstileFn && typeof turnstileFn.render === 'function') {
-      turnstileWidgetId.value = turnstileFn.render(turnstileContainer.value, {
-        sitekey: siteKey,
-        callback: (token: string) => {
-          turnstileToken.value = token
-        },
-        'error-callback': () => {
-          turnstileToken.value = ''
-        },
-        'expired-callback': () => {
-          turnstileToken.value = ''
-        },
-        theme: 'dark',
-      })
-    } else {
-      requestAnimationFrame(tryInit)
-    }
-  }
-  requestAnimationFrame(tryInit)
-})
 
-onUnmounted(() => {
-  if (countdownTimer) clearInterval(countdownTimer)
-  if (typeof (window as any).turnstile !== 'undefined' && turnstileWidgetId.value !== null) {
-    (window as any).turnstile.remove(turnstileWidgetId.value)
-  }
-})
 </script>
 
 <style scoped>
@@ -611,12 +579,10 @@ onUnmounted(() => {
   80% { transform: translateX(4px); }
 }
 
-/* ── Turnstile (invisible container) ── */
-.subscribe-form__turnstile {
-  height: 0;
-  overflow: hidden;
-  opacity: 0;
-  pointer-events: none;
+.cf-turnstile {
+  display: flex;
+  justify-content: center;
+  margin-top: 12px;
 }
 
 /* ── Mobile ── */
