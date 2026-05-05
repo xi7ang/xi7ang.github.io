@@ -94,7 +94,7 @@
     </div>
 
     <!-- Turnstile container (invisible) -->
-    <div ref="turnstileContainer" class="subscribe-form__turnstile" data-sitekey=""></div>
+    <div ref="turnstileContainer" class="subscribe-form__turnstile" data-theme="dark" data-retry-limit="never"></div>
   </div>
 </template>
 
