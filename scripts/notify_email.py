@@ -2,15 +2,11 @@
 """Send resource update notification via Resend Broadcast API."""
 import os, json, urllib.request, sys
 
-filepath = sys.argv[1] if len(sys.argv) > 1 else '/tmp/new_files.txt'
-
+# Read JSON from stdin (list of {category, file, lines:[...]})
 try:
-    with open(filepath) as f:
-        files = [line.strip() for line in f if line.strip()]
+    data = json.load(sys.stdin)
 except:
-    files = []
-
-count = len(files)
+    data = []
 
 cat_map = {
     'AIknowledge': ('🔥', 'AI知识'),
@@ -27,23 +23,39 @@ cat_map = {
     'auto': ('⚙️', '自动'),
 }
 
+# Flatten and limit to 15 total resource lines
+all_lines = []
+for entry in data:
+    cat = entry.get('category', '')
+    for line in entry.get('lines', []):
+        if len(all_lines) >= 15:
+            break
+        all_lines.append((cat, line))
+
+count = len(all_lines)
+
 resource_html = ''
-for filepath in files:
-    parts = filepath.split('/')
-    if len(parts) < 3:
+for cat, line in all_lines:
+    # Parse "- 资源名称 | https://..." format
+    parts = line.split('|')
+    if len(parts) != 2:
         continue
-    category, filename = parts[1], parts[2]
-    emoji, cat_label = cat_map.get(category, ('📦', category))
-    url = 'https://pan.devmini.space/' + category + '/' + filename.replace('.md', '')
+    name = parts[0].strip()
+    if name.startswith('- '):
+        name = name[2:]
+    link = parts[1].strip()
+    emoji, cat_label = cat_map.get(cat, ('📦', cat))
     resource_html += (
-        '<a href="' + url + '" style="display:flex;align-items:center;padding:14px 16px;border-bottom:1px solid #f0f0f0;text-decoration:none;">'
-        '<span style="font-size:22px;margin-right:12px;">' + emoji + '</span>'
-        '<div><div style="font-weight:600;color:#222;font-size:14px;">' + filename.replace('.md', '') + '</div>'
-        '<div style="color:#888;font-size:12px;">' + cat_label + '</div></div>'
-        '<span style="margin-left:auto;color:#F5A623;font-size:13px;font-weight:500;">查看 →</span></a>'
+        '<a href="' + link + '" style="display:block;padding:12px 16px;border-bottom:1px solid #f0f0f0;text-decoration:none;">'
+        '<div style="display:flex;align-items:center;">'
+        '<span style="font-size:18px;margin-right:10px;">' + emoji + '</span>'
+        '<div><div style="font-weight:600;color:#222;font-size:14px;line-height:1.4;">' + name + '</div>'
+        '<div style="color:#4A90E2;font-size:12px;margin-top:4px;">🔗 夸克网盘直达</div></div></div></a>'
     )
 
-if count <= 3:
+if count == 0:
+    subject = '✅ devmini 本周无新增资源，保持关注'
+elif count <= 3:
     subject = '🔥 新鲜出炉！' + str(count) + '个资源已更新，速来查看'
 elif count <= 10:
     subject = '🎉 本周' + str(count) + '个新资源上线，建议收藏'
@@ -82,6 +94,7 @@ req = urllib.request.Request(
     method='POST',
 )
 print('DEBUG RESEND_KEY prefix:', os.environ.get('RESEND_KEY', 'NOT SET')[:10])
+print('Total resources:', count)
 try:
     with urllib.request.urlopen(req) as resp:
         result = json.loads(resp.read())

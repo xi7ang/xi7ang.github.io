@@ -28,18 +28,35 @@ jobs:
           RESEND_KEY: ${{ secrets.RESEND_API_KEY }}
         run: |
           LAST_TAG="${{ env.tag }}"
+          # Detect added files matching docs/public/*/NNNNNN.md (6 digits starting with 20)
           if [ "$LAST_TAG" = "none" ]; then
-            FILES=$(git log --since='7 days ago' --name-status --diff-filter=A --format='' | grep '^A\s.*docs/.*\.md$' | awk '{print $2}' | sort -u)
+            FILES=$(git log --since='7 days ago' --name-status --diff-filter=A --format='' | awk '{print $2}' | grep -E 'docs/public/.*/[0-9]{6}\.md$' | sort -u)
           else
-            FILES=$(git diff $LAST_TAG..HEAD --name-status --diff-filter=A --format='' | grep '^A\s.*docs/.*\.md$' | awk '{print $2}' | sort -u)
+            FILES=$(git diff $LAST_TAG..HEAD --name-status --diff-filter=A --format='' | awk '{print $2}' | grep -E 'docs/public/.*/[0-9]{6}\.md$' | sort -u)
           fi
-          printf '%s\n' $FILES | grep 'docs/.*\.md$' > /tmp/new_files.txt
-          COUNT=$(wc -l < /tmp/new_files.txt)
-          if [ "$COUNT" -eq 0 ] || [ -z "$COUNT" ]; then
+
+          if [ -z "$FILES" ]; then
             echo "No new resources. Skipping."
             exit 0
           fi
-          python3 scripts/notify_email.py /tmp/new_files.txt
+
+          # Extract newly added resource lines for each file
+          JSON='[]'
+          for FILE in $FILES; do
+            # Get category from path e.g. docs/public/games/202605.md -> games
+            CATEGORY=$(echo "$FILE" | cut -d/ -f3)
+            # Extract added lines: git diff gives +-lines, we want only added resource lines
+            LINES=$(git diff $LAST_TAG..HEAD -- "$FILE" | grep '^+' | grep '^- ' | sed 's/^+ //' | head -15)
+            if [ -n "$LINES" ]; then
+              # Build JSON array entry: {"category":"games","file":"docs/public/games/202605.md","lines":[...]}
+              ESCAPED_LINES=$(printf '%s\n' "$LINES" | python3 -c "import json,sys; lines=[l.rstrip() for l in sys.stdin if l.strip()]; print(json.dumps({'category':'$CATEGORY','file':'$FILE','lines':lines}))")
+              JSON=$(python3 -c "import json,sys; arr=json.loads(sys.stdin.read()); n=json.loads('$ESCAPED_LINES'); arr.append(n); print(json.dumps(arr))" <<< "$JSON")
+            fi
+          done
+
+          echo "resources_json=$JSON" >> $GITHUB_OUTPUT
+          python3 scripts/notify_email.py <<< "$JSON"
+
           TAG="notify-$(date +%Y-%m-%d)"
           git tag -d "$TAG" 2>/dev/null || true
           git config user.name "GitHub Actions"
