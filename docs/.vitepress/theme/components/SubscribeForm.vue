@@ -102,7 +102,7 @@
     </div>
 
     <!-- Turnstile container (invisible) -->
-    <div id="turnstile-container" class="subscribe-form__turnstile"></div>
+    <div id="turnstile-container" class="subscribe-form__turnstile" :class="{ 'hidden': step !== 'email' }"></div>
   </div>
 </template>
 
@@ -613,6 +613,10 @@ onUnmounted(() => {
   display: flex;
   justify-content: center;
   margin-top: 12px;
+}
+
+#turnstile-container.hidden {
+  display: none;
 }
 
 /* ── Mobile ── */
