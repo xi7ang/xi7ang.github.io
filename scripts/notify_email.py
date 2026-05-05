@@ -54,8 +54,10 @@ for cat, line in all_lines:
     )
 
 if count == 0:
-    subject = '✅ devmini 本周无新增资源，保持关注'
-elif count <= 3:
+    print('No new resources. Skipping notification.')
+    sys.exit(0)
+
+if count <= 3:
     subject = '🔥 新鲜出炉！' + str(count) + '个资源已更新，速来查看'
 elif count <= 10:
     subject = '🎉 本周' + str(count) + '个新资源上线，建议收藏'
