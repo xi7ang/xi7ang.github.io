@@ -43,6 +43,15 @@ jobs:
             exit 0
           fi
 
+          # Double-check: verify actual changes between LAST_TAG and HEAD
+          if [ "$LAST_TAG" != "none" ]; then
+            CHECK=$(git diff $LAST_TAG..HEAD --name-only | grep -E 'docs/public/.*/[0-9]{6}\.md$' | wc -l)
+            if [ "$CHECK" -eq 0 ]; then
+              echo "No actual changes between $LAST_TAG and HEAD. Skipping."
+              exit 0
+            fi
+          fi
+
           # Extract newly added resource lines for each file
           JSON='[]'
           for FILE in $FILES; do
