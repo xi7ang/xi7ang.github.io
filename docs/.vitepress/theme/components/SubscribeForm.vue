@@ -74,6 +74,14 @@
           </div>
           <div class="subscribe-form__code-actions">
             <button
+              class="subscribe-form__btn subscribe-form__btn--confirm"
+              @click="confirmSubscribe"
+              :disabled="loading"
+            >
+              <span v-if="!loading">确认订阅</span>
+              <span v-else class="spinner"></span>
+            </button>
+            <button
               class="subscribe-form__btn subscribe-form__btn--code subscribe-form__btn--small"
               @click="resendCode"
               :disabled="countDown > 0"
@@ -247,7 +255,6 @@ async function confirmSubscribe() {
       body: JSON.stringify({
         email: email.value,
         code: codeStr.value,
-        turnstileToken: turnstileToken.value || ''
       })
     })
     const data = await res.json().catch(() => ({}))
