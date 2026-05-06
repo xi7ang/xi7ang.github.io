@@ -20,6 +20,7 @@
             @keydown.enter.prevent="handleAction"
             @focus="inputFocused = true"
             @blur="onBlur"
+            @input="onEmailInput"
           />
           <span class="notify-at">@</span>
           <select v-model="suffix" class="notify-suffix" @focus="inputFocused = true" @blur="onBlur">
@@ -89,8 +90,8 @@
         </div>
       </div>
 
-      <!-- Turnstile 验证码（仅 Step 1 显示） -->
-      <div v-show="step === 'email'" ref="turnstileRef" class="notify-turnstile"></div>
+      <!-- Turnstile 验证码（用户输入时渲染） -->
+      <div v-if="showTurnstile" ref="turnstileRef" class="notify-turnstile"></div>
 
       <!-- 状态消息 -->
       <transition name="fade">
@@ -103,7 +104,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onUnmounted } from 'vue'
 
 const localEmail = ref('')
 const suffix = ref('gmail.com')
@@ -118,6 +119,7 @@ const countDown = ref(0)
 const turnstileToken = ref('')
 const turnstileWidgetId = ref(null)
 const turnstileRef = ref(null)
+const showTurnstile = ref(false)
 const codeInputs = ref([])
 const codeDigits = ref(['', '', '', '', '', ''])
 
@@ -278,24 +280,28 @@ async function resendCode() {
 }
 
 // ── Turnstile ──────────────────────────────────────────────────────────
-onMounted(() => {
-  function tryInit() {
-    const fn = window.turnstile
-    if (fn && typeof fn.render === 'function') {
-      turnstileWidgetId.value = fn.render(turnstileRef.value, {
-        sitekey: '0x4AAAAAADJOkTQV45736fjS',
-        callback: (token) => { turnstileToken.value = token },
-        'error-callback': () => { turnstileToken.value = '' },
-        'expired-callback': () => { turnstileToken.value = '' },
-        theme: 'light',
-        size: 'normal',
-      })
-    } else {
-      requestAnimationFrame(tryInit)
-    }
+function initTurnstile() {
+  if (turnstileWidgetId.value !== null) return // already initialized
+  const fn = window.turnstile
+  if (!fn || typeof fn.render !== 'function') return
+
+  turnstileWidgetId.value = fn.render(turnstileRef.value, {
+    sitekey: '0x4AAAAAADJOkTQV45736fjS',
+    callback: (token) => { turnstileToken.value = token },
+    'error-callback': () => { turnstileToken.value = '' },
+    'expired-callback': () => { turnstileToken.value = '' },
+    theme: 'light',
+    size: 'normal',
+  })
+}
+
+function onEmailInput() {
+  if (!showTurnstile.value) {
+    showTurnstile.value = true
+    // wait for DOM to update, then init
+    setTimeout(initTurnstile, 0)
   }
-  requestAnimationFrame(tryInit)
-})
+}
 
 onUnmounted(() => {
   const fn = window.turnstile
