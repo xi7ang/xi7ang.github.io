@@ -311,7 +311,7 @@ onUnmounted(() => {
 .subscribe-notify {
   width: 100%;
   max-width: 580px;
-  margin: var(--space-lg) auto 0;
+  margin: var(--space-lg) auto var(--space-lg);
   background: var(--bg-card);
   border: 1px solid rgba(245,166,35,0.2);
   border-radius: var(--border-radius);
