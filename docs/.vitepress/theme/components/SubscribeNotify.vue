@@ -1,5 +1,5 @@
 <template>
-  <div v-if="step !== 'done'" class="subscribe-notify">
+  <div ref="containerRef" v-if="step !== 'done'" class="subscribe-notify">
     <!-- 订阅说明区 -->
     <div class="notify-header" style="text-align: center;">
       <span class="notify-icon">📬</span>
@@ -100,32 +100,13 @@
         </div>
       </transition>
     </div>
-
-    <!-- 粒子解体效果容器 -->
-    <transition name="fade">
-      <div v-if="step === 'success'" class="notify-particles">
-        <span
-          v-for="p in particles"
-          :key="p.id"
-          class="particle"
-          :style="p.style"
-        >{{ p.char }}</span>
-      </div>
-    </transition>
-
-    <!-- 成功浮层（覆盖在粒子上方） -->
-    <transition name="fade">
-      <div v-if="step === 'success'" class="notify-success-overlay">
-        <span class="notify-success-icon">✅</span>
-        <span class="notify-success-text">订阅成功！</span>
-        <span class="notify-success-sub">资源更新时，你会第一时间收到通知</span>
-      </div>
-    </transition>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onUnmounted } from 'vue'
+import { ref, computed, onUnmounted, nextTick } from 'vue'
+
+const emit = defineEmits(['subscribe-success'])
 
 const localEmail = ref('')
 const suffix = ref('gmail.com')
@@ -141,7 +122,7 @@ const turnstileToken = ref('')
 const turnstileWidgetId = ref(null)
 const turnstileRef = ref(null)
 const showTurnstile = ref(false)
-const particles = ref([])
+const containerRef = ref(null)
 const codeInputs = ref([])
 const codeDigits = ref(['', '', '', '', '', ''])
 
@@ -274,11 +255,13 @@ async function confirmSubscribe() {
     if (res.ok && data.success) {
       step.value = 'success'
       status.value = 'idle'
-      showMsg('订阅成功！', 'success')
       localEmail.value = ''
       codeDigits.value = ['', '', '', '', '', '']
-      spawnParticles()
-      setTimeout(() => { step.value = 'done' }, 2000)
+      emit('subscribe-success')
+      nextTick(() => {
+        spawnParticles()
+        setTimeout(() => { step.value = 'done' }, 2000)
+      })
     } else {
       showMsg(data.error || '订阅失败，请稍后重试')
       if (data.error?.includes('过期') || data.error?.includes('次数')) {
@@ -308,29 +291,44 @@ const PARTICLE_CHARS = ['✦', '✧', '✩', '⬡', '◈', '•', '◇']
 const PARTICLE_COLORS = ['#D4A843', '#E8C068', '#51cf66', '#ffffff', '#A07828', '#3db854']
 
 function spawnParticles() {
-  const count = 36
-  const containerW = 580
-  const containerH = 300
-  particles.value = Array.from({ length: count }, (_, i) => {
-    const delay = Math.random() * 0.6
-    const tx = (Math.random() - 0.5) * 200
-    const ty = -(60 + Math.random() * 100)
+  const el = containerRef.value
+  if (!el) return
+
+  const rect = el.getBoundingClientRect()
+  const scrollY = window.scrollY
+  const doc = document
+
+  const count = 40
+  for (let i = 0; i < count; i++) {
+    const p = doc.createElement('span')
+    p.className = 'particle-fly'
+    const tx = (Math.random() - 0.5) * 300
+    const ty = -(40 + Math.random() * 140)
+    const delay = Math.random() * 0.5
+    const size = 6 + Math.random() * 10
+    const color = PARTICLE_COLORS[Math.floor(Math.random() * PARTICLE_COLORS.length)]
     const rot = (Math.random() - 0.5) * 720
-    return {
-      id: i,
-      char: PARTICLE_CHARS[Math.floor(Math.random() * PARTICLE_CHARS.length)],
-      style: {
-        left: `${Math.random() * containerW}px`,
-        top: `${Math.random() * containerH}px`,
-        color: PARTICLE_COLORS[Math.floor(Math.random() * PARTICLE_COLORS.length)],
-        animationDelay: `${delay}s`,
-        '--tx': `${tx}px`,
-        '--ty': `${ty}px`,
-        '--rot': `${rot}deg`,
-        fontSize: `${8 + Math.random() * 10}px`,
-      }
-    }
-  })
+
+    p.style.cssText = [
+      `position:fixed`,
+      `left:${rect.left + Math.random() * rect.width}px`,
+      `top:${rect.top + scrollY + Math.random() * rect.height}px`,
+      `font-size:${size}px`,
+      `color:${color}`,
+      `animation:particleFly 2s ease-out ${delay}s forwards`,
+      `--tx:${tx}px`,
+      `--ty:${ty}px`,
+      `--rot:${rot}deg`,
+      `pointer-events:none`,
+      `z-index:9999`,
+      `line-height:1`,
+      `font-family:serif`,
+    ].join(';')
+
+    p.textContent = PARTICLE_CHARS[Math.floor(Math.random() * PARTICLE_CHARS.length)]
+    doc.body.appendChild(p)
+    setTimeout(() => p.remove(), 2500)
+  }
 }
 
 // ── Turnstile ──────────────────────────────────────────────────────────
@@ -806,30 +804,7 @@ onUnmounted(() => {
   }
 }
 
-/* ── Particles ── */
-.notify-particles {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  pointer-events: none;
-  z-index: 5;
-}
-
-.particle {
-  position: absolute;
-  animation: particleFly 1.8s ease-out forwards;
-  font-family: serif;
-  line-height: 1;
-  opacity: 0;
-}
-
-@keyframes particleFly {
-  0%   { opacity: 1; transform: translate(0, 0) rotate(0deg) scale(1); }
-  20%  { opacity: 1; }
-  100% { opacity: 0; transform: translate(var(--tx), var(--ty)) rotate(var(--rot)) scale(0.4); }
-}
-
-/* ========== 超小屏幕（≤400px） ========== */
+/* ========== 超小屏幕（≤400px） ========== */ */
 @media (max-width: 400px) {
   .subscribe-notify {
     padding: 1rem 0.875rem;
