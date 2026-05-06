@@ -1,11 +1,10 @@
 <template>
   <div class="subscribe-notify">
     <!-- 订阅说明区 -->
-    <div class="notify-header">
+    <div class="notify-header" style="text-align: center;">
       <span class="notify-icon">📬</span>
       <span class="notify-title">订阅资源更新通知</span>
     </div>
-    <p class="notify-desc">一旦有新的免费资源发布，我们会第一时间通过邮件通知您</p>
 
     <!-- 订阅表单 -->
     <div class="notify-form">
