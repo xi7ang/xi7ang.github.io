@@ -90,8 +90,8 @@
         </div>
       </div>
 
-      <!-- Turnstile 验证码（用户输入时渲染） -->
-      <div v-if="showTurnstile" ref="turnstileRef" class="notify-turnstile"></div>
+      <!-- Turnstile 验证码（用户输入邮箱时渲染，仅 Step 1 显示） -->
+      <div v-if="showTurnstile && step === 'email'" ref="turnstileRef" class="notify-turnstile"></div>
 
       <!-- 状态消息 -->
       <transition name="fade">
