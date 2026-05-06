@@ -1,5 +1,5 @@
 <template>
-  <div class="subscribe-notify">
+  <div v-if="step !== 'done'" class="subscribe-notify" :class="{ disintegrating: step === 'success' }">
     <!-- 订阅说明区 -->
     <div class="notify-header" style="text-align: center;">
       <span class="notify-icon">📬</span>
@@ -95,11 +95,20 @@
 
       <!-- 状态消息 -->
       <transition name="fade">
-        <div v-if="message" :class="['notify-message', messageType]">
+        <div v-if="message" class="notify-message" :class="messageType">
           {{ message }}
         </div>
       </transition>
     </div>
+
+    <!-- 成功浮层 -->
+    <transition name="fade">
+      <div v-if="step === 'success'" class="notify-success-overlay">
+        <span class="notify-success-icon">✅</span>
+        <span class="notify-success-text">订阅成功！</span>
+        <span class="notify-success-sub">资源更新时，你会第一时间收到通知</span>
+      </div>
+    </transition>
   </div>
 </template>
 
@@ -252,9 +261,13 @@ async function confirmSubscribe() {
     if (res.ok && data.success) {
       step.value = 'success'
       status.value = 'idle'
-      showMsg('订阅成功！资源更新时，你会第一时间收到通知', 'success')
+      showMsg('订阅成功！', 'success')
       localEmail.value = ''
       codeDigits.value = ['', '', '', '', '', '']
+      // 解体动画：2s 后隐藏组件
+      setTimeout(() => {
+        step.value = 'done'
+      }, 2000)
     } else {
       showMsg(data.error || '订阅失败，请稍后重试')
       if (data.error?.includes('过期') || data.error?.includes('次数')) {
@@ -672,6 +685,84 @@ onUnmounted(() => {
     padding: 0;
     min-height: 50px;
     font-size: 15px;
+  }
+}
+
+@keyframes disintegrate {
+  0%   { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+  40%  { opacity: 0.9; transform: translateY(-30px) scale(0.98); filter: blur(2px); }
+  70%  { opacity: 0.5; transform: translateY(-55px) scale(0.96); filter: blur(5px); }
+  100% { opacity: 0; transform: translateY(-80px) scale(0.94); filter: blur(8px); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* ── Disintegrate ── */
+.subscribe-notify {
+  position: relative;
+}
+
+.subscribe-notify.disintegrating {
+  animation: disintegrate 2s ease-out forwards;
+  pointer-events: none;
+}
+
+/* ── Success Overlay ── */
+.notify-success-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  background: rgba(30, 30, 40, 0.95);
+  border: 1.5px solid rgba(81, 207, 102, 0.4);
+  border-radius: 16px;
+  padding: 24px 32px;
+  z-index: 10;
+  animation: fadeIn 0.4s ease-out forwards;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.notify-success-icon {
+  font-size: 36px;
+  line-height: 1;
+}
+
+.notify-success-text {
+  font-size: 18px;
+  font-weight: 700;
+  color: #51cf66;
+}
+
+.notify-success-sub {
+  font-size: 13px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* ── Mobile overlay ── */
+@media (max-width: 600px) {
+  .notify-success-overlay {
+    padding: 20px 24px;
+    gap: 6px;
+  }
+
+  .notify-success-icon {
+    font-size: 30px;
+  }
+
+  .notify-success-text {
+    font-size: 16px;
+  }
+
+  .notify-success-sub {
+    font-size: 12px;
   }
 }
 
