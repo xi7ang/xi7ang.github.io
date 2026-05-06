@@ -374,7 +374,7 @@ onUnmounted(() => {
 }
 
 .notify-input-wrap:focus-within {
-  border-color: var(--accent-gold, #F5A623);
+  border-color: var(--accent-gold);
   box-shadow: 0 0 0 3px rgba(245,166,35,0.1);
 }
 
