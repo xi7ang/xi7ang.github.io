@@ -1,5 +1,5 @@
 <template>
-  <div v-if="step !== 'done'" class="subscribe-notify" :class="{ disintegrating: step === 'success' }">
+  <div v-if="step !== 'done'" class="subscribe-notify">
     <!-- 订阅说明区 -->
     <div class="notify-header" style="text-align: center;">
       <span class="notify-icon">📬</span>
@@ -101,7 +101,19 @@
       </transition>
     </div>
 
-    <!-- 成功浮层 -->
+    <!-- 粒子解体效果容器 -->
+    <transition name="fade">
+      <div v-if="step === 'success'" class="notify-particles">
+        <span
+          v-for="p in particles"
+          :key="p.id"
+          class="particle"
+          :style="p.style"
+        >{{ p.char }}</span>
+      </div>
+    </transition>
+
+    <!-- 成功浮层（覆盖在粒子上方） -->
     <transition name="fade">
       <div v-if="step === 'success'" class="notify-success-overlay">
         <span class="notify-success-icon">✅</span>
@@ -129,6 +141,7 @@ const turnstileToken = ref('')
 const turnstileWidgetId = ref(null)
 const turnstileRef = ref(null)
 const showTurnstile = ref(false)
+const particles = ref([])
 const codeInputs = ref([])
 const codeDigits = ref(['', '', '', '', '', ''])
 
@@ -264,10 +277,8 @@ async function confirmSubscribe() {
       showMsg('订阅成功！', 'success')
       localEmail.value = ''
       codeDigits.value = ['', '', '', '', '', '']
-      // 解体动画：2s 后隐藏组件
-      setTimeout(() => {
-        step.value = 'done'
-      }, 2000)
+      spawnParticles()
+      setTimeout(() => { step.value = 'done' }, 2000)
     } else {
       showMsg(data.error || '订阅失败，请稍后重试')
       if (data.error?.includes('过期') || data.error?.includes('次数')) {
@@ -292,9 +303,39 @@ async function resendCode() {
   await requestCode()
 }
 
+// ── Particle Disintegration ─────────────────────────────────────────
+const PARTICLE_CHARS = ['✦', '✧', '✩', '⬡', '◈', '•', '◇']
+const PARTICLE_COLORS = ['#D4A843', '#E8C068', '#51cf66', '#ffffff', '#A07828', '#3db854']
+
+function spawnParticles() {
+  const count = 36
+  const containerW = 580
+  const containerH = 300
+  particles.value = Array.from({ length: count }, (_, i) => {
+    const delay = Math.random() * 0.6
+    const tx = (Math.random() - 0.5) * 200
+    const ty = -(60 + Math.random() * 100)
+    const rot = (Math.random() - 0.5) * 720
+    return {
+      id: i,
+      char: PARTICLE_CHARS[Math.floor(Math.random() * PARTICLE_CHARS.length)],
+      style: {
+        left: `${Math.random() * containerW}px`,
+        top: `${Math.random() * containerH}px`,
+        color: PARTICLE_COLORS[Math.floor(Math.random() * PARTICLE_COLORS.length)],
+        animationDelay: `${delay}s`,
+        '--tx': `${tx}px`,
+        '--ty': `${ty}px`,
+        '--rot': `${rot}deg`,
+        fontSize: `${8 + Math.random() * 10}px`,
+      }
+    }
+  })
+}
+
 // ── Turnstile ──────────────────────────────────────────────────────────
 function initTurnstile() {
-  if (turnstileWidgetId.value !== null) return // already initialized
+  if (turnstileWidgetId.value !== null) return
   const fn = window.turnstile
   if (!fn || typeof fn.render !== 'function') return
 
@@ -311,7 +352,6 @@ function initTurnstile() {
 function onEmailInput() {
   if (!showTurnstile.value) {
     showTurnstile.value = true
-    // wait for DOM to update, then init
     setTimeout(initTurnstile, 0)
   }
 }
@@ -764,6 +804,29 @@ onUnmounted(() => {
   .notify-success-sub {
     font-size: 12px;
   }
+}
+
+/* ── Particles ── */
+.notify-particles {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.particle {
+  position: absolute;
+  animation: particleFly 1.8s ease-out forwards;
+  font-family: serif;
+  line-height: 1;
+  opacity: 0;
+}
+
+@keyframes particleFly {
+  0%   { opacity: 1; transform: translate(0, 0) rotate(0deg) scale(1); }
+  20%  { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--tx), var(--ty)) rotate(var(--rot)) scale(0.4); }
 }
 
 /* ========== 超小屏幕（≤400px） ========== */
