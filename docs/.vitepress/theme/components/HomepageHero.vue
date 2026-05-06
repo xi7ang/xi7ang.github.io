@@ -48,7 +48,7 @@
 
         <!-- Subscribe Banner -->
         <div class="subscribe-banner">
-          <SubscribeForm />
+          <SubscribeNotify />
         </div>
 
         <!-- Search — dropdown is inside search-wrap so they scroll together -->
@@ -165,7 +165,7 @@
 /* ── Subscribe Banner ── */
 .subscribe-banner {
   width: 100%;
-  max-width: 600px;
+  max-width: 620px;
   margin: 0 auto;
 }
 
@@ -217,7 +217,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useTheme } from '../composables/useTheme'
 import ResourceCard from './ResourceCard.vue'
-import SubscribeForm from './SubscribeForm.vue'
+import SubscribeNotify from './SubscribeNotify.vue'
 
 // ── Data ──
 const allResources = ref([])
