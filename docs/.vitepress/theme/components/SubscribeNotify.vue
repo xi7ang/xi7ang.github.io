@@ -9,8 +9,8 @@
 
     <!-- 订阅表单 -->
     <div class="notify-form">
-      <!-- 邮箱输入 + 按钮 -->
-      <div class="notify-input-row">
+      <!-- 邮箱输入 + 按钮（Step 1） -->
+      <div v-if="step === 'email'" class="notify-input-row">
         <div class="notify-input-wrap">
           <input
             v-model="localEmail"
@@ -289,7 +289,7 @@ onMounted(() => {
         'error-callback': () => { turnstileToken.value = '' },
         'expired-callback': () => { turnstileToken.value = '' },
         theme: 'light',
-        size: 'compact',
+        size: 'normal',
       })
     } else {
       requestAnimationFrame(tryInit)
@@ -312,11 +312,12 @@ onUnmounted(() => {
   width: 100%;
   max-width: 580px;
   margin: 0 auto;
-  background: var(--vp-c-bg-soft, #fafafa);
-  border: 1px solid var(--vp-c-divider, #e0e0e0);
-  border-radius: 16px;
+  background: var(--bg-card);
+  border: 1px solid rgba(245,166,35,0.2);
+  border-radius: var(--border-radius);
   padding: 1.5rem 1.75rem;
   box-sizing: border-box;
+  box-shadow: 0 0 0 1px rgba(245,166,35,0.06), 0 4px 24px rgba(245,166,35,0.06);
 }
 
 /* ── Header ── */
@@ -335,13 +336,13 @@ onUnmounted(() => {
 .notify-title {
   font-size: 1rem;
   font-weight: 700;
-  color: var(--vp-c-text-1, #1a1a1a);
+  color: var(--accent-gold);
   letter-spacing: 0.3px;
 }
 
 .notify-desc {
   font-size: 0.85rem;
-  color: var(--vp-c-text-2, #6b6b6b);
+  color: var(--text-muted);
   margin: 0 0 1.25rem 0;
   line-height: 1.5;
 }
@@ -364,21 +365,21 @@ onUnmounted(() => {
   flex: 1;
   display: flex;
   align-items: center;
-  background: var(--vp-c-bg, #ffffff);
-  border: 1.5px solid var(--vp-c-divider, #d0d0d0);
+  background: rgba(255,255,255,0.07);
+  border: 1.5px solid rgba(255,255,255,0.12);
   border-radius: 10px;
   padding: 0 12px;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: border-color var(--transition-base), box-shadow var(--transition-base);
   min-height: 48px;
 }
 
 .notify-input-wrap:focus-within {
-  border-color: var(--vp-c-brand-1, #3070e0);
-  box-shadow: 0 0 0 3px var(--vp-c-brand-alpha-3, rgba(48,112,224,0.1));
+  border-color: var(--accent-gold, #F5A623);
+  box-shadow: 0 0 0 3px rgba(245,166,35,0.1);
 }
 
 .notify-at {
-  color: var(--vp-c-text-3, #a0a0a0);
+  color: var(--text-muted);
   font-size: 16px;
   flex-shrink: 0;
 }
@@ -389,13 +390,13 @@ onUnmounted(() => {
   border: none;
   outline: none;
   font-size: 14px;
-  color: var(--vp-c-text-1, #1a1a1a);
+  color: var(--text-primary);
   padding: 10px 6px;
   min-width: 0;
 }
 
 .notify-input::placeholder {
-  color: var(--vp-c-text-3, #a0a0a0);
+  color: var(--text-muted);
 }
 
 .notify-input.shake {
@@ -407,7 +408,7 @@ onUnmounted(() => {
   border: none;
   outline: none;
   font-size: 13px;
-  color: var(--vp-c-text-2, #6b6b6b);
+  color: var(--text-secondary);
   cursor: pointer;
   padding: 4px 2px;
   direction: ltr;
@@ -418,26 +419,27 @@ onUnmounted(() => {
 .notify-btn {
   flex-shrink: 0;
   padding: 0 20px;
-  background: var(--vp-c-brand, #3070e0);
+  background: linear-gradient(135deg, var(--accent-gold) 0%, var(--accent-gold-dark) 100%);
   border: none;
   border-radius: 10px;
   font-size: 14px;
-  font-weight: 600;
-  color: #fff;
+  font-weight: 700;
+  color: #1a1a1a;
   cursor: pointer;
-  transition: background 0.2s, transform 0.15s, opacity 0.2s, box-shadow 0.2s;
+  transition: all var(--transition-base);
   min-width: 100px;
   min-height: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
+  letter-spacing: 0.3px;
   white-space: nowrap;
 }
 
 .notify-btn:hover:not(:disabled) {
-  background: var(--vp-c-brand-dark, #2050c0);
+  background: linear-gradient(135deg, var(--accent-gold-light) 0%, var(--accent-gold) 100%);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(48,112,224,0.25);
+  box-shadow: 0 4px 12px rgba(245,166,35,0.3);
 }
 
 .notify-btn:active:not(:disabled) {
@@ -450,31 +452,31 @@ onUnmounted(() => {
 }
 
 .notify-btn--confirm {
-  background: #51cf66;
+  background: linear-gradient(135deg, #51cf66 0%, #3db854 100%);
   flex: 1;
 }
 
 .notify-btn--confirm:hover:not(:disabled) {
-  background: #3db854;
+  background: linear-gradient(135deg, #69d779 0%, #4dc464 100%);
   box-shadow: 0 4px 12px rgba(81,207,102,0.25);
 }
 
 .notify-btn--resend {
-  background: var(--vp-c-bg-soft);
-  border: 1.5px solid var(--vp-c-divider);
-  color: var(--vp-c-text-2);
+  background: rgba(255,255,255,0.05);
+  border: 1.5px solid rgba(255,255,255,0.12);
+  color: var(--text-secondary);
   font-size: 13px;
   min-width: 110px;
 }
 
 .notify-btn--resend:hover:not(:disabled) {
-  border-color: var(--vp-c-brand-1);
-  color: var(--vp-c-brand-1);
+  border-color: var(--accent-gold);
+  color: var(--accent-gold);
   box-shadow: none;
 }
 
 .notify-btn--success {
-  background: #51cf66;
+  background: linear-gradient(135deg, #51cf66 0%, #3db854 100%);
 }
 
 .notify-btn--loading {
@@ -496,13 +498,13 @@ onUnmounted(() => {
 
 .notify-code-hint {
   font-size: 12px;
-  color: var(--vp-c-text-3, #a0a0a0);
+  color: var(--text-muted);
 }
 
 .notify-code-email {
   font-size: 13px;
   font-weight: 600;
-  color: var(--vp-c-text-2, #6b6b6b);
+  color: var(--text-secondary);
 }
 
 .notify-code-inputs {
@@ -517,19 +519,19 @@ onUnmounted(() => {
   text-align: center;
   font-size: 20px;
   font-weight: 700;
-  background: var(--vp-c-bg, #ffffff);
-  border: 1.5px solid var(--vp-c-divider, #d0d0d0);
+  background: rgba(255,255,255,0.07);
+  border: 1.5px solid rgba(255,255,255,0.12);
   border-radius: 8px;
-  color: var(--vp-c-text-1, #1a1a1a);
+  color: var(--text-primary);
   outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: border-color var(--transition-base), box-shadow var(--transition-base);
   direction: ltr;
-  caret-color: var(--vp-c-brand-1, #3070e0);
+  caret-color: var(--accent-gold);
 }
 
 .notify-code-digit:focus {
-  border-color: var(--vp-c-brand-1);
-  box-shadow: 0 0 0 3px var(--vp-c-brand-alpha-3, rgba(48,112,224,0.1));
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 0 3px rgba(245,166,35,0.1);
 }
 
 .notify-code-digit.shake {
@@ -559,13 +561,13 @@ onUnmounted(() => {
 }
 
 .notify-message.success {
-  color: #2e7d32;
-  background: #e8f5e9;
+  color: #51cf66;
+  background: rgba(81,207,102,0.1);
 }
 
 .notify-message.error {
-  color: #c62828;
-  background: #ffebee;
+  color: #ff6b6b;
+  background: rgba(255,107,107,0.1);
 }
 
 /* ── Spinner ── */
@@ -661,6 +663,9 @@ onUnmounted(() => {
   }
 
   .notify-btn--confirm {
+    width: 100%;
+    padding: 0;
+    min-height: 50px;
     font-size: 15px;
   }
 }

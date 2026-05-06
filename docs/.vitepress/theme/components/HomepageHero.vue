@@ -166,7 +166,7 @@
 .subscribe-banner {
   width: 100%;
   max-width: 620px;
-  margin: 0 auto;
+  margin: 0 auto 1.5rem;
 }
 
     </div>
