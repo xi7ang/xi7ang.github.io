@@ -311,7 +311,7 @@ onUnmounted(() => {
 .subscribe-notify {
   width: 100%;
   max-width: 580px;
-  margin: 0 auto;
+  margin: var(--space-lg) auto 0;
   background: var(--bg-card);
   border: 1px solid rgba(245,166,35,0.2);
   border-radius: var(--border-radius);
@@ -419,12 +419,12 @@ onUnmounted(() => {
 .notify-btn {
   flex-shrink: 0;
   padding: 0 20px;
-  background: linear-gradient(135deg, var(--accent-gold) 0%, var(--accent-gold-dark) 100%);
+  background: linear-gradient(135deg, #51cf66 0%, #3db854 100%);
   border: none;
   border-radius: 10px;
   font-size: 14px;
   font-weight: 700;
-  color: #1a1a1a;
+  color: #fff;
   cursor: pointer;
   transition: all var(--transition-base);
   min-width: 100px;
@@ -437,9 +437,9 @@ onUnmounted(() => {
 }
 
 .notify-btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, var(--accent-gold-light) 0%, var(--accent-gold) 100%);
+  background: linear-gradient(135deg, #69d779 0%, #4dc464 100%);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(245,166,35,0.3);
+  box-shadow: 0 4px 12px rgba(81,207,102,0.3);
 }
 
 .notify-btn:active:not(:disabled) {
