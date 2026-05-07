@@ -104,9 +104,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onUnmounted } from 'vue'
-
-const emit = defineEmits(['subscribe-success'])
+import { ref, computed, onUnmounted, nextTick } from 'vue'
 
 const localEmail = ref('')
 const suffix = ref('gmail.com')
@@ -257,8 +255,7 @@ async function confirmSubscribe() {
       status.value = 'idle'
       localEmail.value = ''
       codeDigits.value = ['', '', '', '', '', '']
-      emit('subscribe-success')
-      setTimeout(() => { step.value = 'done' }, 1000)
+      nextTick(() => playSuccessAnimation())
     } else {
       showMsg(data.error || '订阅失败，请稍后重试')
       if (data.error?.includes('过期') || data.error?.includes('次数')) {
@@ -283,48 +280,106 @@ async function resendCode() {
   await requestCode()
 }
 
-// ── Particle Disintegration ─────────────────────────────────────────
-const PARTICLE_CHARS = ['✦', '✧', '✩', '⬡', '◈', '•', '◇']
-const PARTICLE_COLORS = ['#D4A843', '#E8C068', '#51cf66', '#ffffff', '#A07828', '#3db854']
+// ── Success Animation (GSAP) ────────────────────────────────────────
+function playSuccessAnimation() {
+  const container = containerRef.value
+  if (!container) { step.value = 'done'; return }
 
-function spawnParticles() {
-  const el = containerRef.value
-  if (!el) return
+  // 1. Shatter form elements
+  const form = container.querySelector('.notify-form')
+  if (form && window.gsap) {
+    const children = form.querySelectorAll('*')
+    window.gsap.to(children, {
+      opacity: 0,
+      scale: 0.6,
+      rotateY: 45,
+      y: () => (Math.random() - 0.5) * 80,
+      x: () => (Math.random() - 0.5) * 80,
+      duration: 0.5,
+      stagger: 0.03,
+      ease: 'power2.in',
+    })
+  }
 
-  const rect = el.getBoundingClientRect()
-  const scrollY = window.scrollY
+  // Header also shatters
+  const header = container.querySelector('.notify-header')
+  if (header && window.gsap) {
+    const headerEls = header.querySelectorAll('*')
+    window.gsap.to(headerEls, {
+      opacity: 0,
+      scale: 0.5,
+      y: -30,
+      duration: 0.4,
+      stagger: 0.05,
+      ease: 'power2.in',
+    })
+  }
+
+  // 2. Create "订阅成功" art text
+  const text = '订阅成功'
+  const words = []
   const doc = document
-
-  const count = 40
-  for (let i = 0; i < count; i++) {
-    const p = doc.createElement('span')
-    p.className = 'particle-fly'
-    const tx = (Math.random() - 0.5) * 300
-    const ty = -(40 + Math.random() * 140)
-    const delay = Math.random() * 0.5
-    const size = 6 + Math.random() * 10
-    const color = PARTICLE_COLORS[Math.floor(Math.random() * PARTICLE_COLORS.length)]
-    const rot = (Math.random() - 0.5) * 720
-
-    p.style.cssText = [
-      `position:fixed`,
-      `left:${rect.left + Math.random() * rect.width}px`,
-      `top:${rect.top + scrollY + Math.random() * rect.height}px`,
-      `font-size:${size}px`,
-      `color:${color}`,
-      `animation:particleFly 2s ease-out ${delay}s forwards`,
-      `--tx:${tx}px`,
-      `--ty:${ty}px`,
-      `--rot:${rot}deg`,
+  for (let i = 0; i < text.length; i++) {
+    const span = doc.createElement('span')
+    span.className = 'gsap-art-text'
+    span.textContent = text[i]
+    span.style.cssText = [
+      'position:fixed',
+      'font-size:42px',
+      'font-weight:900',
+      `left:50%`,
+      `top:50%`,
+      `transform:translate(-50%,-50%) scale(0)`,
+      `opacity:0`,
+      `color:#D4A843`,
+      `text-shadow:0 0 20px rgba(212,168,67,0.8)`,
       `pointer-events:none`,
       `z-index:9999`,
-      `line-height:1`,
-      `font-family:serif`,
+      `font-family:var(--font-display,system-ui)`,
     ].join(';')
+    doc.body.appendChild(span)
+    words.push(span)
+  }
 
-    p.textContent = PARTICLE_CHARS[Math.floor(Math.random() * PARTICLE_CHARS.length)]
-    doc.body.appendChild(p)
-    setTimeout(() => p.remove(), 2500)
+  // 3. GSAP animate each character
+  if (window.gsap) {
+    const tl = window.gsap.timeline()
+    words.forEach((span, i) => {
+      tl.to(span, {
+        opacity: 1,
+        scale: 1,
+        duration: 0.35,
+        ease: 'back.out(2)',
+      }, i * 0.12)
+      tl.to(span, {
+        y: -5,
+        duration: 0.2,
+        ease: 'power1.inOut',
+      }, i * 0.12 + 0.35)
+    })
+
+    // 4. After 1.5s, shrink component and remove text
+    tl.to(words, {
+      opacity: 0,
+      scale: 0,
+      y: -30,
+      duration: 0.3,
+      stagger: 0.04,
+      ease: 'power2.in',
+      onComplete: () => words.forEach(s => s.remove()),
+    }, 1.5)
+
+    // 5. Shrink and remove the whole component
+    tl.to(container, {
+      opacity: 0,
+      scale: 0.5,
+      duration: 0.4,
+      ease: 'power2.in',
+      onComplete: () => { step.value = 'done' },
+    }, 1.9)
+  } else {
+    // Fallback: just remove component
+    setTimeout(() => { step.value = 'done' }, 1500)
   }
 }
 

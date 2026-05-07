@@ -48,16 +48,8 @@
 
         <!-- Subscribe Banner -->
         <div class="subscribe-banner">
-          <SubscribeNotify @subscribe-success="showSubscribeToast" />
+          <SubscribeNotify />
         </div>
-
-        <!-- Page-level Toast -->
-        <transition name="toast">
-          <div v-if="subscribeToast" class="page-toast">
-            <span class="page-toast__icon">✅</span>
-            <span class="page-toast__text">订阅成功！资源更新时，你会第一时间收到通知</span>
-          </div>
-        </transition>
 
         <!-- Search — dropdown is inside search-wrap so they scroll together -->
         <div class="search-wrap">
@@ -262,12 +254,6 @@ const searchQuery = ref('')
 const searchFocused = ref(false)
 const searchSelected = ref(0)
 const searchInputRef = ref(null)
-const subscribeToast = ref(false)
-
-function showSubscribeToast() {
-  subscribeToast.value = true
-  setTimeout(() => { subscribeToast.value = false }, 2000)
-}
 
 // ── Computed ──
 const totalResources = computed(() => {

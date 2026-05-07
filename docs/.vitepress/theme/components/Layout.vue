@@ -3,10 +3,19 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRoute } from 'vitepress'
 import HomepageHero from '../components/HomepageHero.vue'
 import CategoryPage from '../components/CategoryPage.vue'
+
+onMounted(() => {
+  if (typeof window !== 'undefined') {
+    const script = document.createElement('script')
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js'
+    script.defer = true
+    document.head.appendChild(script)
+  }
+})
 
 const props = defineProps({
   frontmatter: { type: Object, default: () => ({}) }
