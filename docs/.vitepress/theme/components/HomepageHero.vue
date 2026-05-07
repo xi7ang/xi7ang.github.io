@@ -266,7 +266,7 @@ const subscribeToast = ref(false)
 
 function showSubscribeToast() {
   subscribeToast.value = true
-  setTimeout(() => { subscribeToast.value = false }, 3000)
+  setTimeout(() => { subscribeToast.value = false }, 2000)
 }
 
 // ── Computed ──

@@ -104,7 +104,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onUnmounted, nextTick } from 'vue'
+import { ref, computed, onUnmounted } from 'vue'
 
 const emit = defineEmits(['subscribe-success'])
 
@@ -258,10 +258,7 @@ async function confirmSubscribe() {
       localEmail.value = ''
       codeDigits.value = ['', '', '', '', '', '']
       emit('subscribe-success')
-      nextTick(() => {
-        spawnParticles()
-        setTimeout(() => { step.value = 'done' }, 2000)
-      })
+      setTimeout(() => { step.value = 'done' }, 1000)
     } else {
       showMsg(data.error || '订阅失败，请稍后重试')
       if (data.error?.includes('过期') || data.error?.includes('次数')) {

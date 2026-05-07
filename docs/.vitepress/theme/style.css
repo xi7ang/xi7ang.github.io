@@ -1433,7 +1433,7 @@ mark {
 
 .page-toast {
   position: fixed;
-  bottom: 40px;
+  top: 60px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
