@@ -285,102 +285,124 @@ function playSuccessAnimation() {
   const container = containerRef.value
   if (!container) { step.value = 'done'; return }
 
-  // 1. Shatter form elements
+  const gsap = window.gsap
+  if (!gsap) { setTimeout(() => { step.value = 'done' }, 800); return }
+
+  // 1. Shatter form elements outward
   const form = container.querySelector('.notify-form')
-  if (form && window.gsap) {
-    const children = form.querySelectorAll('*')
-    window.gsap.to(children, {
+  if (form) {
+    const children = Array.from(form.querySelectorAll('*'))
+    gsap.to(children, {
       opacity: 0,
-      scale: 0.6,
-      rotateY: 45,
-      y: () => (Math.random() - 0.5) * 80,
-      x: () => (Math.random() - 0.5) * 80,
-      duration: 0.5,
-      stagger: 0.03,
-      ease: 'power2.in',
+      scale: 0.3,
+      rotateZ: () => (Math.random() - 0.5) * 60,
+      x: () => (Math.random() - 0.5) * 200,
+      y: () => (Math.random() - 0.5) * 200,
+      duration: 0.45,
+      stagger: 0.02,
+      ease: 'power3.in',
     })
   }
 
-  // Header also shatters
+  // Header shatters upward
   const header = container.querySelector('.notify-header')
-  if (header && window.gsap) {
-    const headerEls = header.querySelectorAll('*')
-    window.gsap.to(headerEls, {
+  if (header) {
+    const headerEls = Array.from(header.querySelectorAll('*'))
+    gsap.to(headerEls, {
       opacity: 0,
-      scale: 0.5,
-      y: -30,
+      scale: 0.4,
+      y: -80,
+      rotateZ: () => (Math.random() - 0.5) * 30,
       duration: 0.4,
-      stagger: 0.05,
-      ease: 'power2.in',
+      stagger: 0.04,
+      ease: 'power3.in',
     })
   }
 
-  // 2. Create "订阅成功" art text
+  // 2. Create "订阅成功" large art text
   const text = '订阅成功'
   const words = []
-  const doc = document
+  const viewportW = window.innerWidth
+  const viewportH = window.innerHeight
+  const centerX = viewportW / 2
+  const centerY = viewportH / 2
+  const spacing = 58 // spacing between characters
+  const totalW = (text.length - 1) * spacing
+  const startX = centerX - totalW / 2
+
   for (let i = 0; i < text.length; i++) {
-    const span = doc.createElement('span')
-    span.className = 'gsap-art-text'
+    const span = document.createElement('span')
     span.textContent = text[i]
     span.style.cssText = [
       'position:fixed',
-      'font-size:42px',
+      `left:${startX + i * spacing}px`,
+      `top:${centerY}px`,
+      'transform:translate(-50%,-50%) scale(0)',
+      'opacity:0',
+      'font-size:72px',
       'font-weight:900',
-      `left:50%`,
-      `top:50%`,
-      `transform:translate(-50%,-50%) scale(0)`,
-      `opacity:0`,
-      `color:#D4A843`,
-      `text-shadow:0 0 20px rgba(212,168,67,0.8)`,
-      `pointer-events:none`,
-      `z-index:9999`,
-      `font-family:var(--font-display,system-ui)`,
+      'color:#F5E6A3',
+      'text-shadow:0 0 30px rgba(212,168,67,1), 0 0 60px rgba(212,168,67,0.7), 0 0 90px rgba(212,168,67,0.4)',
+      'pointer-events:none',
+      'z-index:9999',
+      'font-family:var(--font-display,system-ui)',
+      'white-space:pre',
     ].join(';')
-    doc.body.appendChild(span)
+    document.body.appendChild(span)
     words.push(span)
   }
 
-  // 3. GSAP animate each character
-  if (window.gsap) {
-    const tl = window.gsap.timeline()
-    words.forEach((span, i) => {
-      tl.to(span, {
-        opacity: 1,
-        scale: 1,
-        duration: 0.35,
-        ease: 'back.out(2)',
-      }, i * 0.12)
-      tl.to(span, {
-        y: -5,
-        duration: 0.2,
-        ease: 'power1.inOut',
-      }, i * 0.12 + 0.35)
-    })
+  // 3. Each char explodes from random far position, then snaps to final position
+  words.forEach((span, i) => {
+    // start far away - random angle and distance
+    const angle = Math.random() * Math.PI * 2
+    const dist = 400 + Math.random() * 300
+    const startPx = centerX + Math.cos(angle) * dist - (startX + i * spacing)
+    const startPy = centerY + Math.sin(angle) * dist - centerY
 
-    // 4. After 1.5s, shrink component and remove text
-    tl.to(words, {
-      opacity: 0,
-      scale: 0,
-      y: -30,
-      duration: 0.3,
-      stagger: 0.04,
-      ease: 'power2.in',
-      onComplete: () => words.forEach(s => s.remove()),
-    }, 1.5)
+    gsap.fromTo(span,
+      { x: startPx, y: startPy, opacity: 0, scale: 0.2, rotation: (Math.random() - 0.5) * 180 },
+      {
+        x: 0, y: 0, opacity: 1, scale: 1, rotation: 0,
+        duration: 0.7,
+        delay: 0.35 + i * 0.06,
+        ease: 'elastic.out(1, 0.6)',
+      }
+    )
+  })
 
-    // 5. Shrink and remove the whole component
-    tl.to(container, {
-      opacity: 0,
-      scale: 0.5,
-      duration: 0.4,
-      ease: 'power2.in',
-      onComplete: () => { step.value = 'done' },
-    }, 1.9)
-  } else {
-    // Fallback: just remove component
-    setTimeout(() => { step.value = 'done' }, 1500)
-  }
+  // 4. Pulse glow on all chars, then fade out together
+  const tl = gsap.timeline({ delay: 1.1 })
+  tl.to(words, {
+    scale: 1.08,
+    duration: 0.18,
+    ease: 'power1.inOut',
+    stagger: 0.02,
+  })
+  tl.to(words, {
+    scale: 1,
+    duration: 0.18,
+    ease: 'power1.inOut',
+    stagger: 0.02,
+  })
+  tl.to(words, {
+    opacity: 0,
+    y: -40,
+    scale: 0.6,
+    duration: 0.35,
+    stagger: 0.03,
+    ease: 'power2.in',
+    onComplete: () => words.forEach(s => s.remove()),
+  }, '+=0.1')
+
+  // 5. Shrink and remove component
+  tl.to(container, {
+    opacity: 0,
+    scale: 0.3,
+    duration: 0.4,
+    ease: 'power3.in',
+    onComplete: () => { step.value = 'done' },
+  }, '-=0.1')
 }
 
 // ── Turnstile ──────────────────────────────────────────────────────────
