@@ -289,110 +289,244 @@ function playSuccessAnimation() {
   const gsap = window.gsap
   if (!gsap) { setTimeout(() => { step.value = 'done' }, 800); return }
 
-  // Respect reduced motion
-  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  if (reducedMotion) {
-    step.value = 'done'
-    return
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    step.value = 'done'; return
   }
 
-  // ── Build art text ───────────────────────────────────────────────
-  const text = '订阅成功'
-  const viewportW = window.innerWidth
-  const viewportH = window.innerHeight
-  const centerX = viewportW / 2
-  const centerY = viewportH / 2
-  const spacing = 88
-  const totalW = (text.length - 1) * spacing
-  const startX = centerX - totalW / 2
+  const vw = window.innerWidth
+  const vh = window.innerHeight
+  const cx = vw / 2
+  const cy = vh / 2
 
-  const words = []
-  for (let i = 0; i < text.length; i++) {
-    const span = document.createElement('span')
-    span.textContent = text[i]
-    span.style.cssText = [
-      'position:fixed',
-      `left:${startX + i * spacing}px`,
-      `top:${centerY}px`,
-      'transform:translate(-50%,-50%)',
-      'opacity:0',
-      'font-size:96px',
-      'font-weight:900',
-      'color:#98E8C1',
-      "text-shadow:0 0 20px rgba(152,232,193,0.8), 0 0 40px rgba(152,232,193,0.5), 0 0 70px rgba(152,232,193,0.25)",
-      'pointer-events:none',
-      'z-index:9999',
-      'font-family:var(--font-display,system-ui)',
-      'white-space:pre',
+  // ── Build Gift Reveal Elements ─────────────────────────────────
+  // Root overlay
+  const overlay = document.createElement('div')
+  overlay.style.cssText = [
+    'position:fixed', 'inset:0', 'pointer-events:none', 'z-index:9998',
+    'display:flex', 'align-items:center', 'justify-content:center',
+  ].join(';')
+  document.body.appendChild(overlay)
+
+  // Gift box body
+  const box = document.createElement('div')
+  box.style.cssText = [
+    'position:relative', 'width:120px', 'height:100px',
+    'transform-style:preserve-3d', 'perspective:600px',
+  ].join(';')
+
+  // Box body (front face)
+  const boxBody = document.createElement('div')
+  boxBody.style.cssText = [
+    'position:absolute', 'width:120px', 'height:100px',
+    'background:linear-gradient(145deg,#c8956a,#a0714a)',
+    'border-radius:10px',
+    'box-shadow:inset 0 -8px 20px rgba(0,0,0,0.25), 0 8px 30px rgba(0,0,0,0.3)',
+  ].join(';')
+
+  // Horizontal ribbon on box
+  const ribbonH = document.createElement('div')
+  ribbonH.style.cssText = [
+    'position:absolute', 'left:0', 'top:50%', 'transform:translateY(-50%)',
+    'width:120px', 'height:18px',
+    'background:linear-gradient(180deg,#f0c040,#d4a020)',
+    'border-radius:2px',
+  ].join(';')
+
+  // Vertical ribbon on box
+  const ribbonV = document.createElement('div')
+  ribbonV.style.cssText = [
+    'position:absolute', 'left:50%', 'top:0', 'transform:translateX(-50%)',
+    'width:18px', 'height:100px',
+    'background:linear-gradient(180deg,#f0c040,#d4a020)',
+    'border-radius:2px',
+  ].join(';')
+
+  // Ribbon bow - left loop
+  const bowL = document.createElement('div')
+  bowL.style.cssText = [
+    'position:absolute', 'top:-18px', 'left:50%', 'transform:translateX(-14px)',
+    'width:24px', 'height:18px',
+    'background:#f0c040', 'border-radius:50% 50% 50% 0',
+    'box-shadow:0 2px 6px rgba(0,0,0,0.2)',
+  ].join(';')
+
+  // Ribbon bow - right loop
+  const bowR = document.createElement('div')
+  bowR.style.cssText = [
+    'position:absolute', 'top:-18px', 'left:50%', 'transform:translateX(-10px)',
+    'width:24px', 'height:18px',
+    'background:#f0c040', 'border-radius:50% 50% 0 50%',
+    'box-shadow:0 2px 6px rgba(0,0,0,0.2)',
+  ].join(';')
+
+  // Bow center knot
+  const bowCenter = document.createElement('div')
+  bowCenter.style.cssText = [
+    'position:absolute', 'top:-14px', 'left:50%', 'transform:translateX(-50%)',
+    'width:14px', 'height:12px',
+    'background:#f5d060', 'border-radius:4px',
+  ].join(';')
+
+  // Box lid
+  const lid = document.createElement('div')
+  lid.style.cssText = [
+    'position:absolute', 'top:-20px', 'left:-4px',
+    'width:128px', 'height:28px',
+    'background:linear-gradient(145deg,#d4a030,#b08020)',
+    'border-radius:8px 8px 4px 4px',
+    'box-shadow:0 4px 12px rgba(0,0,0,0.3)',
+    'transform-origin:center bottom',
+    'z-index:2',
+  ].join(';')
+
+  // Lid ribbon strip
+  const lidRibbon = document.createElement('div')
+  lidRibbon.style.cssText = [
+    'position:absolute', 'left:50%', 'top:0', 'transform:translateX(-50%)',
+    'width:20px', 'height:28px',
+    'background:linear-gradient(180deg,#f0c040,#d4a020)',
+    'border-radius:2px',
+  ].join(';')
+  lid.appendChild(lidRibbon)
+
+  boxBody.appendChild(ribbonH)
+  boxBody.appendChild(ribbonV)
+  box.appendChild(bowL)
+  box.appendChild(bowR)
+  box.appendChild(bowCenter)
+  box.appendChild(boxBody)
+  box.appendChild(lid)
+
+  // Checkmark badge (hidden initially, pops out of box)
+  const badge = document.createElement('div')
+  badge.style.cssText = [
+    'position:absolute',
+    `left:${cx - 36}px`, `top:${cy - 36}px`,
+    'width:72px', 'height:72px',
+    'background:linear-gradient(135deg,#A8F0C8,#60D89C)',
+    'border-radius:50%',
+    'display:flex', 'align-items:center', 'justify-content:center',
+    'box-shadow:0 6px 24px rgba(96,216,156,0.6), 0 0 0 6px rgba(168,240,200,0.25)',
+    'opacity:0', 'scale:0',
+    'z-index:10',
+  ].join(';')
+  badge.innerHTML = [
+    '<svg viewBox="0 0 40 40" width="40" height="40" fill="none">',
+    '<path d="M8 20l8 8 16-16" stroke="white" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>',
+    '</svg>',
+  ].join('')
+
+  // Success text
+  const textEl = document.createElement('div')
+  textEl.style.cssText = [
+    'position:absolute',
+    `left:${cx}px`, `top:${cy + 70}px`,
+    'transform:translateX(-50%)',
+    'font-size:36px', 'font-weight:800',
+    'color:#A8F0C8',
+    'text-shadow:0 0 20px rgba(168,240,200,0.9), 0 0 40px rgba(168,240,200,0.5), 0 0 80px rgba(168,240,200,0.25)',
+    'font-family:var(--font-display,system-ui)',
+    'white-space:nowrap',
+    'letter-spacing:0.1em',
+    'opacity:0',
+    'z-index:10',
+  ].join(';')
+  textEl.textContent = '订阅成功'
+
+  // Gold particles
+  const PARTICLE_COLORS = ['#FFD700', '#FFA500', '#FFF0A0', '#FFCC33', '#FFE066']
+  const particles = []
+  for (let i = 0; i < 28; i++) {
+    const p = document.createElement('div')
+    const size = 5 + Math.random() * 8
+    const color = PARTICLE_COLORS[Math.floor(Math.random() * PARTICLE_COLORS.length)]
+    const shape = Math.random() > 0.5 ? '50%' : '2px'
+    p.style.cssText = [
+      'position:fixed', `left:${cx}px`, `top:${cy}px`,
+      `width:${size}px`, `height:${size}px`,
+      `background:${color}`, `border-radius:${shape}`,
+      `box-shadow:0 0 ${size * 1.5}px ${color}`,
+      'opacity:0', 'z-index:11',
     ].join(';')
-    document.body.appendChild(span)
-    words.push(span)
+    document.body.appendChild(p)
+    particles.push(p)
   }
+
+  overlay.appendChild(box)
+  document.body.appendChild(badge)
+  document.body.appendChild(textEl)
 
   // ── Master Timeline ─────────────────────────────────────────────
   const tl = gsap.timeline()
 
-  // Pre-position chars off-screen
-  gsap.set(words, { opacity: 0, scale: 0.1 })
+  // Set initial states
+  gsap.set(overlay, { opacity: 0 })
+  gsap.set(lid, { rotation: 0 })
+  gsap.set(box, { y: 0 })
 
-  // ── 0.0s: "exit" ── Container fades quickly
-  tl.to(container, {
-    opacity: 0,
-    duration: 0.15,
-    ease: 'power2.in',
-  })
+  // 0ms — Overlay fades in
+  tl.to(overlay, { opacity: 1, duration: 0.1 })
 
-  // ── 0.1s: "enter" ── Chars explode in massive from far
-  words.forEach((span, i) => {
-    const angle = (Math.PI * 2 * i) / text.length + Math.random() * 0.4
-    const dist = 700 + Math.random() * 300
-    const startPx = centerX + Math.cos(angle) * dist - (startX + i * spacing)
-    const startPy = centerY + Math.sin(angle) * dist - centerY
+  // 100ms — Gift box bounces in
+  tl.fromTo(box,
+    { opacity: 0, scale: 0.3, y: 60 },
+    { opacity: 1, scale: 1, y: 0, duration: 0.45, ease: 'back.out(2)' },
+  '+=0.05')
 
-    tl.fromTo(span,
-      { x: startPx, y: startPy, opacity: 0, scale: 0.05, rotation: (Math.random() - 0.5) * 90 },
+  // 350ms — Lid flips open
+  tl.to(lid, {
+    rotation: -130,
+    duration: 0.4,
+    ease: 'power4.out',
+  }, 'lid')
+
+  // 500ms — Badge pops out of box
+  tl.fromTo(badge,
+    { opacity: 0, scale: 0, y: 60 },
+    { opacity: 1, scale: 1, y: 0, duration: 0.5, ease: 'back.out(3)' },
+  'lid+=0.15')
+
+  // 700ms — Text rises up
+  tl.fromTo(textEl,
+    { opacity: 0, y: 30 },
+    { opacity: 1, y: 0, duration: 0.45, ease: 'power3.out' },
+  'lid+=0.2')
+
+  // 800ms — Particles burst from center
+  particles.forEach((p, i) => {
+    const angle = (i / particles.length) * Math.PI * 2 + (Math.random() - 0.5) * 0.4
+    const dist = 100 + Math.random() * 180
+    const endX = Math.cos(angle) * dist
+    const endY = Math.sin(angle) * dist - 40
+    const endRot = (Math.random() - 0.5) * 720
+    tl.fromTo(p,
+      { opacity: 1, x: 0, y: 0, scale: 1, rotation: 0 },
       {
-        x: 0, y: 0, opacity: 1, scale: 1, rotation: 0,
-        duration: 0.8,
-        ease: 'power4.out',
+        opacity: 0, x: endX, y: endY,
+        scale: 0.2, rotation: endRot,
+        duration: 0.7,
+        ease: 'power2.out',
       },
-      'enter'
+      'burst'
     )
   })
+  tl.fromTo({},
+    {},
+    { duration: 0.01 },
+    'burst'
+  )
 
-  // ── 1.0s: "glow" ── Big glow pulse
-  tl.to(words, {
-    scale: 1.18,
-    duration: 0.22,
-    ease: 'power2.in',
-    stagger: { each: 0.04, from: 'center' },
-  }, 'glow')
-  tl.to(words, {
-    scale: 1,
-    duration: 0.22,
-    ease: 'elastic.out(1, 0.5)',
-    stagger: { each: 0.04, from: 'center' },
-  }, 'glow+=0.22')
-
-  // Pre-calculate scatter directions
-  const scatterX = words.map((_, i) => (i % 2 === 0 ? 1 : -1) * (15 + i * 5))
-  const scatterRot = words.map((_, i) => (i % 2 === 0 ? 25 : -25) + i * 8)
-
-  // ── 1.6s: "fade" ── Float up scatter fade
-  tl.to(words, {
-    opacity: 0,
-    y: -80,
-    x: (i) => scatterX[i],
-    rotation: (i) => scatterRot[i],
-    scale: 0.5,
-    duration: 0.5,
-    stagger: { each: 0.05, from: 'center' },
-    ease: 'power3.in',
-    onComplete: () => words.forEach(s => s.remove()),
-  }, 'fade')
-
-  // ── 2.0s: "done" ── Remove component
-  tl.call(() => { step.value = 'done' }, [], 'done')
+  // 1600ms — Everything fades out
+  tl.to([overlay, badge, textEl], {
+    opacity: 0, duration: 0.3, ease: 'power2.in',
+    onComplete: () => {
+      overlay.remove()
+      badge.remove()
+      textEl.remove()
+      particles.forEach(p => p.remove())
+      step.value = 'done'
+    }
+  }, '+=0.55')
 }
 
 // ── Turnstile ──────────────────────────────────────────────────────────
