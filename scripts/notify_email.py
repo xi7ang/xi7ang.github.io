@@ -88,7 +88,7 @@ html = (
     '</div></body></html>'
 )
 
-payload = {'from': 'subscribe@devmini.space', 'segment_id': '0d91d539-9540-4cba-8554-c80cfd443b2e', 'subject': subject, 'html': html, 'send': True}
+payload = {'from': 'Devmini <subscribe@devmini.space>', 'segment_id': '0d91d539-9540-4cba-8554-c80cfd443b2e', 'subject': subject, 'html': html, 'send': True}
 req = urllib.request.Request(
     'https://api.resend.com/broadcasts',
     data=json.dumps(payload).encode('utf-8'),
