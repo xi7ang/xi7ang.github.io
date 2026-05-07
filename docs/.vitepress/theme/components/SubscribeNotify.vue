@@ -804,7 +804,7 @@ onUnmounted(() => {
   }
 }
 
-/* ========== 超小屏幕（≤400px） ========== */ */
+/* ========== 超小屏幕（≤400px） ========== */
 @media (max-width: 400px) {
   .subscribe-notify {
     padding: 1rem 0.875rem;
