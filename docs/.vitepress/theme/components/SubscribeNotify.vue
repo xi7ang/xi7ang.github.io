@@ -289,17 +289,15 @@ function playSuccessAnimation() {
   const gsap = window.gsap
   if (!gsap) { setTimeout(() => { step.value = 'done' }, 800); return }
 
-  // Container shrinks away immediately (form/header already gone from v-if)
-  gsap.to(container, {
-    opacity: 0,
-    scale: 0.5,
-    duration: 0.35,
-    ease: 'power3.in',
-  })
+  // Respect reduced motion
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  if (reducedMotion) {
+    step.value = 'done'
+    return
+  }
 
-  // "订阅成功" art text
+  // ── Build art text ───────────────────────────────────────────────
   const text = '订阅成功'
-  const words = []
   const viewportW = window.innerWidth
   const viewportH = window.innerHeight
   const centerX = viewportW / 2
@@ -308,6 +306,7 @@ function playSuccessAnimation() {
   const totalW = (text.length - 1) * spacing
   const startX = centerX - totalW / 2
 
+  const words = []
   for (let i = 0; i < text.length; i++) {
     const span = document.createElement('span')
     span.textContent = text[i]
@@ -315,7 +314,7 @@ function playSuccessAnimation() {
       'position:fixed',
       `left:${startX + i * spacing}px`,
       `top:${centerY}px`,
-      'transform:translate(-50%,-50%) scale(0)',
+      'transform:translate(-50%,-50%)',
       'opacity:0',
       'font-size:72px',
       'font-weight:900',
@@ -330,36 +329,65 @@ function playSuccessAnimation() {
     words.push(span)
   }
 
-  // Each char explodes from random far position
+  // ── Master Timeline ─────────────────────────────────────────────
+  const tl = gsap.timeline()
+
+  // Pre-position chars far off-screen (so fromTo works correctly)
+  gsap.set(words, { opacity: 0, scale: 0.2 })
+
+  // ── 0.0s: "exit" ── Container shrinks away
+  tl.to(container, {
+    opacity: 0,
+    scale: 0.6,
+    duration: 0.25,
+    ease: 'power4.out',
+  })
+
+  // ── 0.15s: "enter" ── Chars explode in from far positions
   words.forEach((span, i) => {
-    const angle = Math.random() * Math.PI * 2
-    const dist = 400 + Math.random() * 300
+    const angle = (Math.PI * 2 * i) / text.length + Math.random() * 0.5
+    const dist = 500 + Math.random() * 250
     const startPx = centerX + Math.cos(angle) * dist - (startX + i * spacing)
     const startPy = centerY + Math.sin(angle) * dist - centerY
 
-    gsap.fromTo(span,
-      { x: startPx, y: startPy, opacity: 0, scale: 0.2, rotation: (Math.random() - 0.5) * 180 },
+    tl.fromTo(span,
+      { x: startPx, y: startPy, opacity: 0, scale: 0.1, rotation: (Math.random() - 0.5) * 120 },
       {
         x: 0, y: 0, opacity: 1, scale: 1, rotation: 0,
-        duration: 0.7,
-        delay: 0.05 + i * 0.06,
-        ease: 'elastic.out(1, 0.6)',
-      }
+        duration: 0.65,
+        ease: 'back.out(1.2)',
+      },
+      'enter+=0.05'
     )
   })
 
-  // Pulse glow then fade out
-  const tl = gsap.timeline({ delay: 0.9 })
-  tl.to(words, { scale: 1.08, duration: 0.18, ease: 'power1.inOut', stagger: 0.02 })
-  tl.to(words, { scale: 1, duration: 0.18, ease: 'power1.inOut', stagger: 0.02 })
+  // ── 0.9s: "hold" ── Subtle float in place
   tl.to(words, {
-    opacity: 0, y: -40, scale: 0.6,
-    duration: 0.35, stagger: 0.03, ease: 'power2.in',
-    onComplete: () => words.forEach(s => s.remove()),
-  }, '+=0.1')
+    y: -8,
+    duration: 0.3,
+    ease: 'power1.inOut',
+    stagger: { each: 0.03, from: 'center' },
+  }, 'hold')
+  tl.to(words, {
+    y: 0,
+    duration: 0.3,
+    ease: 'power1.inOut',
+    stagger: { each: 0.03, from: 'center' },
+  }, 'hold+=0.3')
 
-  // Remove component from DOM
-  tl.call(() => { step.value = 'done' }, [], '+=0.05')
+  // ── 1.5s: "fade" ── Float up and fade
+  tl.to(words, {
+    opacity: 0,
+    y: -60,
+    scale: 0.7,
+    duration: 0.4,
+    stagger: { each: 0.04, from: 'center' },
+    ease: 'power2.in',
+    onComplete: () => words.forEach(s => s.remove()),
+  }, 'fade')
+
+  // ── 1.85s: "done" ── Remove component
+  tl.call(() => { step.value = 'done' }, [], 'done')
 }
 
 // ── Turnstile ──────────────────────────────────────────────────────────
