@@ -1,13 +1,13 @@
 <template>
   <div ref="containerRef" v-if="step !== 'done'" class="subscribe-notify">
     <!-- 订阅说明区 -->
-    <div class="notify-header" style="text-align: center;">
+    <div v-if="step !== 'success'" class="notify-header" style="text-align: center;">
       <span class="notify-icon">📬</span>
       <span class="notify-title">订阅资源更新通知</span>
     </div>
 
     <!-- 订阅表单 -->
-    <div class="notify-form">
+    <div v-if="step !== 'success'" class="notify-form">
       <!-- 邮箱输入 + 按钮（Step 1） -->
       <div v-if="step === 'email'" class="notify-input-row">
         <div class="notify-input-wrap">
@@ -255,6 +255,7 @@ async function confirmSubscribe() {
       status.value = 'idle'
       localEmail.value = ''
       codeDigits.value = ['', '', '', '', '', '']
+      // Animate container shrink immediately, then show text
       nextTick(() => playSuccessAnimation())
     } else {
       showMsg(data.error || '订阅失败，请稍后重试')
@@ -288,45 +289,22 @@ function playSuccessAnimation() {
   const gsap = window.gsap
   if (!gsap) { setTimeout(() => { step.value = 'done' }, 800); return }
 
-  // 1. Shatter form elements outward
-  const form = container.querySelector('.notify-form')
-  if (form) {
-    const children = Array.from(form.querySelectorAll('*'))
-    gsap.to(children, {
-      opacity: 0,
-      scale: 0.3,
-      rotateZ: () => (Math.random() - 0.5) * 60,
-      x: () => (Math.random() - 0.5) * 200,
-      y: () => (Math.random() - 0.5) * 200,
-      duration: 0.45,
-      stagger: 0.02,
-      ease: 'power3.in',
-    })
-  }
+  // Container shrinks away immediately (form/header already gone from v-if)
+  gsap.to(container, {
+    opacity: 0,
+    scale: 0.5,
+    duration: 0.35,
+    ease: 'power3.in',
+  })
 
-  // Header shatters upward
-  const header = container.querySelector('.notify-header')
-  if (header) {
-    const headerEls = Array.from(header.querySelectorAll('*'))
-    gsap.to(headerEls, {
-      opacity: 0,
-      scale: 0.4,
-      y: -80,
-      rotateZ: () => (Math.random() - 0.5) * 30,
-      duration: 0.4,
-      stagger: 0.04,
-      ease: 'power3.in',
-    })
-  }
-
-  // 2. Create "订阅成功" large art text
+  // "订阅成功" art text
   const text = '订阅成功'
   const words = []
   const viewportW = window.innerWidth
   const viewportH = window.innerHeight
   const centerX = viewportW / 2
   const centerY = viewportH / 2
-  const spacing = 58 // spacing between characters
+  const spacing = 58
   const totalW = (text.length - 1) * spacing
   const startX = centerX - totalW / 2
 
@@ -352,9 +330,8 @@ function playSuccessAnimation() {
     words.push(span)
   }
 
-  // 3. Each char explodes from random far position, then snaps to final position
+  // Each char explodes from random far position
   words.forEach((span, i) => {
-    // start far away - random angle and distance
     const angle = Math.random() * Math.PI * 2
     const dist = 400 + Math.random() * 300
     const startPx = centerX + Math.cos(angle) * dist - (startX + i * spacing)
@@ -365,44 +342,24 @@ function playSuccessAnimation() {
       {
         x: 0, y: 0, opacity: 1, scale: 1, rotation: 0,
         duration: 0.7,
-        delay: 0.35 + i * 0.06,
+        delay: 0.05 + i * 0.06,
         ease: 'elastic.out(1, 0.6)',
       }
     )
   })
 
-  // 4. Pulse glow on all chars, then fade out together
-  const tl = gsap.timeline({ delay: 1.1 })
+  // Pulse glow then fade out
+  const tl = gsap.timeline({ delay: 0.9 })
+  tl.to(words, { scale: 1.08, duration: 0.18, ease: 'power1.inOut', stagger: 0.02 })
+  tl.to(words, { scale: 1, duration: 0.18, ease: 'power1.inOut', stagger: 0.02 })
   tl.to(words, {
-    scale: 1.08,
-    duration: 0.18,
-    ease: 'power1.inOut',
-    stagger: 0.02,
-  })
-  tl.to(words, {
-    scale: 1,
-    duration: 0.18,
-    ease: 'power1.inOut',
-    stagger: 0.02,
-  })
-  tl.to(words, {
-    opacity: 0,
-    y: -40,
-    scale: 0.6,
-    duration: 0.35,
-    stagger: 0.03,
-    ease: 'power2.in',
+    opacity: 0, y: -40, scale: 0.6,
+    duration: 0.35, stagger: 0.03, ease: 'power2.in',
     onComplete: () => words.forEach(s => s.remove()),
   }, '+=0.1')
 
-  // 5. Shrink and remove component
-  tl.to(container, {
-    opacity: 0,
-    scale: 0.3,
-    duration: 0.4,
-    ease: 'power3.in',
-    onComplete: () => { step.value = 'done' },
-  }, '-=0.1')
+  // Remove component from DOM
+  tl.call(() => { step.value = 'done' }, [], '+=0.05')
 }
 
 // ── Turnstile ──────────────────────────────────────────────────────────
