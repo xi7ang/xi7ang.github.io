@@ -302,7 +302,7 @@ function playSuccessAnimation() {
   const viewportH = window.innerHeight
   const centerX = viewportW / 2
   const centerY = viewportH / 2
-  const spacing = 58
+  const spacing = 88
   const totalW = (text.length - 1) * spacing
   const startX = centerX - totalW / 2
 
@@ -316,10 +316,11 @@ function playSuccessAnimation() {
       `top:${centerY}px`,
       'transform:translate(-50%,-50%)',
       'opacity:0',
-      'font-size:72px',
+      'font-size:96px',
       'font-weight:900',
-      'color:#F5E6A3',
-      'text-shadow:0 0 30px rgba(212,168,67,1), 0 0 60px rgba(212,168,67,0.7), 0 0 90px rgba(212,168,67,0.4)',
+      'color:#FFE566',
+      '-webkit-text-stroke:2px rgba(180,120,0,0.6)',
+      "text-shadow:0 0 10px rgba(255,220,80,1), 0 0 30px rgba(255,200,50,0.9), 0 0 60px rgba(255,170,0,0.7), 0 0 100px rgba(255,140,0,0.4)",
       'pointer-events:none',
       'z-index:9999',
       'font-family:var(--font-display,system-ui)',
@@ -332,61 +333,66 @@ function playSuccessAnimation() {
   // ── Master Timeline ─────────────────────────────────────────────
   const tl = gsap.timeline()
 
-  // Pre-position chars far off-screen (so fromTo works correctly)
-  gsap.set(words, { opacity: 0, scale: 0.2 })
+  // Pre-position chars off-screen
+  gsap.set(words, { opacity: 0, scale: 0.1 })
 
-  // ── 0.0s: "exit" ── Container shrinks away
+  // ── 0.0s: "exit" ── Container fades quickly
   tl.to(container, {
     opacity: 0,
-    scale: 0.6,
-    duration: 0.25,
-    ease: 'power4.out',
+    duration: 0.15,
+    ease: 'power2.in',
   })
 
-  // ── 0.15s: "enter" ── Chars explode in from far positions
+  // ── 0.1s: "enter" ── Chars explode in massive from far
   words.forEach((span, i) => {
-    const angle = (Math.PI * 2 * i) / text.length + Math.random() * 0.5
-    const dist = 500 + Math.random() * 250
+    const angle = (Math.PI * 2 * i) / text.length + Math.random() * 0.4
+    const dist = 700 + Math.random() * 300
     const startPx = centerX + Math.cos(angle) * dist - (startX + i * spacing)
     const startPy = centerY + Math.sin(angle) * dist - centerY
 
     tl.fromTo(span,
-      { x: startPx, y: startPy, opacity: 0, scale: 0.1, rotation: (Math.random() - 0.5) * 120 },
+      { x: startPx, y: startPy, opacity: 0, scale: 0.05, rotation: (Math.random() - 0.5) * 90 },
       {
         x: 0, y: 0, opacity: 1, scale: 1, rotation: 0,
-        duration: 0.65,
-        ease: 'back.out(1.2)',
+        duration: 0.8,
+        ease: 'power4.out',
       },
-      'enter+=0.05'
+      'enter'
     )
   })
 
-  // ── 0.9s: "hold" ── Subtle float in place
+  // ── 1.0s: "glow" ── Big glow pulse
   tl.to(words, {
-    y: -8,
-    duration: 0.3,
-    ease: 'power1.inOut',
-    stagger: { each: 0.03, from: 'center' },
-  }, 'hold')
+    scale: 1.18,
+    duration: 0.22,
+    ease: 'power2.in',
+    stagger: { each: 0.04, from: 'center' },
+  }, 'glow')
   tl.to(words, {
-    y: 0,
-    duration: 0.3,
-    ease: 'power1.inOut',
-    stagger: { each: 0.03, from: 'center' },
-  }, 'hold+=0.3')
+    scale: 1,
+    duration: 0.22,
+    ease: 'elastic.out(1, 0.5)',
+    stagger: { each: 0.04, from: 'center' },
+  }, 'glow+=0.22')
 
-  // ── 1.5s: "fade" ── Float up and fade
+  // Pre-calculate scatter directions
+  const scatterX = words.map((_, i) => (i % 2 === 0 ? 1 : -1) * (15 + i * 5))
+  const scatterRot = words.map((_, i) => (i % 2 === 0 ? 25 : -25) + i * 8)
+
+  // ── 1.6s: "fade" ── Float up scatter fade
   tl.to(words, {
     opacity: 0,
-    y: -60,
-    scale: 0.7,
-    duration: 0.4,
-    stagger: { each: 0.04, from: 'center' },
-    ease: 'power2.in',
+    y: -80,
+    x: (i) => scatterX[i],
+    rotation: (i) => scatterRot[i],
+    scale: 0.5,
+    duration: 0.5,
+    stagger: { each: 0.05, from: 'center' },
+    ease: 'power3.in',
     onComplete: () => words.forEach(s => s.remove()),
   }, 'fade')
 
-  // ── 1.85s: "done" ── Remove component
+  // ── 2.0s: "done" ── Remove component
   tl.call(() => { step.value = 'done' }, [], 'done')
 }
 
