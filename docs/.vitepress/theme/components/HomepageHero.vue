@@ -46,10 +46,7 @@
           游戏 · 书籍 · 课程 · 工具 · 影视 · AI 知识
         </p>
 
-        <!-- Subscribe Banner -->
-        <div class="subscribe-banner">
-          <SubscribeNotify />
-        </div>
+        <SubscribeNotify />
 
         <!-- Search — dropdown is inside search-wrap so they scroll together -->
         <div class="search-wrap">
@@ -161,13 +158,6 @@
           </a>
         </div>
       </section>
-
-/* ── Subscribe Banner ── */
-.subscribe-banner {
-  width: 100%;
-  max-width: 620px;
-  margin: 0 auto var(--space-xl);
-}
 
     </div>
 
