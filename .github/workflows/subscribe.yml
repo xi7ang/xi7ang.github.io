@@ -68,18 +68,21 @@ jobs:
             "html": html
           }
 
-          req = urllib.request.Request(
-            'https://api.resend.com/emails',
-            data=json.dumps(payload, ensure_ascii=False).encode('utf-8'),
-            headers={
-              'Authorization': 'Bearer ' + resend_key,
-              'Content-Type': 'application/json; charset=utf-8'
-            },
-            method='POST'
+          # Pipe JSON to curl for reliable HTTP in GitHub Actions
+          import subprocess, sys
+          json_bytes = json.dumps(payload, ensure_ascii=False).encode('utf-8')
+          result = subprocess.run(
+            ['curl', '-s', '-X', 'POST', 'https://api.resend.com/emails',
+             '-H', 'Authorization: Bearer ' + resend_key,
+             '-H', 'Content-Type: application/json; charset=utf-8',
+             '-d', '@-'],
+            input=json_bytes, capture_output=True, text=False
           )
-          with urllib.request.urlopen(req) as resp:
-            result = json.loads(resp.read())
-            print('Email sent, ID:', result.get('id', 'unknown'))
+          if result.returncode == 0:
+            print('Email sent:', result.stdout.decode())
+          else:
+            print('Error:', result.stderr.decode())
+            sys.exit(1)
           PYEOF
         env:
           EMAIL: "${{ github.event.client_payload.email }}"
