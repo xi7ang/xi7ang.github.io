@@ -257,13 +257,21 @@ async function resendCode() {
   await requestCode()
 }
 
-// ── Success Animation (GSAP) ────────────────────────────────────────
+// ── Success Animation (Lottie) ──────────────────────────────────────
+function loadLottie() {
+  return new Promise((resolve) => {
+    if (window.lottie) { resolve(); return }
+    const s = document.createElement('script')
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js'
+    s.onload = resolve
+    s.onerror = resolve // degrade gracefully
+    document.head.appendChild(s)
+  })
+}
+
 function playSuccessAnimation() {
   const container = containerRef.value
   if (!container) { step.value = 'done'; return }
-
-  const gsap = window.gsap
-  if (!gsap) { setTimeout(() => { step.value = 'done' }, 800); return }
 
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     step.value = 'done'; return
@@ -271,194 +279,63 @@ function playSuccessAnimation() {
 
   const rect = container.getBoundingClientRect()
 
-  // ── Build Elements ──────────────────────────────────────────────
-
-  // Root overlay — constrained to container bounds
   const overlay = document.createElement('div')
   overlay.style.cssText = [
-    'position:fixed', 'pointer-events:none', 'z-index:9998', 'overflow:hidden',
+    'position:fixed', 'pointer-events:none', 'z-index:9998',
     `left:${rect.left}px`, `top:${rect.top}px`,
     `width:${rect.width}px`, `height:${rect.height}px`,
     'border-radius:inherit',
+    'display:flex', 'align-items:center', 'justify-content:center',
+    'background:rgba(15,15,20,0.6)',
+    'backdrop-filter:blur(4px)',
+    'opacity:0',
   ].join(';')
   document.body.appendChild(overlay)
 
-  // Blur veil
-  const veil = document.createElement('div')
-  veil.style.cssText = [
-    'position:absolute', 'inset:0', 'background:rgba(20,20,28,0.55)',
-    'backdrop-filter:blur(6px)', 'opacity:0',
+  const lottieContainer = document.createElement('div')
+  lottieContainer.style.cssText = [
+    'width:120px', 'height:120px', 'position:relative', 'z-index:1',
   ].join(';')
+  overlay.appendChild(lottieContainer)
 
-  // Center seed glow
-  const seed = document.createElement('div')
-  seed.style.cssText = [
-    'position:absolute', 'border-radius:50%',
-    `left:50%`, `top:50%`, 'transform:translate(-50%,-50%)',
-    'width:12px', 'height:12px',
-    'background:radial-gradient(circle, #a8f0c8 0%, #51cf66 40%, transparent 70%)',
-    'box-shadow:0 0 20px #51cf66, 0 0 40px rgba(81,207,102,0.5), 0 0 80px rgba(81,207,102,0.2)',
-    'opacity:0', 'scale:0',
-  ].join(';')
-
-  // 6 expanding rings
-  const rings = []
-  for (let i = 0; i < 6; i++) {
-    const ring = document.createElement('div')
-    ring.style.cssText = [
-      'position:absolute', 'border-radius:50%',
-      `left:50%`, `top:50%`, 'transform:translate(-50%,-50%)',
-      'border:1.5px solid rgba(81,207,102,0.7)',
-      'opacity:0',
-    ].join(';')
-    overlay.appendChild(ring)
-    rings.push(ring)
+  // Fade in overlay
+  const gsap = window.gsap
+  if (gsap) {
+    gsap.to(overlay, { opacity: 1, duration: 0.2, ease: 'power2.out' })
+  } else {
+    overlay.style.opacity = '1'
   }
 
-  // Checkmark SVG
-  const checkWrap = document.createElement('div')
-  checkWrap.style.cssText = [
-    'position:absolute', `left:50%`, `top:38%`, 'transform:translate(-50%,-50%)',
-    'width:80px', 'height:80px', 'opacity:0', 'scale:0.4',
-    'filter:drop-shadow(0 0 8px rgba(81,207,102,0.8))',
-  ].join(';')
-  checkWrap.innerHTML = [
-    '<svg viewBox="0 0 80 80" width="80" height="80" fill="none">',
-    '<circle cx="40" cy="40" r="36" fill="rgba(81,207,102,0.18)" stroke="#51cf66" stroke-width="2.5"/>',
-    '<path id="check-path" d="M22 40l14 14 22-22" stroke="white" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="60" stroke-dashoffset="60"/>',
-    '</svg>',
-  ].join('')
-
-  // Success text
-  const textEl = document.createElement('div')
-  textEl.style.cssText = [
-    'position:absolute', `left:50%`, `top:63%`, 'transform:translate(-50%,0)',
-    'font-size:17px', 'font-weight:700',
-    'color:#51cf66',
-    'text-shadow:0 0 20px rgba(81,207,102,0.8), 0 0 40px rgba(81,207,102,0.3)',
-    'font-family:var(--font-display,system-ui)',
-    'white-space:nowrap', 'letter-spacing:0.1em',
-    'opacity:0',
-  ].join(';')
-  textEl.textContent = '订阅成功'
-
-  // Spiral particle system — 20 particles
-  const PALETTE = ['#51cf66','#8feaaa','#a8f0c8','#d4f5dd','#3db854','#b8f5cc']
-  const rand = gsap.utils.random
-  const particles = []
-  for (let i = 0; i < 20; i++) {
-    const size = 3 + Math.random() * 4.5
-    const angle = (i / 20) * Math.PI * 2 + (Math.random() - 0.5) * 0.5
-    const p = document.createElement('div')
-    p.style.cssText = [
-      'position:absolute', 'border-radius:50%',
-      `left:50%`, `top:50%`,
-      `width:${size}px`, `height:${size}px`,
-      `background:${PALETTE[i % PALETTE.length]}`,
-      `box-shadow:0 0 ${size * 2}px ${PALETTE[i % PALETTE.length]}`,
-      'opacity:0',
-    ].join(';')
-    document.body.appendChild(p)
-    particles.push({ el: p, angle, size })
-  }
-
-  overlay.appendChild(veil)
-  overlay.appendChild(seed)
-  overlay.appendChild(checkWrap)
-  overlay.appendChild(textEl)
-
-  // ── Timeline ────────────────────────────────────────────────────
-  const tl = gsap.timeline()
-
-  // 0ms — veil fades in
-  tl.to(veil, { opacity: 1, duration: 0.18, ease: 'power2.out' })
-
-  // 60ms — seed blooms
-  tl.to(seed, {
-    opacity: 1, scale: 1,
-    duration: 0.3, ease: 'power3.out',
-  }, 0.06)
-
-  // 100ms → rings expand one by one, every 60ms
-  rings.forEach((ring, i) => {
-    tl.fromTo(ring,
-      { opacity: 0.8, width: 12, height: 12 },
-      {
-        opacity: 0, width: 200 + i * 35, height: 200 + i * 35,
-        duration: 0.85, ease: 'power2.out',
-      },
-    0.1 + i * 0.06)
-  })
-
-  // 160ms — checkmark scale bounce in
-  tl.to(checkWrap, {
-    opacity: 1, scale: 1,
-    duration: 0.5, ease: 'back.out(1.8)',
-  }, 0.16)
-
-  // 200ms — check path draws
-  const checkPath = checkWrap.querySelector('#check-path')
-  if (checkPath) {
-    tl.to(checkPath, {
-      strokeDashoffset: 0,
-      duration: 0.38,
-      ease: 'power2.inOut',
-    }, 0.2)
-    // Glow pulse after draw completes
-    tl.to(checkWrap, {
-      filter: 'drop-shadow(0 0 16px rgba(81,207,102,1)) drop-shadow(0 0 32px rgba(81,207,102,0.6))',
-      duration: 0.2,
-      ease: 'power2.out',
-    }, 0.58)
-  }
-
-  // 450ms — text slides up with bounce
-  tl.fromTo(textEl,
-    { opacity: 0, y: 12, scale: 0.9 },
-    { opacity: 1, y: 0, scale: 1, duration: 0.42, ease: 'back.out(1.6)' },
-  0.45)
-
-  // 500ms → 950ms — spiral particles burst outward
-  particles.forEach(({ el, angle, size }, i) => {
-    const delay = 0.5 + i * 0.025
-    const spiralR = 55 + Math.random() * 90
-    const spiralDrift = (Math.random() - 0.5) * 50
-    const endX = Math.cos(angle) * spiralR + spiralDrift
-    const endY = Math.sin(angle) * spiralR - 40 - Math.random() * 50
-    tl.fromTo(el,
-      { opacity: 0.9, x: 0, y: 0, scale: 1 },
-      {
-        opacity: 0, x: endX, y: endY,
-        scale: 0.15,
-        duration: 0.65 + Math.random() * 0.25,
-        ease: 'power2.out',
-      },
-    delay)
-  })
-
-  // 900ms — seed shrinks away
-  tl.to(seed, { scale: 0, opacity: 0, duration: 0.2, ease: 'power2.in' }, 0.9)
-
-  // 950ms — container border pulses green
-  tl.to(container, {
-    boxShadow: '0 0 0 3px rgba(81,207,102,0.5), 0 0 30px rgba(81,207,102,0.25)',
-    duration: 0.2, ease: 'power2.out',
-  }, 0.95)
-  tl.to(container, {
-    boxShadow: '0 0 0 1px rgba(245,166,35,0.06), 0 4px 24px rgba(245,166,35,0.06)',
-    duration: 0.55, ease: 'power2.in',
-  }, 1.15)
-
-  // 1400ms — all elements dissolve out
-  tl.to([veil, checkWrap, textEl], {
-    opacity: 0, scale: 0.88,
-    duration: 0.38, ease: 'power2.in',
-    onComplete: () => {
-      overlay.remove()
-      particles.forEach(p => p.el.remove())
-      step.value = 'done'
+  loadLottie().then(() => {
+    if (!window.lottie) {
+      step.value = 'done'; overlay.remove(); return
     }
-  }, '+=0.18')
+
+    const anim = window.lottie.loadAnimation({
+      container: lottieContainer,
+      renderer: 'svg',
+      loop: false,
+      autoplay: true,
+      path: '/lottie-success.json',
+    })
+
+    anim.addEventListener('complete', () => {
+      // Brief pause on complete frame, then fade out
+      setTimeout(() => {
+        if (gsap) {
+          gsap.to(overlay, {
+            opacity: 0, scale: 0.92, duration: 0.3, ease: 'power2.in',
+            onComplete: () => { overlay.remove(); step.value = 'done' },
+          })
+        } else {
+          overlay.remove(); step.value = 'done'
+        }
+      }, 400)
+    })
+
+    // Fallback timeout if complete event doesn't fire
+    setTimeout(() => { anim.destroy(); overlay.remove(); step.value = 'done' }, 5000)
+  })
 }
 
 // ── Turnstile ──────────────────────────────────────────────────────────
