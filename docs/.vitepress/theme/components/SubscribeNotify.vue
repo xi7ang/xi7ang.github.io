@@ -285,25 +285,38 @@ function playSuccessAnimation() {
     `left:${rect.left}px`, `top:${rect.top}px`,
     `width:${rect.width}px`, `height:${rect.height}px`,
     'border-radius:inherit',
-    'display:flex', 'align-items:center', 'justify-content:center',
-    'background:rgba(15,15,20,0.6)',
-    'backdrop-filter:blur(4px)',
+    'display:flex', 'flex-direction:row', 'align-items:center', 'justify-content:center',
+    'gap:16px',
     'opacity:0',
   ].join(';')
   document.body.appendChild(overlay)
 
   const lottieContainer = document.createElement('div')
   lottieContainer.style.cssText = [
-    'width:120px', 'height:120px', 'position:relative', 'z-index:1',
+    'width:80px', 'height:80px', 'position:relative', 'z-index:1', 'flex-shrink:0',
   ].join(';')
-  overlay.appendChild(lottieContainer)
 
-  // Fade in overlay
+  const textEl = document.createElement('div')
+  textEl.style.cssText = [
+    'font-size:20px', 'font-weight:700', 'font-family:system-ui,-apple-system,BlinkMacSystemFont,sans-serif',
+    'color:#51cf66',
+    'text-shadow:0 0 12px rgba(81,207,102,0.6)',
+    'white-space:nowrap',
+    'opacity:0',
+  ].join(';')
+  textEl.textContent = '订阅成功！'
+
+  overlay.appendChild(lottieContainer)
+  overlay.appendChild(textEl)
+
+  // Fade in overlay + text
   const gsap = window.gsap
   if (gsap) {
-    gsap.to(overlay, { opacity: 1, duration: 0.2, ease: 'power2.out' })
+    gsap.to(overlay, { opacity: 1, duration: 0.25, ease: 'power2.out' })
+    gsap.to(textEl, { opacity: 1, duration: 0.3, delay: 0.15, ease: 'power2.out' })
   } else {
     overlay.style.opacity = '1'
+    textEl.style.opacity = '1'
   }
 
   loadLottie().then(() => {
