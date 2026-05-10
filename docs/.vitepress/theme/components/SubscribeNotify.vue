@@ -277,30 +277,29 @@ function playSuccessAnimation() {
     step.value = 'done'; return
   }
 
-  const rect = container.getBoundingClientRect()
+  // Hide and remove the subscribe form
+  container.style.display = 'none'
 
   const overlay = document.createElement('div')
   overlay.style.cssText = [
     'position:fixed', 'pointer-events:none', 'z-index:9998',
-    `left:${rect.left}px`, `top:${rect.top}px`,
-    `width:${rect.width}px`, `height:${rect.height}px`,
-    'border-radius:inherit',
+    'left:0', 'top:0', 'width:100vw', 'height:100vh',
     'display:flex', 'flex-direction:row', 'align-items:center', 'justify-content:center',
-    'gap:16px',
+    'gap:20px',
     'opacity:0',
   ].join(';')
   document.body.appendChild(overlay)
 
   const lottieContainer = document.createElement('div')
   lottieContainer.style.cssText = [
-    'width:80px', 'height:80px', 'position:relative', 'z-index:1', 'flex-shrink:0',
+    'width:160px', 'height:160px', 'position:relative', 'z-index:1', 'flex-shrink:0',
   ].join(';')
 
   const textEl = document.createElement('div')
   textEl.style.cssText = [
-    'font-size:20px', 'font-weight:700', 'font-family:system-ui,-apple-system,BlinkMacSystemFont,sans-serif',
+    'font-size:24px', 'font-weight:700', 'font-family:system-ui,-apple-system,BlinkMacSystemFont,sans-serif',
     'color:#51cf66',
-    'text-shadow:0 0 12px rgba(81,207,102,0.6)',
+    'text-shadow:0 0 16px rgba(81,207,102,0.7)',
     'white-space:nowrap',
     'opacity:0',
   ].join(';')
@@ -338,7 +337,11 @@ function playSuccessAnimation() {
         if (gsap) {
           gsap.to(overlay, {
             opacity: 0, scale: 0.92, duration: 0.3, ease: 'power2.in',
-            onComplete: () => { overlay.remove(); step.value = 'done' },
+            onComplete: () => {
+              container.remove()
+              overlay.remove()
+              step.value = 'done'
+            },
           })
         } else {
           overlay.remove(); step.value = 'done'
