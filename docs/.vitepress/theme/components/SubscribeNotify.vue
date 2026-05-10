@@ -12,28 +12,15 @@
       <div v-if="step === 'email'" class="notify-input-row">
         <div class="notify-input-wrap">
           <input
-            v-model="localEmail"
+            v-model="email"
             type="text"
-            placeholder="输入邮箱"
+            placeholder="输入邮箱地址"
             class="notify-input"
             :class="{ shake: shaking }"
             @keydown.enter.prevent="handleAction"
-            @focus="inputFocused = true"
             @blur="onBlur"
             @input="onEmailInput"
           />
-          <span class="notify-at">@</span>
-          <select v-model="suffix" class="notify-suffix" @focus="inputFocused = true" @blur="onBlur">
-            <option value="gmail.com">gmail.com</option>
-            <option value="qq.com">qq.com</option>
-            <option value="163.com">163.com</option>
-            <option value="outlook.com">outlook.com</option>
-            <option value="126.com">126.com</option>
-            <option value="hotmail.com">hotmail.com</option>
-            <option value="icloud.com">icloud.com</option>
-            <option value="yahoo.com">yahoo.com</option>
-            <option value="protonmail.com">protonmail.com</option>
-          </select>
         </div>
         <button
           class="notify-btn"
@@ -53,7 +40,7 @@
       <div v-if="step === 'code'" class="notify-code-row">
         <div class="notify-code-info">
           <span class="notify-code-hint">验证码已发送至</span>
-          <span class="notify-code-email">{{ displayEmail }}</span>
+          <span class="notify-code-email">{{ email }}</span>
         </div>
         <div class="notify-code-inputs">
           <input
@@ -106,8 +93,7 @@
 <script setup>
 import { ref, computed, onUnmounted, nextTick } from 'vue'
 
-const localEmail = ref('')
-const suffix = ref('gmail.com')
+const email = ref('')
 const step = ref('email') // email | code | success
 const status = ref('idle') // idle | loading
 const loading = computed(() => status.value === 'loading')
@@ -125,16 +111,6 @@ const codeInputs = ref([])
 const codeDigits = ref(['', '', '', '', '', ''])
 
 let countdownTimer = null
-
-const displayEmail = computed(() => {
-  const e = localEmail.value.trim()
-  return e ? `${e}@${suffix.value}` : ''
-})
-
-const email = computed(() => {
-  const e = localEmail.value.trim()
-  return e ? `${e}@${suffix.value}` : ''
-})
 
 const emailValid = computed(() => {
   const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -253,7 +229,7 @@ async function confirmSubscribe() {
     if (res.ok && data.success) {
       step.value = 'success'
       status.value = 'idle'
-      localEmail.value = ''
+      email.value = ''
       codeDigits.value = ['', '', '', '', '', '']
       // Animate container shrink immediately, then show text
       nextTick(() => playSuccessAnimation())
