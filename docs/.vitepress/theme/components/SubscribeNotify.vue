@@ -285,42 +285,39 @@ function playSuccessAnimation() {
     'position:fixed', 'pointer-events:none', 'z-index:9998',
     'left:0', 'top:0', 'width:100vw', 'height:100vh',
     'display:flex', 'flex-direction:row', 'align-items:center', 'justify-content:center',
-    'gap:10px',
+    'gap:3px',
     'opacity:0',
   ].join(';')
   document.body.appendChild(overlay)
 
   const lottieContainer = document.createElement('div')
   lottieContainer.style.cssText = [
-    'width:160px', 'height:160px', 'position:relative', 'z-index:1', 'flex-shrink:0',
+    'width:200px', 'height:200px', 'position:relative', 'z-index:1', 'flex-shrink:0',
   ].join(';')
 
   const textEl = document.createElement('div')
   textEl.style.cssText = [
-    'font-size:24px', 'font-weight:700', 'font-family:system-ui,-apple-system,BlinkMacSystemFont,sans-serif',
+    'font-size:28px', 'font-weight:700', 'font-family:system-ui,-apple-system,BlinkMacSystemFont,sans-serif',
     'color:#51cf66',
     'text-shadow:0 0 16px rgba(81,207,102,0.7)',
     'white-space:nowrap',
-    'opacity:1',
+    'opacity:0',
   ].join(';')
   textEl.textContent = '订阅成功！'
 
   overlay.appendChild(lottieContainer)
   overlay.appendChild(textEl)
 
-  // Fade in overlay
+  // GSAP timeline — Lottie + text synchronized to the same beat
   const gsap = window.gsap
   if (gsap) {
-    gsap.fromTo(overlay,
-      { opacity: 0, scale: 0.88 },
-      { opacity: 1, scale: 1, duration: 0.35, ease: 'back.out(1.5)' }
-    )
-    gsap.fromTo(textEl,
-      { opacity: 0, scale: 0.88 },
-      { opacity: 1, scale: 1, duration: 0.35, ease: 'back.out(1.5)' }
-    )
+    gsap.set([overlay, lottieContainer, textEl], { opacity: 0, scale: 0.82 })
+    const tl = gsap.timeline()
+    tl.to(overlay, { opacity: 1, duration: 0.3, ease: 'power2.out' })
+      .to([lottieContainer, textEl], { opacity: 1, scale: 1, duration: 0.4, ease: 'back.out(1.8)' }, '+=0.05')
   } else {
     overlay.style.opacity = '1'
+    lottieContainer.style.opacity = '1'
     textEl.style.opacity = '1'
   }
 
@@ -341,8 +338,8 @@ function playSuccessAnimation() {
       // Brief pause on complete frame, then fade out
       setTimeout(() => {
         if (gsap) {
-          gsap.to([overlay, textEl], {
-            opacity: 0, scale: 0.88, duration: 0.3, ease: 'power2.in',
+          gsap.to([overlay, lottieContainer, textEl], {
+            opacity: 0, scale: 0.82, duration: 0.3, ease: 'power2.in',
             onComplete: () => {
               container.remove()
               overlay.remove()
