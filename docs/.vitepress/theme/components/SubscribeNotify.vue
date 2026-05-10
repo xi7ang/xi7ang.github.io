@@ -308,43 +308,43 @@ function playSuccessAnimation() {
   overlay.appendChild(lottieContainer)
   overlay.appendChild(textEl)
 
-  // GSAP timeline — Lottie + text synchronized to the same beat
   const gsap = window.gsap
-  if (gsap) {
-    gsap.set([overlay, lottieContainer, textEl], { opacity: 0, scale: 0.82 })
-    const tl = gsap.timeline()
-    tl.to(overlay, { opacity: 1, duration: 0.3, ease: 'power2.out' })
-      .to([lottieContainer, textEl], { opacity: 1, scale: 1, duration: 0.4, ease: 'back.out(1.8)' }, '+=0.05')
-  } else {
-    overlay.style.opacity = '1'
-    lottieContainer.style.opacity = '1'
-    textEl.style.opacity = '1'
-  }
+  let animReady = false
 
   loadLottie().then(() => {
-    if (!window.lottie) {
-      step.value = 'done'; overlay.remove(); return
-    }
+    if (!window.lottie) { step.value = 'done'; overlay.remove(); return }
 
     const anim = window.lottie.loadAnimation({
       container: lottieContainer,
       renderer: 'svg',
       loop: false,
-      autoplay: true,
-      path: '/lottie-success.json',
+      autoplay: false,
+      path: './lottie-success.json',
+    })
+
+    anim.addEventListener('DOMLoaded', () => {
+      if (!animReady) {
+        animReady = true
+        // Start Lottie + GSAP at the exact same moment
+        anim.play()
+        if (gsap) {
+          const tl = gsap.timeline()
+          tl.to(overlay, { opacity: 1, duration: 0.3, ease: 'power2.out' })
+            .to([lottieContainer, textEl], { opacity: 1, scale: 1, duration: 0.4, ease: 'back.out(1.8)' }, 0.05)
+        } else {
+          overlay.style.opacity = '1'
+          lottieContainer.style.opacity = '1'
+          textEl.style.opacity = '1'
+        }
+      }
     })
 
     anim.addEventListener('complete', () => {
-      // Brief pause on complete frame, then fade out
       setTimeout(() => {
         if (gsap) {
           gsap.to([overlay, lottieContainer, textEl], {
             opacity: 0, scale: 0.82, duration: 0.3, ease: 'power2.in',
-            onComplete: () => {
-              container.remove()
-              overlay.remove()
-              step.value = 'done'
-            },
+            onComplete: () => { container.remove(); overlay.remove(); step.value = 'done' },
           })
         } else {
           overlay.remove(); step.value = 'done'
@@ -352,7 +352,26 @@ function playSuccessAnimation() {
       }, 400)
     })
 
-    // Fallback timeout if complete event doesn't fire
+    anim.addEventListener('error', () => {
+      step.value = 'done'; overlay.remove()
+    })
+
+    // Fallback — if DOMLoaded never fires, still end after timeout
+    setTimeout(() => {
+      if (!animReady) {
+        animReady = true
+        anim.play()
+        if (gsap) {
+          gsap.to(overlay, { opacity: 1, duration: 0.3 })
+          gsap.to([lottieContainer, textEl], { opacity: 1, scale: 1, duration: 0.4, ease: 'back.out(1.8)' })
+        } else {
+          overlay.style.opacity = '1'
+          lottieContainer.style.opacity = '1'
+          textEl.style.opacity = '1'
+        }
+      }
+    }, 800)
+
     setTimeout(() => { anim.destroy(); overlay.remove(); step.value = 'done' }, 5000)
   })
 }
