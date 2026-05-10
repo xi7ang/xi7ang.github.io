@@ -113,7 +113,7 @@ const codeDigits = ref(['', '', '', '', '', ''])
 let countdownTimer = null
 
 const emailValid = computed(() => {
-  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
   return re.test(email.value)
 })
 
