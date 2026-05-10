@@ -269,240 +269,172 @@ function playSuccessAnimation() {
     step.value = 'done'; return
   }
 
-  const vw = window.innerWidth
-  const vh = window.innerHeight
-  const cx = vw / 2
-  const cy = vh / 2
+  const rect = container.getBoundingClientRect()
+  const cx = rect.left + rect.width / 2
+  const cy = rect.top + rect.height / 2
 
-  // ── Build Gift Reveal Elements ─────────────────────────────────
-  // Root overlay
+  // ── Build Elements ──────────────────────────────────────────────
+
+  // Root overlay (positioned over container only)
   const overlay = document.createElement('div')
   overlay.style.cssText = [
-    'position:fixed', 'inset:0', 'pointer-events:none', 'z-index:9998',
-    'display:flex', 'align-items:center', 'justify-content:center',
+    'position:fixed', 'pointer-events:none', 'z-index:9998',
+    `left:${rect.left - 20}px`, `top:${rect.top - 20}px`,
+    `width:${rect.width + 40}px`, `height:${rect.height + 40}px`,
   ].join(';')
   document.body.appendChild(overlay)
 
-  // Gift box body
-  const box = document.createElement('div')
-  box.style.cssText = [
-    'position:relative', 'width:120px', 'height:100px',
-    'transform-style:preserve-3d', 'perspective:600px',
+  // Ripple ring 1 (inner)
+  const ring1 = document.createElement('div')
+  ring1.style.cssText = [
+    'position:absolute', 'border-radius:50%',
+    `left:50%`, `top:50%`, 'transform:translate(-50%,-50%) scale(0)',
+    `width:80px`, `height:80px`,
+    'border:3px solid #51cf66',
+    'box-shadow:0 0 12px rgba(81,207,102,0.5), inset 0 0 12px rgba(81,207,102,0.15)',
+    'opacity:0',
   ].join(';')
 
-  // Box body (front face)
-  const boxBody = document.createElement('div')
-  boxBody.style.cssText = [
-    'position:absolute', 'width:120px', 'height:100px',
-    'background:linear-gradient(145deg,#c8956a,#a0714a)',
-    'border-radius:10px',
-    'box-shadow:inset 0 -8px 20px rgba(0,0,0,0.25), 0 8px 30px rgba(0,0,0,0.3)',
+  // Ripple ring 2 (outer, slightly delayed)
+  const ring2 = document.createElement('div')
+  ring2.style.cssText = [
+    'position:absolute', 'border-radius:50%',
+    `left:50%`, `top:50%`, 'transform:translate(-50%,-50%) scale(0)',
+    `width:80px`, `height:80px`,
+    'border:2px solid rgba(81,207,102,0.35)',
+    'opacity:0',
   ].join(';')
 
-  // Horizontal ribbon on box
-  const ribbonH = document.createElement('div')
-  ribbonH.style.cssText = [
-    'position:absolute', 'left:0', 'top:50%', 'transform:translateY(-50%)',
-    'width:120px', 'height:18px',
-    'background:linear-gradient(180deg,#f0c040,#d4a020)',
-    'border-radius:2px',
-  ].join(';')
-
-  // Vertical ribbon on box
-  const ribbonV = document.createElement('div')
-  ribbonV.style.cssText = [
-    'position:absolute', 'left:50%', 'top:0', 'transform:translateX(-50%)',
-    'width:18px', 'height:100px',
-    'background:linear-gradient(180deg,#f0c040,#d4a020)',
-    'border-radius:2px',
-  ].join(';')
-
-  // Ribbon bow - left loop
-  const bowL = document.createElement('div')
-  bowL.style.cssText = [
-    'position:absolute', 'top:-18px', 'left:50%', 'transform:translateX(-14px)',
-    'width:24px', 'height:18px',
-    'background:#f0c040', 'border-radius:50% 50% 50% 0',
-    'box-shadow:0 2px 6px rgba(0,0,0,0.2)',
-  ].join(';')
-
-  // Ribbon bow - right loop
-  const bowR = document.createElement('div')
-  bowR.style.cssText = [
-    'position:absolute', 'top:-18px', 'left:50%', 'transform:translateX(-10px)',
-    'width:24px', 'height:18px',
-    'background:#f0c040', 'border-radius:50% 50% 0 50%',
-    'box-shadow:0 2px 6px rgba(0,0,0,0.2)',
-  ].join(';')
-
-  // Bow center knot
-  const bowCenter = document.createElement('div')
-  bowCenter.style.cssText = [
-    'position:absolute', 'top:-14px', 'left:50%', 'transform:translateX(-50%)',
-    'width:14px', 'height:12px',
-    'background:#f5d060', 'border-radius:4px',
-  ].join(';')
-
-  // Box lid
-  const lid = document.createElement('div')
-  lid.style.cssText = [
-    'position:absolute', 'top:-20px', 'left:-4px',
-    'width:128px', 'height:28px',
-    'background:linear-gradient(145deg,#d4a030,#b08020)',
-    'border-radius:8px 8px 4px 4px',
-    'box-shadow:0 4px 12px rgba(0,0,0,0.3)',
-    'transform-origin:center bottom',
-    'z-index:2',
-  ].join(';')
-
-  // Lid ribbon strip
-  const lidRibbon = document.createElement('div')
-  lidRibbon.style.cssText = [
-    'position:absolute', 'left:50%', 'top:0', 'transform:translateX(-50%)',
-    'width:20px', 'height:28px',
-    'background:linear-gradient(180deg,#f0c040,#d4a020)',
-    'border-radius:2px',
-  ].join(';')
-  lid.appendChild(lidRibbon)
-
-  boxBody.appendChild(ribbonH)
-  boxBody.appendChild(ribbonV)
-  box.appendChild(bowL)
-  box.appendChild(bowR)
-  box.appendChild(bowCenter)
-  box.appendChild(boxBody)
-  box.appendChild(lid)
-
-  // Checkmark badge (hidden initially, pops out of box)
-  const badge = document.createElement('div')
-  badge.style.cssText = [
-    'position:absolute',
-    `left:${cx - 36}px`, `top:${cy - 36}px`,
+  // Checkmark SVG circle background
+  const checkWrap = document.createElement('div')
+  checkWrap.style.cssText = [
+    'position:absolute', `left:50%`, `top:35%`, 'transform:translate(-50%,-50%)',
     'width:72px', 'height:72px',
-    'background:linear-gradient(135deg,#A8F0C8,#60D89C)',
-    'border-radius:50%',
-    'display:flex', 'align-items:center', 'justify-content:center',
-    'box-shadow:0 6px 24px rgba(96,216,156,0.6), 0 0 0 6px rgba(168,240,200,0.25)',
-    'opacity:0', 'scale:0',
-    'z-index:10',
+    'opacity:0', 'scale:0.5',
   ].join(';')
-  badge.innerHTML = [
-    '<svg viewBox="0 0 40 40" width="40" height="40" fill="none">',
-    '<path d="M8 20l8 8 16-16" stroke="white" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>',
+  checkWrap.innerHTML = [
+    '<svg viewBox="0 0 72 72" width="72" height="72" fill="none">',
+    '<circle cx="36" cy="36" r="34" fill="rgba(81,207,102,0.15)" stroke="#51cf66" stroke-width="3"/>',
+    '<path id="check-path" d="M20 36l12 12 20-20" stroke="white" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="60" stroke-dashoffset="60"/>',
     '</svg>',
   ].join('')
 
   // Success text
   const textEl = document.createElement('div')
   textEl.style.cssText = [
-    'position:absolute',
-    `left:${cx}px`, `top:${cy + 70}px`,
-    'transform:translateX(-50%)',
-    'font-size:36px', 'font-weight:800',
-    'color:#A8F0C8',
-    'text-shadow:0 0 20px rgba(168,240,200,0.9), 0 0 40px rgba(168,240,200,0.5), 0 0 80px rgba(168,240,200,0.25)',
+    'position:absolute', `left:50%`, `top:65%`, 'transform:translate(-50%,0)',
+    'font-size:18px', 'font-weight:700',
+    'color:#51cf66',
+    'text-shadow:0 0 16px rgba(81,207,102,0.6)',
     'font-family:var(--font-display,system-ui)',
     'white-space:nowrap',
-    'letter-spacing:0.1em',
+    'letter-spacing:0.08em',
     'opacity:0',
-    'z-index:10',
   ].join(';')
   textEl.textContent = '订阅成功'
 
-  // Gold particles
-  const PARTICLE_COLORS = ['#FFD700', '#FFA500', '#FFF0A0', '#FFCC33', '#FFE066']
+  // Soft particle system — small rising dots
+  const PARTICLE_COLORS = ['#51cf66', '#8feaaa', '#a8f0c8', '#d4f5dd', '#3db854']
   const particles = []
-  for (let i = 0; i < 28; i++) {
+  const rand = gsap.utils.random
+  for (let i = 0; i < 14; i++) {
+    const size = 4 + Math.random() * 5
     const p = document.createElement('div')
-    const size = 5 + Math.random() * 8
-    const color = PARTICLE_COLORS[Math.floor(Math.random() * PARTICLE_COLORS.length)]
-    const shape = Math.random() > 0.5 ? '50%' : '2px'
+    const startX = rand(-30, 30, true)
+    const startY = rand(0, 10, true)
     p.style.cssText = [
-      'position:fixed', `left:${cx}px`, `top:${cy}px`,
+      'position:absolute', 'border-radius:50%',
+      `left:calc(50% + ${startX}px)`, `top:calc(50% + ${startY}px)`,
       `width:${size}px`, `height:${size}px`,
-      `background:${color}`, `border-radius:${shape}`,
-      `box-shadow:0 0 ${size * 1.5}px ${color}`,
-      'opacity:0', 'z-index:11',
+      `background:${PARTICLE_COLORS[i % PARTICLE_COLORS.length]}`,
+      `box-shadow:0 0 ${size * 1.5}px ${PARTICLE_COLORS[i % PARTICLE_COLORS.length]}`,
+      'opacity:0',
     ].join(';')
     document.body.appendChild(p)
-    particles.push(p)
+    particles.push({ el: p, startX, startY })
   }
 
-  overlay.appendChild(box)
-  document.body.appendChild(badge)
-  document.body.appendChild(textEl)
+  overlay.appendChild(ring1)
+  overlay.appendChild(ring2)
+  overlay.appendChild(checkWrap)
+  overlay.appendChild(textEl)
 
-  // ── Master Timeline ─────────────────────────────────────────────
+  // ── Timeline ────────────────────────────────────────────────────
   const tl = gsap.timeline()
 
-  // Set initial states
-  gsap.set(overlay, { opacity: 0 })
-  gsap.set(lid, { rotation: 0 })
-  gsap.set(box, { y: 0 })
-
   // 0ms — Overlay fades in
-  tl.to(overlay, { opacity: 1, duration: 0.1 })
+  tl.to(overlay, { opacity: 1, duration: 0.12 })
 
-  // 100ms — Gift box bounces in
-  tl.fromTo(box,
-    { opacity: 0, scale: 0.3, y: 60 },
-    { opacity: 1, scale: 1, y: 0, duration: 0.45, ease: 'back.out(2)' },
-  '+=0.05')
+  // 60ms — Ring 1 scales outward and fades
+  tl.to(ring1, {
+    scale: 4, opacity: 0,
+    duration: 0.7, ease: 'power2.out',
+  }, 0.06)
 
-  // 350ms — Lid flips open
-  tl.to(lid, {
-    rotation: -130,
-    duration: 0.4,
-    ease: 'power4.out',
-  }, 'lid')
+  // 200ms — Ring 2 scales outward with slight delay
+  tl.to(ring2, {
+    scale: 5.5, opacity: 0,
+    duration: 0.9, ease: 'power2.out',
+  }, 0.2)
 
-  // 500ms — Badge pops out of box
-  tl.fromTo(badge,
-    { opacity: 0, scale: 0, y: 60 },
-    { opacity: 1, scale: 1, y: 0, duration: 0.5, ease: 'back.out(3)' },
-  'lid+=0.15')
+  // 100ms — Checkmark badge pops in
+  tl.to(checkWrap, {
+    opacity: 1, scale: 1,
+    duration: 0.45, ease: 'back.out(2.5)',
+  }, 0.1)
 
-  // 700ms — Text rises up
+  // 200ms — Check path draws (stroke-dashoffset)
+  const checkPath = checkWrap.querySelector('#check-path')
+  if (checkPath) {
+    tl.to(checkPath, {
+      strokeDashoffset: 0,
+      duration: 0.35,
+      ease: 'power2.inOut',
+    }, 0.2)
+  }
+
+  // 420ms — Success text slides up
   tl.fromTo(textEl,
-    { opacity: 0, y: 30 },
-    { opacity: 1, y: 0, duration: 0.45, ease: 'power3.out' },
-  'lid+=0.2')
+    { opacity: 0, y: 14 },
+    { opacity: 1, y: 0, duration: 0.4, ease: 'power3.out' },
+  0.42)
 
-  // 800ms — Particles burst from center
-  particles.forEach((p, i) => {
-    const angle = (i / particles.length) * Math.PI * 2 + (Math.random() - 0.5) * 0.4
-    const dist = 100 + Math.random() * 180
-    const endX = Math.cos(angle) * dist
-    const endY = Math.sin(angle) * dist - 40
-    const endRot = (Math.random() - 0.5) * 720
-    tl.fromTo(p,
-      { opacity: 1, x: 0, y: 0, scale: 1, rotation: 0 },
+  // 480ms — Particles rise naturally
+  particles.forEach(({ el, startX, startY }, i) => {
+    const delay = 0.48 + i * 0.025
+    const endY = -40 - Math.random() * 60
+    const driftX = (Math.random() - 0.5) * 40
+    tl.fromTo(el,
+      { opacity: 0.9, x: 0, y: 0 },
       {
-        opacity: 0, x: endX, y: endY,
-        scale: 0.2, rotation: endRot,
-        duration: 0.7,
-        ease: 'power2.out',
+        opacity: 0, x: driftX, y: endY,
+        duration: 0.6 + Math.random() * 0.3,
+        ease: 'power1.out',
       },
-      'burst'
-    )
+    delay)
   })
-  tl.fromTo({},
-    {},
-    { duration: 0.01 },
-    'burst'
-  )
 
-  // 1600ms — Everything fades out
-  tl.to([overlay, badge, textEl], {
-    opacity: 0, duration: 0.3, ease: 'power2.in',
+  // 1500ms — Border pulse on container
+  tl.to(container, {
+    boxShadow: '0 0 0 3px rgba(81,207,102,0.4), 0 0 20px rgba(81,207,102,0.2)',
+    duration: 0.25,
+    ease: 'power2.out',
+  }, 1.5)
+  tl.to(container, {
+    boxShadow: '0 0 0 1px rgba(245,166,35,0.06), 0 4px 24px rgba(245,166,35,0.06)',
+    duration: 0.5,
+    ease: 'power2.in',
+  }, 1.75)
+
+  // 1800ms — All elements fade out
+  tl.to([overlay, checkWrap, textEl], {
+    opacity: 0, duration: 0.35, ease: 'power2.in',
     onComplete: () => {
       overlay.remove()
-      badge.remove()
-      textEl.remove()
-      particles.forEach(p => p.remove())
+      particles.forEach(p => p.el.remove())
       step.value = 'done'
     }
-  }, '+=0.55')
+  }, '+=0.15')
 }
 
 // ── Turnstile ──────────────────────────────────────────────────────────
