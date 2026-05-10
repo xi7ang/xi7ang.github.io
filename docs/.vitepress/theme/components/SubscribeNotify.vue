@@ -12,14 +12,28 @@
       <div v-if="step === 'email'" class="notify-input-row">
         <div class="notify-input-wrap">
           <input
-            v-model="email"
+            v-model="localEmail"
             type="text"
-            placeholder="输入邮箱地址"
+            placeholder="输入邮箱"
             class="notify-input"
-            :class="{ shake: shaking, 'notify-input--error': touched && !emailValid }"
+            :class="{ shake: shaking }"
             @keydown.enter.prevent="handleAction"
+            @focus="inputFocused = true"
             @blur="onBlur"
+            @input="onEmailInput"
           />
+          <span class="notify-at">@</span>
+          <select v-model="suffix" class="notify-suffix" @focus="inputFocused = true" @blur="onBlur">
+            <option value="gmail.com">gmail.com</option>
+            <option value="qq.com">qq.com</option>
+            <option value="163.com">163.com</option>
+            <option value="outlook.com">outlook.com</option>
+            <option value="126.com">126.com</option>
+            <option value="hotmail.com">hotmail.com</option>
+            <option value="icloud.com">icloud.com</option>
+            <option value="yahoo.com">yahoo.com</option>
+            <option value="protonmail.com">protonmail.com</option>
+          </select>
         </div>
         <button
           class="notify-btn"
@@ -39,7 +53,7 @@
       <div v-if="step === 'code'" class="notify-code-row">
         <div class="notify-code-info">
           <span class="notify-code-hint">验证码已发送至</span>
-          <span class="notify-code-email">{{ email }}</span>
+          <span class="notify-code-email">{{ displayEmail }}</span>
         </div>
         <div class="notify-code-inputs">
           <input
@@ -76,6 +90,9 @@
         </div>
       </div>
 
+      <!-- Turnstile 验证码（用户输入邮箱时渲染，仅 Step 1 显示） -->
+      <div v-if="showTurnstile && step === 'email'" ref="turnstileRef" class="notify-turnstile"></div>
+
       <!-- 状态消息 -->
       <transition name="fade">
         <div v-if="message" class="notify-message" :class="messageType">
@@ -87,30 +104,42 @@
 </template>
 
 <script setup>
-import { ref, computed, nextTick } from 'vue'
+import { ref, computed, onUnmounted, nextTick } from 'vue'
 
-const email = ref('')
-const touched = ref(false)
+const localEmail = ref('')
+const suffix = ref('gmail.com')
 const step = ref('email') // email | code | success
 const status = ref('idle') // idle | loading
 const loading = computed(() => status.value === 'loading')
 const message = ref('')
 const messageType = ref('')
 const shaking = ref(false)
+const inputFocused = ref(false)
 const countDown = ref(0)
+const turnstileToken = ref('')
+const turnstileWidgetId = ref(null)
+const turnstileRef = ref(null)
+const showTurnstile = ref(false)
 const containerRef = ref(null)
 const codeInputs = ref([])
 const codeDigits = ref(['', '', '', '', '', ''])
 
 let countdownTimer = null
 
-function validateEmail(val) {
-  if (!val) return false
-  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  return re.test(val)
-}
+const displayEmail = computed(() => {
+  const e = localEmail.value.trim()
+  return e ? `${e}@${suffix.value}` : ''
+})
 
-const emailValid = computed(() => validateEmail(email.value))
+const email = computed(() => {
+  const e = localEmail.value.trim()
+  return e ? `${e}@${suffix.value}` : ''
+})
+
+const emailValid = computed(() => {
+  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  return re.test(email.value)
+})
 
 const codeStr = computed(() => codeDigits.value.join(''))
 
@@ -129,7 +158,7 @@ const btnDisabled = computed(() => {
 })
 
 function onBlur() {
-  touched.value = true
+  setTimeout(() => { inputFocused.value = false }, 200)
 }
 
 function triggerShake() {
@@ -189,7 +218,7 @@ async function requestCode() {
     const res = await fetch('https://subscribe-email.devmini.space/request-code', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: email.value })
+      body: JSON.stringify({ email: email.value, turnstileToken: turnstileToken.value || '' })
     })
     const data = await res.json().catch(() => ({}))
     if (res.ok && data.success) {
@@ -224,8 +253,9 @@ async function confirmSubscribe() {
     if (res.ok && data.success) {
       step.value = 'success'
       status.value = 'idle'
-      email.value = ''
+      localEmail.value = ''
       codeDigits.value = ['', '', '', '', '', '']
+      // Animate container shrink immediately, then show text
       nextTick(() => playSuccessAnimation())
     } else {
       showMsg(data.error || '订阅失败，请稍后重试')
@@ -498,6 +528,37 @@ function playSuccessAnimation() {
     }
   }, '+=0.55')
 }
+
+// ── Turnstile ──────────────────────────────────────────────────────────
+function initTurnstile() {
+  if (turnstileWidgetId.value !== null) return
+  const fn = window.turnstile
+  if (!fn || typeof fn.render !== 'function') return
+
+  turnstileWidgetId.value = fn.render(turnstileRef.value, {
+    sitekey: '0x4AAAAAADJOkTQV45736fjS',
+    callback: (token) => { turnstileToken.value = token },
+    'error-callback': () => { turnstileToken.value = '' },
+    'expired-callback': () => { turnstileToken.value = '' },
+    theme: 'light',
+    size: 'normal',
+  })
+}
+
+function onEmailInput() {
+  if (!showTurnstile.value) {
+    showTurnstile.value = true
+    setTimeout(initTurnstile, 0)
+  }
+}
+
+onUnmounted(() => {
+  const fn = window.turnstile
+  if (fn && turnstileWidgetId.value !== null) {
+    fn.remove(turnstileWidgetId.value)
+  }
+  if (countdownTimer) clearInterval(countdownTimer)
+})
 </script>
 
 <style scoped>
@@ -572,11 +633,9 @@ function playSuccessAnimation() {
 }
 
 .notify-at {
-  display: none;
-}
-
-.notify-suffix {
-  display: none;
+  color: var(--text-muted);
+  font-size: 16px;
+  flex-shrink: 0;
 }
 
 .notify-input {
@@ -598,10 +657,16 @@ function playSuccessAnimation() {
   animation: shake 0.4s ease;
 }
 
-.notify-input--error,
-.notify-input--error:focus {
-  border-color: #ff6b6b !important;
-  box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1) !important;
+.notify-suffix {
+  background: none;
+  border: none;
+  outline: none;
+  font-size: 13px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 4px 2px;
+  direction: ltr;
+  min-width: 80px;
 }
 
 /* ── Buttons ── */
@@ -829,6 +894,10 @@ function playSuccessAnimation() {
   .notify-input {
     padding: 12px 6px;
     font-size: 15px;
+  }
+
+  .notify-suffix {
+    font-size: 14px;
   }
 
   /* 验证码输入 */
