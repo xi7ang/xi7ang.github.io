@@ -293,6 +293,7 @@ function playSuccessAnimation() {
   const lottieContainer = document.createElement('div')
   lottieContainer.style.cssText = [
     'width:200px', 'height:200px', 'position:relative', 'z-index:1', 'flex-shrink:0',
+    'margin-right:-10px',
   ].join(';')
 
   const textEl = document.createElement('div')
@@ -302,6 +303,7 @@ function playSuccessAnimation() {
     'text-shadow:0 0 16px rgba(81,207,102,0.7)',
     'white-space:nowrap',
     'opacity:0',
+    'margin-left:-4px',
   ].join(';')
   textEl.textContent = '订阅成功！'
 
