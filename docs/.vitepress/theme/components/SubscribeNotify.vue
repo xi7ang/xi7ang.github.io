@@ -285,7 +285,7 @@ function playSuccessAnimation() {
     'position:fixed', 'pointer-events:none', 'z-index:9998',
     'left:0', 'top:0', 'width:100vw', 'height:100vh',
     'display:flex', 'flex-direction:row', 'align-items:center', 'justify-content:center',
-    'gap:20px',
+    'gap:10px',
     'opacity:0',
   ].join(';')
   document.body.appendChild(overlay)
@@ -301,18 +301,24 @@ function playSuccessAnimation() {
     'color:#51cf66',
     'text-shadow:0 0 16px rgba(81,207,102,0.7)',
     'white-space:nowrap',
-    'opacity:0',
+    'opacity:1',
   ].join(';')
   textEl.textContent = '订阅成功！'
 
   overlay.appendChild(lottieContainer)
   overlay.appendChild(textEl)
 
-  // Fade in overlay + text
+  // Fade in overlay
   const gsap = window.gsap
   if (gsap) {
-    gsap.to(overlay, { opacity: 1, duration: 0.25, ease: 'power2.out' })
-    gsap.to(textEl, { opacity: 1, duration: 0.3, delay: 0.15, ease: 'power2.out' })
+    gsap.fromTo(overlay,
+      { opacity: 0, scale: 0.88 },
+      { opacity: 1, scale: 1, duration: 0.35, ease: 'back.out(1.5)' }
+    )
+    gsap.fromTo(textEl,
+      { opacity: 0, scale: 0.88 },
+      { opacity: 1, scale: 1, duration: 0.35, ease: 'back.out(1.5)' }
+    )
   } else {
     overlay.style.opacity = '1'
     textEl.style.opacity = '1'
@@ -335,8 +341,8 @@ function playSuccessAnimation() {
       // Brief pause on complete frame, then fade out
       setTimeout(() => {
         if (gsap) {
-          gsap.to(overlay, {
-            opacity: 0, scale: 0.92, duration: 0.3, ease: 'power2.in',
+          gsap.to([overlay, textEl], {
+            opacity: 0, scale: 0.88, duration: 0.3, ease: 'power2.in',
             onComplete: () => {
               container.remove()
               overlay.remove()
