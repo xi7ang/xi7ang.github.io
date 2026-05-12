@@ -1,10 +1,34 @@
 {
-  "book": {"file": "202604.md", "line": 31},
-  "curriculum": {"file": "202604.md", "line": 2},
-  "edu-knowlege": {"file": "202604.md", "line": 6},
-  "games": {"file": "202605.md", "line": 7},
-  "healthy": {"file": "202604.md", "line": 1},
-  "movies": {"file": "202604.md", "line": 11},
-  "self-media": {"file": "202604.md", "line": 8},
-  "tools": {"file": "202605.md", "line": 4}
+  "book": {
+    "file": "202604.md",
+    "line": 31
+  },
+  "curriculum": {
+    "file": "202604.md",
+    "line": 2
+  },
+  "edu-knowlege": {
+    "file": "202604.md",
+    "line": 6
+  },
+  "games": {
+    "file": "202605.md",
+    "line": 7
+  },
+  "healthy": {
+    "file": "202604.md",
+    "line": 1
+  },
+  "movies": {
+    "file": "202604.md",
+    "line": 11
+  },
+  "self-media": {
+    "file": "202604.md",
+    "line": 8
+  },
+  "tools": {
+    "file": "202605.md",
+    "line": 4
+  }
 }
