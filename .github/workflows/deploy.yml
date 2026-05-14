@@ -74,6 +74,18 @@ jobs:
           # Run the content synchronization
           bash ./copy_content.sh
 
+      - name: Commit synced content back to repository
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/
+          if git diff --cached --quiet; then
+            echo "No content changes to commit"
+          else
+            git commit -m "chore: sync site content from content repos $(date -u +%Y%m%d%H%M%S)"
+            git push origin main
+          fi
+
       - name: Fetch latest commits
         run: npm run fetch-commits
 
