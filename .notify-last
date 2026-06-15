@@ -4,8 +4,8 @@
     "line": 1
   },
   "curriculum": {
-    "file": "202604.md",
-    "line": 2
+    "file": "202606.md",
+    "line": 1
   },
   "edu-knowlege": {
     "file": "202604.md",
@@ -13,10 +13,10 @@
   },
   "games": {
     "file": "202606.md",
-    "line": 9
+    "line": 17
   },
   "healthy": {
-    "file": "202604.md",
+    "file": "202606.md",
     "line": 1
   },
   "movies": {
@@ -29,6 +29,6 @@
   },
   "tools": {
     "file": "202606.md",
-    "line": 8
+    "line": 10
   }
 }
