@@ -5,7 +5,7 @@
 
 ----------------
 
-<ResourceTabs category="book" :months="['202605', '202604', '202603']" />
+<ResourceTabs category="book" :months="['202606', '202605', '202604', '202603']" />
 
 
 ---------------
