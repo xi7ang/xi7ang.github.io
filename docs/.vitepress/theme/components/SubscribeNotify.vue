@@ -4,6 +4,17 @@
     <div v-if="step !== 'success'" class="notify-header" style="text-align: center;">
       <span class="notify-icon">📬</span>
       <span class="notify-title">订阅资源更新通知</span>
+      <span
+        class="help-btn"
+        @mouseenter="showTooltip"
+        @mousemove="moveTooltip"
+        @mouseleave="hideTooltip"
+      >ⓘ</span>
+      <div v-if="tooltipVisible" class="help-tooltip" :style="{ left: tooltipX + 'px', top: tooltipY + 'px' }">
+        <div class="help-tooltip__item"><strong>📌 这是什么？</strong>订阅资源更新通知服务，新资源上架后第一时间推送给你。</div>
+        <div class="help-tooltip__item"><strong>💡 为什么订阅？</strong>不错过任何优质资源更新，无需反复手动刷新。</div>
+        <div class="help-tooltip__item"><strong>✉️ 怎么做？</strong>输入邮箱 → 获取验证码 → 确认订阅，三步完成。</div>
+      </div>
     </div>
 
     <!-- 订阅表单 -->
@@ -123,6 +134,23 @@ const showTurnstile = ref(false)
 const containerRef = ref(null)
 const codeInputs = ref([])
 const codeDigits = ref(['', '', '', '', '', ''])
+
+const tooltipVisible = ref(false)
+const tooltipX = ref(0)
+const tooltipY = ref(0)
+
+function showTooltip() {
+  tooltipVisible.value = true
+}
+
+function moveTooltip(e) {
+  tooltipX.value = e.clientX + 12
+  tooltipY.value = e.clientY + 12
+}
+
+function hideTooltip() {
+  tooltipVisible.value = false
+}
 
 let countdownTimer = null
 
@@ -478,6 +506,50 @@ onUnmounted(() => {
   font-weight: 700;
   color: var(--accent-gold);
   letter-spacing: 0.3px;
+}
+
+/* ── 帮助按钮 ── */
+.help-btn {
+  font-size: 14px;
+  cursor: pointer;
+  color: rgba(128,128,128,0.55);
+  line-height: 1;
+  transition: color 0.2s;
+  user-select: none;
+}
+
+.help-btn:hover {
+  color: rgba(128,128,128,0.85);
+}
+
+/* ── 工具提示 ── */
+.help-tooltip {
+  position: fixed;
+  z-index: 9999;
+  background: #fff;
+  color: #222;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 10px 14px;
+  width: 260px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+  pointer-events: none;
+  font-size: 12px;
+  line-height: 1.6;
+  text-align: left;
+}
+
+.help-tooltip__item {
+  margin-bottom: 6px;
+}
+
+.help-tooltip__item:last-child {
+  margin-bottom: 0;
+}
+
+.help-tooltip__item strong {
+  font-weight: 700;
+  margin-right: 2px;
 }
 
 .notify-desc {
