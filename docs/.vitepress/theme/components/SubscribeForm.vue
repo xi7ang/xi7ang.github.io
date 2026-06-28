@@ -101,8 +101,8 @@
       </div>
     </div>
 
-    <!-- Turnstile container (invisible) -->
-    <div id="turnstile-container" class="subscribe-form__turnstile" :class="{ 'hidden': step !== 'email' }"></div>
+    <!-- Turnstile disabled -->
+    <div style="display:none"></div>
   </div>
 </template>
 
@@ -118,9 +118,6 @@ const successMsg = ref('')
 const shaking = ref(false)
 const inputFocused = ref(false)
 const countDown = ref(0)
-const turnstileToken = ref('')
-const turnstileWidgetId = ref(null)
-const turnstileContainer = ref(null)
 const codeInputs = ref([])
 const codeDigits = ref(['', '', '', '', '', ''])
 
@@ -214,7 +211,7 @@ async function requestCode() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         email: email.value,
-        turnstileToken: turnstileToken.value || ''
+        turnstileToken: ''
       })
     })
     const data = await res.json().catch(() => ({}))
@@ -289,33 +286,7 @@ async function resendCode() {
   await requestCode()
 }
 
-// ── Turnstile ─────────────────────────────────────────────────────────────
-
-onMounted(() => {
-  function tryInit() {
-    const fn = (window as any).turnstile
-    if (fn && typeof fn.render === 'function') {
-      turnstileWidgetId.value = fn.render('#turnstile-container', {
-        sitekey: '0x4AAAAAADJOkTQV45736fjS',
-        callback: (token: string) => { turnstileToken.value = token },
-        'error-callback': () => { turnstileToken.value = '' },
-        'expired-callback': () => { turnstileToken.value = '' },
-        theme: 'dark',
-        size: 'compact',
-      })
-    } else {
-      requestAnimationFrame(tryInit)
-    }
-  }
-  requestAnimationFrame(tryInit)
-})
-
-onUnmounted(() => {
-  const fn = (window as any).turnstile
-  if (fn && turnstileWidgetId.value !== null) {
-    fn.remove(turnstileWidgetId.value)
-  }
-})
+// Turnstile disabled
 </script>
 
 <style scoped>

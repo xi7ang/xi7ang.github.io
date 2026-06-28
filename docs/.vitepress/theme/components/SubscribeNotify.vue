@@ -102,8 +102,8 @@
         </div>
       </div>
 
-      <!-- Turnstile 验证码（用户输入邮箱时渲染，仅 Step 1 显示） -->
-      <div v-if="showTurnstile && step === 'email'" ref="turnstileRef" class="notify-turnstile"></div>
+      <!-- Turnstile 验证码（已关闭） -->
+      <div style="display:none"></div>
 
       <!-- 状态消息 -->
       <transition name="fade">
@@ -127,9 +127,6 @@ const messageType = ref('')
 const shaking = ref(false)
 const inputFocused = ref(false)
 const countDown = ref(0)
-const turnstileToken = ref('')
-const turnstileWidgetId = ref(null)
-const turnstileRef = ref(null)
 const showTurnstile = ref(false)
 const containerRef = ref(null)
 const codeInputs = ref([])
@@ -259,7 +256,7 @@ async function requestCode() {
     const res = await fetch('https://subscribe-email.devmini.space/request-code', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: email.value, turnstileToken: turnstileToken.value || '' })
+      body: JSON.stringify({ email: email.value, turnstileToken: '' })
     })
     const data = await res.json().catch(() => ({}))
     if (res.ok && data.success) {
@@ -444,33 +441,11 @@ function playSuccessAnimation() {
 }
 
 // ── Turnstile ──────────────────────────────────────────────────────────
-function initTurnstile() {
-  if (turnstileWidgetId.value !== null) return
-  const fn = window.turnstile
-  if (!fn || typeof fn.render !== 'function') return
+// Turnstile disabled
 
-  turnstileWidgetId.value = fn.render(turnstileRef.value, {
-    sitekey: '0x4AAAAAADJOkTQV45736fjS',
-    callback: (token) => { turnstileToken.value = token },
-    'error-callback': () => { turnstileToken.value = '' },
-    'expired-callback': () => { turnstileToken.value = '' },
-    theme: 'light',
-    size: 'normal',
-  })
-}
-
-function onEmailInput() {
-  if (!showTurnstile.value) {
-    showTurnstile.value = true
-    setTimeout(initTurnstile, 0)
-  }
-}
+// Turnstile disabled
 
 onUnmounted(() => {
-  const fn = window.turnstile
-  if (fn && turnstileWidgetId.value !== null) {
-    fn.remove(turnstileWidgetId.value)
-  }
   if (countdownTimer) clearInterval(countdownTimer)
 })
 </script>
@@ -803,13 +778,6 @@ onUnmounted(() => {
 }
 
 /* ── Turnstile ── */
-.notify-turnstile {
-  display: flex;
-  justify-content: center;
-  min-height: 65px;
-  align-items: center;
-}
-
 /* ── Messages ── */
 .notify-message {
   text-align: center;
