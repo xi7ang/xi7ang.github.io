@@ -561,6 +561,8 @@ onUnmounted(() => {
   z-index: 0;
   background: linear-gradient(180deg, #1b2838 0%, #2a475e 50%, #1b2838 100%);
   overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .home {
