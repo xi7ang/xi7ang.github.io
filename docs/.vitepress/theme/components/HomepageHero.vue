@@ -1,7 +1,41 @@
 <template>
   <div class="home">
 
-    <!-- ── Masthead ── -->
+    <!-- ── 全页背景：游戏封面墙 ── -->
+    <div class="page-bg">
+      <div class="game-wall">
+        <div class="game-wall__track" :style="{ animationDuration: wallDuration }">
+          <template v-for="(row, ri) in gameRows" :key="'a' + ri">
+            <div class="game-wall__row" :style="{ marginLeft: rowMargin(ri) }">
+              <div
+                v-for="game in row"
+                :key="game.name + 'a' + ri"
+                class="game-tile"
+                :style="{ background: game.bg || '#2a475e' }"
+              >
+                <img v-if="game.img" :src="game.img" :alt="game.name" class="game-tile__img" loading="lazy" />
+                <span v-else class="game-tile__name">{{ game.short }}</span>
+              </div>
+            </div>
+          </template>
+          <!-- 副本：无缝循环 -->
+          <template v-for="(row, ri) in gameRows" :key="'b' + ri">
+            <div class="game-wall__row" :style="{ marginLeft: rowMargin(ri) }">
+              <div
+                v-for="game in row"
+                :key="game.name + 'b' + ri"
+                class="game-tile"
+                :style="{ background: game.bg || '#2a475e' }"
+              >
+                <img v-if="game.img" :src="game.img" :alt="game.name" class="game-tile__img" loading="lazy" />
+                <span v-else class="game-tile__name">{{ game.short }}</span>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+      <div class="page-bg__overlay"></div>
+    </div>
     <header class="masthead">
       <div class="masthead__inner">
         <a href="/" class="brand">
@@ -31,40 +65,6 @@
 
     <!-- ── Hero ── -->
     <section class="hero">
-      <div class="hero__bg">
-        <div class="game-wall">
-          <div class="game-wall__track" :style="{ animationDuration: wallDuration }">
-            <template v-for="(row, ri) in gameRows" :key="'a' + ri">
-              <div class="game-wall__row" :style="{ marginLeft: rowMargin(ri) }">
-                <div
-                  v-for="game in row"
-                  :key="game.name + 'a' + ri"
-                  class="game-tile"
-                  :style="{ background: game.bg || '#2a475e' }"
-                >
-                  <img v-if="game.img" :src="game.img" :alt="game.name" class="game-tile__img" loading="lazy" />
-                  <span v-else class="game-tile__name">{{ game.short }}</span>
-                </div>
-              </div>
-            </template>
-            <!-- 副本：无缝循环 -->
-            <template v-for="(row, ri) in gameRows" :key="'b' + ri">
-              <div class="game-wall__row" :style="{ marginLeft: rowMargin(ri) }">
-                <div
-                  v-for="game in row"
-                  :key="game.name + 'b' + ri"
-                  class="game-tile"
-                  :style="{ background: game.bg || '#2a475e' }"
-                >
-                  <img v-if="game.img" :src="game.img" :alt="game.name" class="game-tile__img" loading="lazy" />
-                  <span v-else class="game-tile__name">{{ game.short }}</span>
-                </div>
-              </div>
-            </template>
-          </div>
-        </div>
-        <div class="hero__bg-overlay"></div>
-      </div>
       <div class="hero__inner">
         <div class="hero__eyebrow">
           <span>✨</span>
@@ -305,11 +305,11 @@ function shuffle(arr) {
   return a
 }
 
-const gameRows = Array.from({ length: 6 }, () => shuffle(gameCovers))
-const wallDuration = `${gameCovers.length * 3}s`
+const gameRows = Array.from({ length: 12 }, () => shuffle(gameCovers))
+const wallDuration = `${gameCovers.length * 3.5}s`
 
 function rowMargin(ri) {
-  return (ri % 2 === 0 ? '-40px' : '40px')
+  return (ri % 2 === 0 ? '-30px' : '30px')
 }
 
 // ── Search State ──
@@ -552,68 +552,58 @@ onUnmounted(() => {
   50% { opacity: 1; }
 }
 
-/* ── 游戏封面墙 ── */
-.hero {
-  position: relative;
-  z-index: 0;
-}
-
-.hero__bg {
-  position: absolute;
+/* ── 全页游戏封面墙 ── */
+.page-bg {
+  position: fixed;
   inset: 0;
   z-index: 0;
-  background: linear-gradient(135deg, #1b2838 0%, #2a475e 50%, #1b2838 100%);
+  background: linear-gradient(180deg, #1b2838 0%, #2a475e 50%, #1b2838 100%);
   overflow: hidden;
-  perspective: 700px;
-  perspective-origin: 50% 100%;
 }
 
-.hero__inner {
+.home {
   position: relative;
   z-index: 1;
 }
 
 .game-wall {
   position: absolute;
-  left: 50%;
-  bottom: -60px;
-  transform: translateX(-50%) rotateX(58deg);
-  transform-origin: bottom center;
-  width: 1100px;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 20px;
 }
 
 .game-wall__track {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  animation: wall-scroll 60s linear infinite;
+  gap: 8px;
+  animation: wall-scroll 120s linear infinite;
   will-change: transform;
-}
-
-.hero__bg:hover .game-wall__track {
-  animation-play-state: paused;
+  width: 100%;
+  max-width: 1200px;
 }
 
 .game-wall__row {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   justify-content: center;
   width: 100%;
 }
 
 .game-tile {
-  width: 165px;
-  height: 62px;
+  width: 160px;
+  height: 60px;
   border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0.45;
-  border: 1px solid rgba(255,255,255,0.06);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  opacity: 0.35;
+  border: 1px solid rgba(255,255,255,0.05);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
   flex-shrink: 0;
   overflow: hidden;
-  transition: opacity 0.3s;
 }
 
 .game-tile__img {
@@ -634,15 +624,16 @@ onUnmounted(() => {
   white-space: nowrap;
 }
 
-.hero__bg-overlay {
+.page-bg__overlay {
   position: absolute;
   inset: 0;
   z-index: 1;
   background: linear-gradient(
     to bottom,
-    rgba(27,40,56,0.85) 0%,
-    rgba(27,40,56,0.4) 40%,
-    rgba(27,40,56,0.85) 100%
+    rgba(27,40,56,0.88) 0%,
+    rgba(27,40,56,0.35) 30%,
+    rgba(27,40,56,0.35) 70%,
+    rgba(27,40,56,0.88) 100%
   );
   pointer-events: none;
 }
