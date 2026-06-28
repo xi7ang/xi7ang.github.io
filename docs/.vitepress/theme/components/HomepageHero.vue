@@ -17,7 +17,7 @@
                 class="game-tile"
                 :style="{ background: game.bg || '#2a475e' }"
               >
-                <img v-if="game.img" :src="game.img" :alt="game.name" class="game-tile__img" loading="lazy" />
+                <img v-if="game.img" :src="game.img" :alt="game.name" class="game-tile__img" loading="lazy" draggable="false" />
                 <span v-else class="game-tile__name">{{ game.short }}</span>
               </div>
             </div>
@@ -625,6 +625,9 @@ onUnmounted(() => {
   height: 100%;
   object-fit: cover;
   display: block;
+  -webkit-user-drag: none;
+  user-drag: none;
+  pointer-events: none;
 }
 
 .game-tile__name {
