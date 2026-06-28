@@ -657,6 +657,35 @@ onUnmounted(() => {
   background: var(--bg-card);
 }
 
+/* ── 强制深色文字配色（不随主题变化） ── */
+.section-ttl {
+  color: #F0EBE1 !important;
+}
+
+.section-sub {
+  color: #8A8A99 !important;
+}
+
+.site-footer {
+  color: #8A8A99 !important;
+}
+
+.footer-desc {
+  color: #55555F !important;
+}
+
+.footer-links a {
+  color: #8A8A99 !important;
+}
+
+.footer-copy {
+  color: #55555F !important;
+}
+
+.footer-inner .brand__name {
+  color: #F0EBE1 !important;
+}
+
 
 /* Site Footer */
 .site-footer {
