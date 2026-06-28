@@ -4,26 +4,16 @@
     <!-- ── 全页背景：游戏封面墙 ── -->
     <div class="page-bg">
       <div class="game-wall">
-        <div class="game-wall__track" :style="{ animationDuration: wallDuration }">
-          <template v-for="(row, ri) in gameRows" :key="'a' + ri">
-            <div class="game-wall__row" :style="{ marginLeft: rowMargin(ri) }">
+        <div class="game-wall__track">
+          <template v-for="(row, ri) in gameRows" :key="ri">
+            <div
+              class="game-wall__row"
+              :class="ri % 2 === 0 ? 'scroll-left' : 'scroll-right'"
+              :style="{ animationDuration: rowSpeed + 's', marginLeft: rowMargin(ri) }"
+            >
               <div
-                v-for="game in row"
-                :key="game.name + 'a' + ri"
-                class="game-tile"
-                :style="{ background: game.bg || '#2a475e' }"
-              >
-                <img v-if="game.img" :src="game.img" :alt="game.name" class="game-tile__img" loading="lazy" />
-                <span v-else class="game-tile__name">{{ game.short }}</span>
-              </div>
-            </div>
-          </template>
-          <!-- 副本：无缝循环 -->
-          <template v-for="(row, ri) in gameRows" :key="'b' + ri">
-            <div class="game-wall__row" :style="{ marginLeft: rowMargin(ri) }">
-              <div
-                v-for="game in row"
-                :key="game.name + 'b' + ri"
+                v-for="(game, gi) in [...row, ...row]"
+                :key="'t' + ri + '_' + gi"
                 class="game-tile"
                 :style="{ background: game.bg || '#2a475e' }"
               >
@@ -301,7 +291,7 @@ function shuffle(arr) {
 }
 
 const gameRows = Array.from({ length: 12 }, () => shuffle(gameCovers))
-const wallDuration = `${gameCovers.length * 5}s`
+const rowSpeed = gameCovers.length * 2.5
 
 function rowMargin(ri) {
   return (ri % 2 === 0 ? '-35px' : '35px')
@@ -577,16 +567,34 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  animation: wall-scroll 100s linear infinite;
   will-change: transform;
   width: 100%;
+  overflow: hidden;
 }
 
 .game-wall__row {
   display: flex;
   gap: 8px;
-  justify-content: center;
-  width: 100%;
+  width: max-content;
+  will-change: transform;
+}
+
+.game-wall__row.scroll-left {
+  animation: scroll-left 32s linear infinite;
+}
+
+.game-wall__row.scroll-right {
+  animation: scroll-right 32s linear infinite;
+}
+
+@keyframes scroll-left {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes scroll-right {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0); }
 }
 
 .game-tile {
@@ -640,10 +648,6 @@ onUnmounted(() => {
   background: rgba(27,40,56,0.82);
 }
 
-@keyframes wall-scroll {
-  0% { transform: translateY(0); }
-  100% { transform: translateY(-50%); }
-}
 
 /* Site Footer */
 .site-footer {
