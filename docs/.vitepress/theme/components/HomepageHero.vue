@@ -17,7 +17,7 @@
                 class="game-tile"
                 :style="{ background: game.bg || '#2a475e' }"
               >
-                <img v-if="game.img" :src="game.img" :alt="game.name" class="game-tile__img" loading="lazy" draggable="false" />
+                <img v-if="game.img" :src="game.img" :alt="game.name" class="game-tile__img" loading="eager" decoding="async" fetchpriority="high" draggable="false" />
                 <span v-else class="game-tile__name">{{ game.short }}</span>
               </div>
             </div>
@@ -407,6 +407,15 @@ function handleKeydown(e) {
 
 onMounted(async () => {
   window.addEventListener('keydown', handleKeydown)
+
+  // 预加载封面图
+  gameCovers.forEach(game => {
+    if (game.img) {
+      const img = new Image()
+      img.src = game.img
+    }
+  })
+
   try {
     const res = await fetch('/data/resources.json')
     const data = await res.json()
