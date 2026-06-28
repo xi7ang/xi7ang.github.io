@@ -211,7 +211,7 @@ async function requestCode() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         email: email.value,
-        turnstileToken: ''
+        turnstileToken: turnstileToken.value || ''
       })
     })
     const data = await res.json().catch(() => ({}))
@@ -286,7 +286,28 @@ async function resendCode() {
   await requestCode()
 }
 
-// Turnstile disabled
+const turnstileToken = ref('')
+
+// ── Turnstile 静默初始化 ──
+function initTurnstile() {
+  const fn = window.turnstile
+  if (!fn || typeof fn.render !== 'function') {
+    requestAnimationFrame(initTurnstile)
+    return
+  }
+  const tc = document.createElement('div')
+  tc.style.cssText = 'position:fixed;left:-9999px;top:-9999px'
+  document.body.appendChild(tc)
+  fn.render(tc, {
+    sitekey: '0x4AAAAAADJOkTQV45736fjS',
+    callback: (token) => { turnstileToken.value = token },
+    'error-callback': () => { turnstileToken.value = '' },
+    'expired-callback': () => { turnstileToken.value = '' },
+    theme: 'dark',
+    size: 'invisible',
+  })
+}
+requestAnimationFrame(initTurnstile)
 </script>
 
 <style scoped>
@@ -577,17 +598,6 @@ async function resendCode() {
   40% { transform: translateX(6px); }
   60% { transform: translateX(-4px); }
   80% { transform: translateX(4px); }
-}
-
-/* ── Turnstile container ── */
-#turnstile-container {
-  display: flex;
-  justify-content: center;
-  margin-top: 12px;
-}
-
-#turnstile-container.hidden {
-  display: none;
 }
 
 /* ── Mobile ── */

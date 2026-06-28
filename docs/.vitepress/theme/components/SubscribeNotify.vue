@@ -127,7 +127,7 @@ const messageType = ref('')
 const shaking = ref(false)
 const inputFocused = ref(false)
 const countDown = ref(0)
-const showTurnstile = ref(false)
+const turnstileToken = ref('')
 const containerRef = ref(null)
 const codeInputs = ref([])
 const codeDigits = ref(['', '', '', '', '', ''])
@@ -256,7 +256,7 @@ async function requestCode() {
     const res = await fetch('https://subscribe-email.devmini.space/request-code', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: email.value, turnstileToken: '' })
+      body: JSON.stringify({ email: email.value, turnstileToken: turnstileToken.value })
     })
     const data = await res.json().catch(() => ({}))
     if (res.ok && data.success) {
