@@ -56,11 +56,6 @@
     <!-- ── Hero ── -->
     <section class="hero">
       <div class="hero__inner">
-        <div class="hero__eyebrow">
-          <span>✨</span>
-          <span>超过 1000+ 精选资源,持续更新</span>
-        </div>
-
         <h1 class="hero__title">
           发现全网<br><em>优质网盘资源</em>
         </h1>
@@ -554,9 +549,6 @@ onUnmounted(() => {
 }
 
 /* ── Hero 文字强制深色主题配色 ── */
-.hero__eyebrow {
-  color: rgba(255,255,255,0.55) !important;
-}
 
 .hero__title {
   color: #e8e8e8 !important;
