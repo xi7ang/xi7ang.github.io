@@ -305,11 +305,11 @@ function shuffle(arr) {
   return a
 }
 
-const gameRows = Array.from({ length: 18 }, () => shuffle(gameCovers))
-const wallDuration = `${gameCovers.length * 7}s`
+const gameRows = Array.from({ length: 12 }, () => shuffle(gameCovers))
+const wallDuration = `${gameCovers.length * 5}s`
 
 function rowMargin(ri) {
-  return (ri % 2 === 0 ? '-20px' : '20px')
+  return (ri % 2 === 0 ? '-35px' : '35px')
 }
 
 // ── Search State ──
@@ -579,22 +579,22 @@ onUnmounted(() => {
 .game-wall__track {
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  animation: wall-scroll 180s linear infinite;
+  gap: 8px;
+  animation: wall-scroll 100s linear infinite;
   will-change: transform;
   width: 100%;
 }
 
 .game-wall__row {
   display: flex;
-  gap: 3px;
+  gap: 8px;
   justify-content: center;
   width: 100%;
 }
 
 .game-tile {
-  width: 150px;
-  height: 56px;
+  width: 160px;
+  height: 60px;
   border-radius: 4px;
   display: flex;
   align-items: center;
