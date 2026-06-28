@@ -31,7 +31,38 @@
 
     <!-- ── Hero ── -->
     <section class="hero">
-      <div class="hero__bg"></div>
+      <div class="hero__bg">
+        <div class="game-wall">
+          <div class="game-wall__track" :style="{ animationDuration: wallDuration }">
+            <template v-for="(row, ri) in gameRows" :key="'a' + ri">
+              <div class="game-wall__row">
+                <div
+                  v-for="game in row"
+                  :key="game.name + 'a' + ri"
+                  class="game-tile"
+                  :style="{ background: game.bg }"
+                >
+                  <span class="game-tile__name">{{ game.short }}</span>
+                </div>
+              </div>
+            </template>
+            <!-- 副本：无缝循环 -->
+            <template v-for="(row, ri) in gameRows" :key="'b' + ri">
+              <div class="game-wall__row">
+                <div
+                  v-for="game in row"
+                  :key="game.name + 'b' + ri"
+                  class="game-tile"
+                  :style="{ background: game.bg }"
+                >
+                  <span class="game-tile__name">{{ game.short }}</span>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+        <div class="hero__bg-overlay"></div>
+      </div>
       <div class="hero__inner">
         <div class="hero__eyebrow">
           <span>✨</span>
@@ -238,6 +269,43 @@ const CAT_COLORS = {
   'healthy': '#4AD4A5', 'self-media': '#D44AE4', 'edu-knowlege': '#4A9AE4',
   'chinese-traditional': '#C47A4A', 'cross-border': '#7AE44A', 'auto': '#888899'
 }
+
+// ── 游戏封面墙 ──
+const gameCovers = [
+  { name: 'GTA5', short: 'GTA5', bg: 'linear-gradient(135deg, #e67e22, #1a1a2e)' },
+  { name: '赛博朋克2077', short: '赛博朋克', bg: 'linear-gradient(135deg, #f1c40f, #00bfff)' },
+  { name: '红色警戒', short: '红色警戒', bg: 'linear-gradient(135deg, #c0392b, #2c3e50)' },
+  { name: '歧路旅人', short: '歧路旅人', bg: 'linear-gradient(135deg, #8e44ad, #f39c12)' },
+  { name: '怪物猎人', short: '怪物猎人', bg: 'linear-gradient(135deg, #e74c3c, #2c3e50)' },
+  { name: '孤胆枪手', short: '孤胆枪手', bg: 'linear-gradient(135deg, #7f8c8d, #c0392b)' },
+  { name: '下一站江湖', short: '下一站江湖', bg: 'linear-gradient(135deg, #27ae60, #1a5276)' },
+  { name: '诺兰德', short: '诺兰德', bg: 'linear-gradient(135deg, #8e44ad, #1a1a2e)' },
+  { name: '九王', short: '九王', bg: 'linear-gradient(135deg, #d4a017, #4a2c0a)' },
+  { name: 'CarX街头赛车', short: 'CarX', bg: 'linear-gradient(135deg, #3498db, #1a5276)' },
+  { name: '黑洞钓鱼', short: '黑洞钓鱼', bg: 'linear-gradient(135deg, #0a192f, #1b4965)' },
+  { name: '威赫战线', short: '威赫战线', bg: 'linear-gradient(135deg, #2c3e50, #8e44ad)' },
+  { name: '英雄闪电战', short: '英雄闪电', bg: 'linear-gradient(135deg, #f39c12, #c0392b)' },
+  { name: '超级变色龙', short: '超级变色', bg: 'linear-gradient(135deg, #2ecc71, #00bfff)' },
+  { name: '福瑞试练', short: '福瑞试练', bg: 'linear-gradient(135deg, #e91e9b, #9b59b6)' },
+  { name: '宝可梦', short: '宝可梦', bg: 'linear-gradient(135deg, #e74c3c, #f1c40f)' },
+  { name: '料理手推车', short: '料理手推', bg: 'linear-gradient(135deg, #e67e22, #f1c40f)' },
+  { name: '秋叶原盲盒', short: '秋叶原盲', bg: 'linear-gradient(135deg, #e91e9b, #3498db)' },
+  { name: '危险节奏2', short: '危险节奏', bg: 'linear-gradient(135deg, #e74c3c, #2ecc71)' },
+  { name: '地精捣蛋团', short: '地精捣蛋', bg: 'linear-gradient(135deg, #27ae60, #8e44ad)' },
+]
+
+// 随机排列一行
+function shuffle(arr) {
+  const a = [...arr]
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
+}
+
+const gameRows = Array.from({ length: 6 }, () => shuffle(gameCovers))
+const wallDuration = `${gameCovers.length * 3}s`
 
 // ── Search State ──
 const searchQuery = ref('')
@@ -477,6 +545,106 @@ onUnmounted(() => {
 @keyframes skeleton-pulse {
   0%, 100% { opacity: 0.5; }
   50% { opacity: 1; }
+}
+
+/* ── 游戏封面墙 ── */
+.hero {
+  position: relative;
+  z-index: 0;
+}
+
+.hero__bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: linear-gradient(135deg, #1b2838 0%, #2a475e 50%, #1b2838 100%);
+  overflow: hidden;
+  perspective: 700px;
+  perspective-origin: 50% 100%;
+}
+
+.hero__inner {
+  position: relative;
+  z-index: 1;
+}
+
+.game-wall {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #1b2838 0%, #2a475e 50%, #1b2838 100%);
+  overflow: hidden;
+  perspective: 700px;
+  perspective-origin: 50% 100%;
+}
+
+.game-wall {
+  position: absolute;
+  left: 50%;
+  bottom: -60px;
+  transform: translateX(-50%) rotateX(58deg);
+  transform-origin: bottom center;
+  width: 900px;
+}
+
+.game-wall__track {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: wall-scroll 60s linear infinite;
+  will-change: transform;
+}
+
+.hero__bg:hover .game-wall__track {
+  animation-play-state: paused;
+}
+
+.game-wall__row {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  width: 100%;
+}
+
+.game-tile {
+  width: 145px;
+  height: 55px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.4;
+  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  flex-shrink: 0;
+  transition: opacity 0.3s;
+}
+
+.game-tile__name {
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+  text-align: center;
+  line-height: 1.2;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.hero__bg-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(27,40,56,0.85) 0%,
+    rgba(27,40,56,0.5) 40%,
+    rgba(27,40,56,0.85) 100%
+  );
+  pointer-events: none;
+}
+
+@keyframes wall-scroll {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-50%); }
 }
 
 /* Site Footer */
