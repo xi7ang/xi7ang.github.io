@@ -141,6 +141,7 @@
     </section>
 
     <!-- ── Main Content: 最近更新 + 全部分类 ── -->
+    <div class="content-area">
     <div class="container">
       <!-- 最近更新 -->
       <div class="section-divider"></div>
@@ -232,6 +233,7 @@
         </div>
       </div>
     </footer>
+    </div><!-- /content-area -->
 
   </div>
 </template>
@@ -636,6 +638,11 @@ onUnmounted(() => {
     rgba(27,40,56,0.92) 100%
   );
   pointer-events: none;
+}
+
+/* ── 内容区背景 ── */
+.content-area {
+  background: rgba(27,40,56,0.82);
 }
 
 @keyframes wall-scroll {
