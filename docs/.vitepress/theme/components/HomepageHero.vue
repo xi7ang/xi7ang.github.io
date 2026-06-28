@@ -553,6 +553,23 @@ onUnmounted(() => {
   z-index: 1;
 }
 
+/* ── Hero 文字强制深色主题配色 ── */
+.hero__eyebrow {
+  color: rgba(255,255,255,0.55) !important;
+}
+
+.hero__title {
+  color: #e8e8e8 !important;
+}
+
+.hero__title em {
+  color: #F5A623 !important;
+}
+
+.hero__subtitle {
+  color: rgba(255,255,255,0.5) !important;
+}
+
 .game-wall {
   position: absolute;
   inset: -10% -5%;
