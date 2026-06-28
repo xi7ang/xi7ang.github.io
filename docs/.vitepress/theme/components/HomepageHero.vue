@@ -645,7 +645,7 @@ onUnmounted(() => {
 
 /* ── 内容区背景 ── */
 .content-area {
-  background: rgba(27,40,56,0.82);
+  background: var(--bg-card);
 }
 
 
