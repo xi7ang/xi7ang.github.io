@@ -130,7 +130,7 @@
     <div class="container">
       <!-- 最近更新 -->
       <div class="section-divider"></div>
-      <section class="section">
+      <section class="section content-section">
         <div class="section-head">
           <h2 class="section-ttl">最近更新</h2>
           <span class="section-sub">按更新时间倒序</span>
@@ -150,7 +150,7 @@
 
       <!-- 全部分类 -->
       <div class="section-divider"></div>
-      <section id="categories-section" class="section">
+      <section id="categories-section" class="section content-section">
         <div class="section-head">
           <h2 class="section-ttl">全部分类</h2>
           <span class="section-sub">{{ filteredCatList.length }} 个分类</span>
@@ -654,6 +654,11 @@ onUnmounted(() => {
 
 /* ── 内容区背景 ── */
 .content-area {
+  background: var(--bg-card);
+  min-height: 200px;
+}
+
+.content-section {
   background: var(--bg-card);
 }
 
