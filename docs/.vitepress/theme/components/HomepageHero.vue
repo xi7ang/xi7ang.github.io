@@ -276,26 +276,26 @@ const CAT_COLORS = {
 
 // ── 游戏封面墙 ──
 const gameCovers = [
+  { name: '反恐精英2', short: 'CS2', img: '/game-covers/cs2.jpg' },
+  { name: 'DOTA2', short: 'DOTA2', img: '/game-covers/dota2.jpg' },
   { name: 'GTA5', short: 'GTA5', img: '/game-covers/gta5.jpg' },
-  { name: '赛博朋克2077', short: '赛博朋克', img: '/game-covers/cyberpunk2077.jpg' },
-  { name: '歧路旅人', short: '歧路旅人', img: '/game-covers/octopath.jpg' },
-  { name: '怪物猎人', short: '怪物猎人', img: '/game-covers/monsterhunter.jpg' },
-  { name: '孤胆枪手', short: '孤胆枪手', img: '/game-covers/alien_shooter.jpg' },
-  { name: '下一站江湖Ⅱ', short: '下一站江湖', img: '/game-covers/next_jianghu2.jpg' },
-  { name: '诺兰德', short: '诺兰德', img: '/game-covers/norland.jpg' },
-  { name: 'CarX街头赛车', short: 'CarX', img: '/game-covers/carx_street.jpg' },
-  { name: '危险节奏2', short: '危险节奏', img: '/game-covers/beat_hazard2.jpg' },
+  { name: 'Apex英雄', short: 'Apex', img: '/game-covers/apex.jpg' },
+  { name: '星露谷物语', short: '星露谷', img: '/game-covers/stardew.jpg' },
+  { name: '盖瑞模组', short: '盖瑞模组', img: '/game-covers/garrysmod.jpg' },
+  { name: '无人深空', short: '无人深空', img: '/game-covers/nomansky.jpg' },
+  { name: '求生之路2', short: '求生之路', img: '/game-covers/l4d2.jpg' },
+  { name: '欧洲卡车模拟2', short: '欧卡2', img: '/game-covers/eurotruck.jpg' },
+  { name: '骑马与砍杀2', short: '骑砍2', img: '/game-covers/mountblade.jpg' },
+  { name: '僵尸毁灭工程', short: '僵毁', img: '/game-covers/projectzomboid.jpg' },
+  { name: '环世界', short: '环世界', img: '/game-covers/rimworld.jpg' },
+  { name: '壁纸引擎', short: '壁纸引擎', img: '/game-covers/wallpaperengine.jpg' },
   { name: '红色警戒', short: '红色警戒', bg: 'linear-gradient(135deg, #c0392b, #2c3e50)' },
   { name: '宝可梦', short: '宝可梦', bg: 'linear-gradient(135deg, #e74c3c, #f1c40f)' },
   { name: '九王', short: '九王', bg: 'linear-gradient(135deg, #d4a017, #4a2c0a)' },
   { name: '黑洞钓鱼', short: '黑洞钓鱼', bg: 'linear-gradient(135deg, #0a192f, #1b4965)' },
   { name: '威赫战线', short: '威赫战线', bg: 'linear-gradient(135deg, #2c3e50, #8e44ad)' },
   { name: '英雄闪电战', short: '英雄闪电', bg: 'linear-gradient(135deg, #f39c12, #c0392b)' },
-  { name: '超级变色龙', short: '超级变色', bg: 'linear-gradient(135deg, #2ecc71, #00bfff)' },
   { name: '福瑞试练', short: '福瑞试练', bg: 'linear-gradient(135deg, #e91e9b, #9b59b6)' },
-  { name: '料理手推车', short: '料理手推', bg: 'linear-gradient(135deg, #e67e22, #f1c40f)' },
-  { name: '秋叶原盲盒', short: '秋叶原盲', bg: 'linear-gradient(135deg, #e91e9b, #3498db)' },
-  { name: '地精捣蛋团', short: '地精捣蛋', bg: 'linear-gradient(135deg, #27ae60, #8e44ad)' },
 ]
 
 function shuffle(arr) {
