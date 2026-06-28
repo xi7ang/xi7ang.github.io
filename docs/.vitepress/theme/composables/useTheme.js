@@ -8,8 +8,7 @@ const isBrowser = typeof window !== 'undefined'
 // Global shared state — singleton across all component instances
 const theme = ref(
   isBrowser
-    ? (localStorage.getItem(STORAGE_KEY) ||
-       (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'))
+    ? (localStorage.getItem(STORAGE_KEY) || 'dark')
     : 'dark'
 )
 
