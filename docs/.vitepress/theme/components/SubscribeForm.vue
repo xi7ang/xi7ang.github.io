@@ -101,8 +101,8 @@
       </div>
     </div>
 
-    <!-- Turnstile disabled -->
-    <div style="display:none"></div>
+    <!-- Turnstile container (invisible) -->
+    <div id="turnstile-container" class="subscribe-form__turnstile" :class="{ 'hidden': step !== 'email' }"></div>
   </div>
 </template>
 
@@ -118,6 +118,9 @@ const successMsg = ref('')
 const shaking = ref(false)
 const inputFocused = ref(false)
 const countDown = ref(0)
+const turnstileToken = ref('')
+const turnstileWidgetId = ref(null)
+const turnstileContainer = ref(null)
 const codeInputs = ref([])
 const codeDigits = ref(['', '', '', '', '', ''])
 
@@ -286,28 +289,33 @@ async function resendCode() {
   await requestCode()
 }
 
-const turnstileToken = ref('')
+// ── Turnstile ─────────────────────────────────────────────────────────────
 
-// ── Turnstile 静默初始化 ──
-function initTurnstile() {
-  const fn = window.turnstile
-  if (!fn || typeof fn.render !== 'function') {
-    requestAnimationFrame(initTurnstile)
-    return
+onMounted(() => {
+  function tryInit() {
+    const fn = (window as any).turnstile
+    if (fn && typeof fn.render === 'function') {
+      turnstileWidgetId.value = fn.render('#turnstile-container', {
+        sitekey: '0x4AAAAAADJOkTQV45736fjS',
+        callback: (token: string) => { turnstileToken.value = token },
+        'error-callback': () => { turnstileToken.value = '' },
+        'expired-callback': () => { turnstileToken.value = '' },
+        theme: 'dark',
+        size: 'compact',
+      })
+    } else {
+      requestAnimationFrame(tryInit)
+    }
   }
-  const tc = document.createElement('div')
-  tc.style.cssText = 'position:fixed;left:-9999px;top:-9999px'
-  document.body.appendChild(tc)
-  fn.render(tc, {
-    sitekey: '0x4AAAAAADJOkTQV45736fjS',
-    callback: (token) => { turnstileToken.value = token },
-    'error-callback': () => { turnstileToken.value = '' },
-    'expired-callback': () => { turnstileToken.value = '' },
-    theme: 'dark',
-    size: 'invisible',
-  })
-}
-requestAnimationFrame(initTurnstile)
+  requestAnimationFrame(tryInit)
+})
+
+onUnmounted(() => {
+  const fn = (window as any).turnstile
+  if (fn && turnstileWidgetId.value !== null) {
+    fn.remove(turnstileWidgetId.value)
+  }
+})
 </script>
 
 <style scoped>
@@ -598,6 +606,17 @@ requestAnimationFrame(initTurnstile)
   40% { transform: translateX(6px); }
   60% { transform: translateX(-4px); }
   80% { transform: translateX(4px); }
+}
+
+/* ── Turnstile container ── */
+#turnstile-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 12px;
+}
+
+#turnstile-container.hidden {
+  display: none;
 }
 
 /* ── Mobile ── */
