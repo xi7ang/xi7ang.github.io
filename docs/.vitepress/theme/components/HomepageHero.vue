@@ -289,13 +289,6 @@ const gameCovers = [
   { name: '僵尸毁灭工程', short: '僵毁', img: '/game-covers/projectzomboid.jpg' },
   { name: '环世界', short: '环世界', img: '/game-covers/rimworld.jpg' },
   { name: '壁纸引擎', short: '壁纸引擎', img: '/game-covers/wallpaperengine.jpg' },
-  { name: '红色警戒', short: '红色警戒', bg: 'linear-gradient(135deg, #c0392b, #2c3e50)' },
-  { name: '宝可梦', short: '宝可梦', bg: 'linear-gradient(135deg, #e74c3c, #f1c40f)' },
-  { name: '九王', short: '九王', bg: 'linear-gradient(135deg, #d4a017, #4a2c0a)' },
-  { name: '黑洞钓鱼', short: '黑洞钓鱼', bg: 'linear-gradient(135deg, #0a192f, #1b4965)' },
-  { name: '威赫战线', short: '威赫战线', bg: 'linear-gradient(135deg, #2c3e50, #8e44ad)' },
-  { name: '英雄闪电战', short: '英雄闪电', bg: 'linear-gradient(135deg, #f39c12, #c0392b)' },
-  { name: '福瑞试练', short: '福瑞试练', bg: 'linear-gradient(135deg, #e91e9b, #9b59b6)' },
 ]
 
 function shuffle(arr) {
