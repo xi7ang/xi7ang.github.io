@@ -38,14 +38,13 @@
 
       <!-- 🎉 已订阅用户滚动展示 -->
       <div v-if="step === 'email'" class="subscribers-scroll">
-        <span class="subscribers-icon">🎉</span>
         <div class="subscribers-track">
           <div class="subscribers-list" :style="{ animationDuration: subscribersAnimDuration }">
             <div class="subscribers-inner">
-              <span v-for="(s, i) in subscribers" :key="'a' + i" class="subscriber-item">{{ s }} 订阅成功！</span>
+              <span v-for="(s, i) in subscribers" :key="'a' + i" class="subscriber-item">🎉 {{ s }} 订阅成功！</span>
             </div>
             <div class="subscribers-inner">
-              <span v-for="(s, i) in subscribers" :key="'b' + i" class="subscriber-item">{{ s }} 订阅成功！</span>
+              <span v-for="(s, i) in subscribers" :key="'b' + i" class="subscriber-item">🎉 {{ s }} 订阅成功！</span>
             </div>
           </div>
         </div>
@@ -498,18 +497,10 @@ onUnmounted(() => {
 /* ── 已订阅用户滚动 ── */
 .subscribers-scroll {
   display: flex;
-  align-items: center;
   justify-content: center;
-  gap: 4px;
   padding: 0;
   height: 26px;
   overflow: hidden;
-}
-
-.subscribers-icon {
-  flex-shrink: 0;
-  font-size: 13px;
-  line-height: 26px;
 }
 
 .subscribers-track {
