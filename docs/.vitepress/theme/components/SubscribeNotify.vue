@@ -37,7 +37,7 @@
       </div>
 
       <!-- 🎉 已订阅用户滚动展示 -->
-      <div v-if="step !== 'success'" class="subscribers-scroll">
+      <div v-if="step === 'email'" class="subscribers-scroll">
         <span class="subscribers-icon">🎉</span>
         <div class="subscribers-track">
           <div class="subscribers-list" :style="{ animationDuration: subscribersAnimDuration }">
@@ -499,22 +499,22 @@ onUnmounted(() => {
 .subscribers-scroll {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 0 2px;
-  height: 24px;
+  justify-content: center;
+  gap: 4px;
+  padding: 0;
+  height: 26px;
   overflow: hidden;
 }
 
 .subscribers-icon {
   flex-shrink: 0;
-  font-size: 12px;
-  line-height: 24px;
+  font-size: 13px;
+  line-height: 26px;
 }
 
 .subscribers-track {
-  flex: 1;
   overflow: hidden;
-  height: 24px;
+  height: 26px;
   position: relative;
 }
 
@@ -535,11 +535,11 @@ onUnmounted(() => {
 }
 
 .subscriber-item {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-muted);
   white-space: nowrap;
-  line-height: 24px;
-  height: 24px;
+  line-height: 26px;
+  height: 26px;
   opacity: 0.6;
   letter-spacing: 0.3px;
 }
