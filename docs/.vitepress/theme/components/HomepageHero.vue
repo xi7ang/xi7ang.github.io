@@ -598,8 +598,8 @@ onUnmounted(() => {
 }
 
 .game-tile {
-  width: 160px;
-  height: 60px;
+  width: 184px;
+  height: 69px;
   border-radius: 4px;
   display: flex;
   align-items: center;
