@@ -8,21 +8,6 @@
 
     <!-- 订阅表单 -->
     <div v-if="step !== 'success'" class="notify-form">
-      <!-- 🎉 已订阅用户滚动展示 -->
-      <div v-if="step !== 'success'" class="subscribers-scroll">
-        <span class="subscribers-icon">🎉</span>
-        <div class="subscribers-track">
-          <div class="subscribers-list" :style="{ animationDuration: subscribersAnimDuration }">
-            <div class="subscribers-inner">
-              <span v-for="(s, i) in subscribers" :key="'a' + i" class="subscriber-item">{{ s }}</span>
-            </div>
-            <div class="subscribers-inner">
-              <span v-for="(s, i) in subscribers" :key="'b' + i" class="subscriber-item">{{ s }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <!-- 邮箱输入 + 按钮（Step 1） -->
       <div v-if="step === 'email'" class="notify-input-row">
         <div class="notify-input-wrap">
@@ -49,6 +34,21 @@
           <span v-else-if="countDown > 0">{{ countDown }}s</span>
           <span v-else>{{ step === 'email' ? '订阅更新' : '继续' }}</span>
         </button>
+      </div>
+
+      <!-- 🎉 已订阅用户滚动展示 -->
+      <div v-if="step !== 'success'" class="subscribers-scroll">
+        <span class="subscribers-icon">🎉</span>
+        <div class="subscribers-track">
+          <div class="subscribers-list" :style="{ animationDuration: subscribersAnimDuration }">
+            <div class="subscribers-inner">
+              <span v-for="(s, i) in subscribers" :key="'a' + i" class="subscriber-item">{{ s }} 订阅成功！</span>
+            </div>
+            <div class="subscribers-inner">
+              <span v-for="(s, i) in subscribers" :key="'b' + i" class="subscriber-item">{{ s }} 订阅成功！</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- 验证码输入（Step 2） -->
