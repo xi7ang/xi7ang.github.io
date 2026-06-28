@@ -24,7 +24,7 @@
           </template>
         </div>
       </div>
-      <div class="page-bg__overlay"></div>
+      <!-- 遮罩改到 .home::before 上 -->
     </div>
     <header class="masthead">
       <div class="masthead__inner">
@@ -548,6 +548,22 @@ onUnmounted(() => {
   z-index: 1;
 }
 
+/* ── 封面墙遮罩（改用 home::before 避免合成层穿透问题） ── */
+.home::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(
+    to bottom,
+    rgba(27,40,56,0.92) 0%,
+    rgba(27,40,56,0.3) 25%,
+    rgba(27,40,56,0.3) 75%,
+    rgba(27,40,56,0.92) 100%
+  );
+  pointer-events: none;
+}
+
 /* ── Hero 文字强制深色主题配色 ── */
 
 .hero__title {
@@ -641,19 +657,6 @@ onUnmounted(() => {
   white-space: nowrap;
 }
 
-.page-bg__overlay {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  background: linear-gradient(
-    to bottom,
-    rgba(27,40,56,0.92) 0%,
-    rgba(27,40,56,0.3) 25%,
-    rgba(27,40,56,0.3) 75%,
-    rgba(27,40,56,0.92) 100%
-  );
-  pointer-events: none;
-}
 
 /* ── 内容区背景 ── */
 .content-area {
