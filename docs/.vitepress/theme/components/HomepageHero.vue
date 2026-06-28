@@ -305,11 +305,11 @@ function shuffle(arr) {
   return a
 }
 
-const gameRows = Array.from({ length: 12 }, () => shuffle(gameCovers))
-const wallDuration = `${gameCovers.length * 3.5}s`
+const gameRows = Array.from({ length: 18 }, () => shuffle(gameCovers))
+const wallDuration = `${gameCovers.length * 7}s`
 
 function rowMargin(ri) {
-  return (ri % 2 === 0 ? '-30px' : '30px')
+  return (ri % 2 === 0 ? '-20px' : '20px')
 }
 
 // ── Search State ──
@@ -568,40 +568,40 @@ onUnmounted(() => {
 
 .game-wall {
   position: absolute;
-  inset: 0;
+  inset: -10% -5%;
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  padding-top: 20px;
+  padding-top: 10px;
+  transform: rotate(-3deg) scale(1.1);
 }
 
 .game-wall__track {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  animation: wall-scroll 120s linear infinite;
+  gap: 3px;
+  animation: wall-scroll 180s linear infinite;
   will-change: transform;
   width: 100%;
-  max-width: 1200px;
 }
 
 .game-wall__row {
   display: flex;
-  gap: 8px;
+  gap: 3px;
   justify-content: center;
   width: 100%;
 }
 
 .game-tile {
-  width: 160px;
-  height: 60px;
-  border-radius: 6px;
+  width: 150px;
+  height: 56px;
+  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0.35;
-  border: 1px solid rgba(255,255,255,0.05);
-  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  opacity: 0.28;
+  border: none;
+  box-shadow: none;
   flex-shrink: 0;
   overflow: hidden;
 }
@@ -630,10 +630,10 @@ onUnmounted(() => {
   z-index: 1;
   background: linear-gradient(
     to bottom,
-    rgba(27,40,56,0.88) 0%,
-    rgba(27,40,56,0.35) 30%,
-    rgba(27,40,56,0.35) 70%,
-    rgba(27,40,56,0.88) 100%
+    rgba(27,40,56,0.92) 0%,
+    rgba(27,40,56,0.3) 25%,
+    rgba(27,40,56,0.3) 75%,
+    rgba(27,40,56,0.92) 100%
   );
   pointer-events: none;
 }
