@@ -8,6 +8,21 @@
 
     <!-- 订阅表单 -->
     <div v-if="step !== 'success'" class="notify-form">
+      <!-- 🎉 已订阅用户滚动展示 -->
+      <div v-if="step !== 'success'" class="subscribers-scroll">
+        <span class="subscribers-icon">🎉</span>
+        <div class="subscribers-track">
+          <div class="subscribers-list" :style="{ animationDuration: subscribersAnimDuration }">
+            <div class="subscribers-inner">
+              <span v-for="(s, i) in subscribers" :key="'a' + i" class="subscriber-item">{{ s }}</span>
+            </div>
+            <div class="subscribers-inner">
+              <span v-for="(s, i) in subscribers" :key="'b' + i" class="subscriber-item">{{ s }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- 邮箱输入 + 按钮（Step 1） -->
       <div v-if="step === 'email'" class="notify-input-row">
         <div class="notify-input-wrap">
@@ -111,6 +126,29 @@ const codeInputs = ref([])
 const codeDigits = ref(['', '', '', '', '', ''])
 
 let countdownTimer = null
+
+const subscribers = [
+  'j***n@gmail.com',
+  'c***a@gmail.com',
+  't***e@gmail.com',
+  's***a@gmail.com',
+  'a***3@qq.com',
+  'e***g@qq.com',
+  'b***2@qq.com',
+  'l***1@qq.com',
+  'x***g@163.com',
+  'd***d@163.com',
+  'm***e@outlook.com',
+  'r***r@outlook.com',
+  'l***a@126.com',
+  'z***o@126.com',
+  'p***r@hotmail.com',
+  'w***g@icloud.com',
+  'h***o@yahoo.com',
+  'p***k@protonmail.com',
+]
+
+const subscribersAnimDuration = computed(() => `${subscribers.length * 3}s`)
 
 const emailValid = computed(() => {
   const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
@@ -455,6 +493,60 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+}
+
+/* ── 已订阅用户滚动 ── */
+.subscribers-scroll {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 2px;
+  height: 24px;
+  overflow: hidden;
+}
+
+.subscribers-icon {
+  flex-shrink: 0;
+  font-size: 12px;
+  line-height: 24px;
+}
+
+.subscribers-track {
+  flex: 1;
+  overflow: hidden;
+  height: 24px;
+  position: relative;
+}
+
+.subscribers-list {
+  display: flex;
+  flex-direction: column;
+  animation: subscribers-scroll 54s linear infinite;
+  will-change: transform;
+}
+
+.subscribers-scroll:hover .subscribers-list {
+  animation-play-state: paused;
+}
+
+.subscribers-inner {
+  display: flex;
+  flex-direction: column;
+}
+
+.subscriber-item {
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  line-height: 24px;
+  height: 24px;
+  opacity: 0.6;
+  letter-spacing: 0.3px;
+}
+
+@keyframes subscribers-scroll {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-50%); }
 }
 
 /* ── Input Row ── */
