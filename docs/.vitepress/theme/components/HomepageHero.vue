@@ -128,26 +128,6 @@
     <!-- ── Main Content: 最近更新 + 全部分类 ── -->
     <div class="content-area">
     <div class="container">
-      <!-- 最近更新 -->
-      <div class="section-divider"></div>
-      <section class="section content-section">
-        <div class="section-head">
-          <h2 class="section-ttl">最近更新</h2>
-          <span class="section-sub">按更新时间倒序</span>
-        </div>
-        <div v-if="!dataLoaded" class="skeleton-grid">
-          <div v-for="n in 8" :key="n" class="skeleton-card"></div>
-        </div>
-        <div v-else class="resource-grid">
-          <ResourceCard
-            v-for="(item, i) in recentResources"
-            :key="item.title + i"
-            :item="item"
-            :class="`animate-in stagger-${(i % 4) + 1}`"
-          />
-        </div>
-      </section>
-
       <!-- 全部分类 -->
       <div class="section-divider"></div>
       <section id="categories-section" class="section content-section">
