@@ -290,7 +290,7 @@ function shuffle(arr) {
   return a
 }
 
-const gameRows = Array.from({ length: 12 }, () => shuffle(gameCovers))
+const gameRows = Array.from({ length: 18 }, () => shuffle(gameCovers))
 const rowSpeed = gameCovers.length * 5
 
 function rowMargin(ri) {
