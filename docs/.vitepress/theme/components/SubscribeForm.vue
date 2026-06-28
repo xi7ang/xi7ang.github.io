@@ -377,8 +377,8 @@ onUnmounted(() => {
   flex: 1;
   display: flex;
   align-items: center;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  background: rgba(128,128,128,0.07);
+  border: 1.5px solid rgba(128,128,128,0.2);
   border-radius: 10px;
   padding: 0 12px;
   transition: border-color 0.2s, box-shadow 0.2s;
@@ -416,7 +416,7 @@ onUnmounted(() => {
 }
 
 .subscribe-form__suffix {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(128,128,128,0.06);
   border: none;
   outline: none;
   font-size: 13px;
@@ -509,8 +509,8 @@ onUnmounted(() => {
   text-align: center;
   font-size: 22px;
   font-weight: 700;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  background: rgba(128,128,128,0.07);
+  border: 1.5px solid rgba(128,128,128,0.25);
   border-radius: 8px;
   color: var(--text-primary);
   outline: none;
