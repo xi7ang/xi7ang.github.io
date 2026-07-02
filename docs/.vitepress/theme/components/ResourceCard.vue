@@ -30,23 +30,6 @@
       </span>
     </div>
 
-    <!-- Password row (if present) -->
-    <div v-if="item.pwd" class="rc-pwd-wrap">
-      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="color:var(--accent-gold);flex-shrink:0">
-        <rect x="2" y="6" width="10" height="7" rx="1.5" stroke="currentColor" stroke-width="1.2"/>
-        <path d="M4.5 6V4.5a2.5 2.5 0 015 0V6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
-      </svg>
-      <span class="rc-pwd-label">提取码</span>
-      <span class="rc-pwd-value">{{ item.pwd }}</span>
-      <button class="rc-copy-btn" @click.stop="copyPwd" :title="'复制 ' + item.pwd">
-        <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
-          <rect x="3.5" y="1" width="6.5" height="8" rx="1" stroke="currentColor" stroke-width="1.1"/>
-          <rect x="1" y="2.5" width="6.5" height="8" rx="1" fill="var(--bg-card)" stroke="currentColor" stroke-width="1.1"/>
-        </svg>
-        {{ pwdCopied ? '已复制' : '复制' }}
-      </button>
-    </div>
-
     <!-- Actions -->
     <div class="rc-actions">
       <a
@@ -61,26 +44,14 @@
         </svg>
         立即获取
       </a>
-      <button class="rc-btn rc-btn--secondary" @click.stop="copyUrl">
-        <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-          <rect x="4.5" y="1" width="7.5" height="9.5" rx="1" stroke="currentColor" stroke-width="1.1"/>
-          <rect x="1" y="2.5" width="7.5" height="9.5" rx="1" fill="var(--bg-card)" stroke="currentColor" stroke-width="1.1"/>
-        </svg>
-        {{ urlCopied ? '已复制' : '复制链接' }}
-      </button>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-
 const props = defineProps({
   item: { type: Object, required: true }
 })
-
-const pwdCopied = ref(false)
-const urlCopied = ref(false)
 
 const CAT_LABELS = {
   'AIknowledge': 'AI知识', 'book': '书籍', 'curriculum': '课程',
@@ -99,21 +70,7 @@ function fmtMonth(month) {
 }
 
 
-async function copyPwd() {
-  try {
-    await navigator.clipboard.writeText(props.item.pwd || '')
-    pwdCopied.value = true
-    setTimeout(() => { pwdCopied.value = false }, 1500)
-  } catch { /* noop */ }
-}
 
-async function copyUrl() {
-  try {
-    await navigator.clipboard.writeText(props.item.url || '')
-    urlCopied.value = true
-    setTimeout(() => { urlCopied.value = false }, 1500)
-  } catch { /* noop */ }
-}
 </script>
 
 <style scoped>

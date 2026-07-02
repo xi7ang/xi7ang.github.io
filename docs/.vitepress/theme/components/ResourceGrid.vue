@@ -4,7 +4,7 @@
       <ResourceCard
         v-for="(resource, idx) in resources"
         :key="`${resource.category}-${resource.month}-${idx}`"
-        :resource="resource"
+        :item="resource"
         :compact="compact"
       />
     </template>
@@ -17,7 +17,14 @@
 
 <script setup lang="ts">
 import ResourceCard from './ResourceCard.vue'
-import type { Resource } from './ResourceCard.vue'
+
+interface Resource {
+  title: string
+  url: string
+  category: string
+  month?: string
+  platform?: string
+}
 
 withDefaults(defineProps<{
   resources: Resource[]
