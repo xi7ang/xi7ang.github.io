@@ -198,6 +198,12 @@
         </div>
       </div>
     </footer>
+    <QrModal
+      :visible="showSearchQr"
+      :url="qrItem?.url || ''"
+      :title="qrItem?.title || ''"
+      @close="showSearchQr = false"
+    />
     </div><!-- /content-area -->
 
   </div>
@@ -208,6 +214,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useTheme } from '../composables/useTheme'
 import ResourceCard from './ResourceCard.vue'
 import SubscribeNotify from './SubscribeNotify.vue'
+import QrModal from './QrModal.vue'
 
 // ── Data ──
 const allResources = ref([])
@@ -277,6 +284,8 @@ const searchQuery = ref('')
 const searchFocused = ref(false)
 const searchSelected = ref(0)
 const searchInputRef = ref(null)
+const showSearchQr = ref(false)
+const qrItem = ref(null)
 
 // ── Computed ──
 const totalResources = computed(() => {
@@ -384,8 +393,12 @@ function openSelected() {
 }
 
 function openItem(item) {
-  // Direct open quark link in new tab
-  window.open(item.url, '_blank', 'noopener,noreferrer')
+  if (window.innerWidth < 768 || 'ontouchstart' in window) {
+    window.open(item.url, '_blank', 'noopener,noreferrer')
+  } else {
+    qrItem.value = item
+    showSearchQr.value = true
+  }
 }
 
 function scrollToCategories() {
