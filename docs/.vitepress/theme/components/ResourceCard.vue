@@ -32,26 +32,47 @@
 
     <!-- Actions -->
     <div class="rc-actions">
-      <a
-        :href="item.url"
-        target="_blank"
-        rel="noopener noreferrer"
+      <button
         class="rc-btn rc-btn--primary"
-        @click.stop
+        @click.stop="handleGet"
       >
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
           <path d="M7 1h6v6M13 1L6 8M3 3H1.5A.5.5 0 001 3.5v8a.5.5 0 00.5.5h8a.5.5 0 00.5-.5V11" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
         立即获取
-      </a>
+      </button>
     </div>
+
+    <QrModal
+      :visible="showQr"
+      :url="item.url"
+      :title="item.title"
+      @close="showQr = false"
+    />
   </div>
 </template>
 
 <script setup>
+import { ref } from 'vue'
+import QrModal from './QrModal.vue'
+
 const props = defineProps({
   item: { type: Object, required: true }
 })
+
+const showQr = ref(false)
+
+function isMobile() {
+  return window.innerWidth < 768 || 'ontouchstart' in window
+}
+
+function handleGet() {
+  if (isMobile()) {
+    window.open(props.item.url, '_blank')
+  } else {
+    showQr.value = true
+  }
+}
 
 const CAT_LABELS = {
   'AIknowledge': 'AI知识', 'book': '书籍', 'curriculum': '课程',

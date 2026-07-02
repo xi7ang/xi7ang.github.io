@@ -25,7 +25,8 @@
     "@rollup/rollup-linux-x64-gnu": "^4.60.1",
     "flexsearch": "^0.8.205",
     "fuse.js": "^6.6.2",
-    "markdown-it": "^14.1.0"
+    "markdown-it": "^14.1.0",
+    "qrcode": "^1.5.4"
   },
   "pnpm": {
     "peerDependencyRules": {
