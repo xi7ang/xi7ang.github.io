@@ -10,6 +10,7 @@
         @mousemove="moveTooltip"
         @mouseleave="hideTooltip"
       >ⓘ</span>
+      <span class="dismiss-btn" @click="dismiss">不再显示</span>
       <div v-if="tooltipVisible" class="help-tooltip" :style="{ left: tooltipX + 'px', top: tooltipY + 'px' }">
         <div class="help-tooltip__item"><strong>📌 这是什么？</strong>订阅资源更新通知服务，新资源上架后第一时间推送给你。</div>
         <div class="help-tooltip__item"><strong>💡 为什么订阅？</strong>不错过任何优质资源更新，无需反复手动刷新。</div>
@@ -116,7 +117,10 @@
 </template>
 
 <script setup>
-import { ref, computed, onUnmounted, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
+
+const DISMISS_KEY = 'subscribe-notify-dismissed'
+const DISMISS_DAYS = 7
 
 const email = ref('')
 const step = ref('email') // email | code | success
@@ -150,6 +154,11 @@ function moveTooltip(e) {
 
 function hideTooltip() {
   tooltipVisible.value = false
+}
+
+function dismiss() {
+  localStorage.setItem(DISMISS_KEY, Date.now().toString())
+  step.value = 'done'
 }
 
 let countdownTimer = null
@@ -466,6 +475,13 @@ function onEmailInput() {
   }
 }
 
+onMounted(() => {
+  const ts = localStorage.getItem(DISMISS_KEY)
+  if (ts && Date.now() - Number(ts) < DISMISS_DAYS * 86400000) {
+    step.value = 'done'
+  }
+})
+
 onUnmounted(() => {
   const fn = window.turnstile
   if (fn && turnstileWidgetId.value !== null) {
@@ -519,6 +535,22 @@ onUnmounted(() => {
 }
 
 .help-btn:hover {
+  color: rgba(128,128,128,0.85);
+}
+
+/* ── 不再显示按钮 ── */
+.dismiss-btn {
+  font-size: 13px;
+  cursor: pointer;
+  color: rgba(128,128,128,0.55);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  line-height: 1;
+  transition: color 0.2s;
+  user-select: none;
+}
+
+.dismiss-btn:hover {
   color: rgba(128,128,128,0.85);
 }
 
