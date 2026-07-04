@@ -4,7 +4,7 @@
 
 --------------
 
-<ResourceTabs category="games" :months="['202606', '202605', '202604']" />
+<ResourceTabs category="games" :months="['202607', '202606', '202605', '202604']" />
 
 ---------------
 ### 项目更多资源
