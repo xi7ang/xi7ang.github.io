@@ -161,6 +161,9 @@ function main() {
   allResources = allResources.filter(r => r.url !== null)
   const filtered = before - allResources.length
 
+  // 为每个资源分配稳定的全局 ID（从 0 开始递增）
+  allResources.forEach((r, idx) => { r.id = idx })
+
   const outDir = path.dirname(OUTPUT_FILE)
   fs.mkdirSync(outDir, { recursive: true })
   fs.writeFileSync(OUTPUT_FILE, JSON.stringify(allResources, null, 2), 'utf-8')

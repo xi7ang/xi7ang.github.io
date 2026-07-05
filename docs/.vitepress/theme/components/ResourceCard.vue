@@ -41,6 +41,14 @@
         </svg>
         立即获取
       </button>
+      <a
+        v-if="detailUrl"
+        :href="detailUrl"
+        class="rc-btn rc-btn--detail"
+        @click.stop
+      >
+        查看详情 →
+      </a>
     </div>
 
     <QrModal
@@ -74,6 +82,8 @@ function handleGet() {
   }
 }
 
+import { computed } from 'vue'
+
 const CAT_LABELS = {
   'AIknowledge': 'AI知识', 'book': '书籍', 'curriculum': '课程',
   'tools': '工具', 'games': '游戏', 'movies': '影视',
@@ -89,6 +99,11 @@ function fmtMonth(month) {
   if (!month) return ''
   return `${month.slice(0,4)}/${month.slice(4,6)}`
 }
+
+const detailUrl = computed(() => {
+  if (props.item.id === undefined || props.item.id === null) return null
+  return `/resource?c=${encodeURIComponent(props.item.category)}&id=${props.item.id}`
+})
 
 
 

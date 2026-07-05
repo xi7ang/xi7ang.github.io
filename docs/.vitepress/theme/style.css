@@ -940,6 +940,30 @@ a:hover {
   color: #0B0B0D;
 }
 
+.rc-btn--detail {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 8px 16px;
+  margin-top: 6px;
+  border-radius: var(--radius-md);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-decoration: none;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: transparent;
+  transition: all var(--transition-fast);
+  cursor: pointer;
+}
+
+.rc-btn--detail:hover {
+  color: var(--accent-gold);
+  border-color: rgba(212,168,67,0.2);
+  background: rgba(212,168,67,0.05);
+}
+
 /* ─── QR Modal ─── */
 .qr-modal-overlay {
   position: fixed;
