@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useTheme } from '../composables/useTheme.js'
 import QrModal from './QrModal.vue'
+import SiteFooter from './SiteFooter.vue'
 
 const { theme, toggleTheme } = useTheme()
 
@@ -231,6 +232,7 @@ onMounted(() => {
     </template>
 
     <QrModal :visible="showQr" :url="res.url" :title="displayTitle" @close="showQr = false" />
+    <SiteFooter />
   </div>
 </template>
 

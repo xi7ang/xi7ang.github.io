@@ -141,21 +141,7 @@
     </button>
 
     <!-- ── Footer ── -->
-    <footer class="site-footer">
-      <div class="container">
-        <div class="footer-inner">
-          <div>
-            <span class="brand__name" style="font-size:16px">devmini</span>
-            <p class="footer-desc">免费资源导航 · {{ catLabel }}分类</p>
-          </div>
-          <div class="footer-links">
-            <a href="/">返回首页</a>
-            <a href="/disclaimer">免责声明</a>
-            <a href="/support">支持本站</a>
-          </div>
-        </div>
-      </div>
-    </footer>
+    <SiteFooter :categoryLabel="catLabel" />
 
   </div>
 </template>
@@ -165,6 +151,7 @@ import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useRoute } from 'vitepress'
 import { useTheme } from '../composables/useTheme'
 import ResourceCard from './ResourceCard.vue'
+import SiteFooter from './SiteFooter.vue'
 
 const props = defineProps({
   category: { type: String, required: true }
