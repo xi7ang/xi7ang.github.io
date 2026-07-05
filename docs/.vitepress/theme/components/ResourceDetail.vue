@@ -1,7 +1,7 @@
 <script setup>
-import { ref, computed, onMounted, watch, nextTick } from 'vue'
-import QRCode from 'qrcode'
+import { ref, computed, onMounted } from 'vue'
 import { useTheme } from '../composables/useTheme.js'
+import QrModal from './QrModal.vue'
 
 const { theme, toggleTheme } = useTheme()
 
@@ -34,9 +34,7 @@ const resource = ref(null)
 const loading = ref(true)
 const notFound = ref(false)
 const res = computed(() => resource.value || {})
-const activeTab = ref('pc')
-const qrCanvas = ref(null)
-const copied = ref(false)
+const showQr = ref(false)
 const isMobile = ref(false)
 
 // ── 计算属性 ──
@@ -86,46 +84,19 @@ async function loadResource() {
   loading.value = false
 }
 
-// ── QR 码渲染 ──
-async function renderQr() {
-  if (!qrCanvas.value || !resource.value?.url) return
-  await nextTick()
-  try {
-    await QRCode.toCanvas(qrCanvas.value, resource.value.url, {
-      width: 220,
-      margin: 2,
-      color: { dark: '#E8D5A3', light: '#1A1A1F' }
-    })
-  } catch (e) {
-    console.error('QR render error:', e)
-  }
-}
-
-watch(activeTab, (val) => {
-  if (val === 'pc') nextTick(() => renderQr())
-})
-
-// ── 复制链接 ──
-function copyLink() {
+// ── 获取 ──
+function handleGet() {
   if (!resource.value?.url) return
-  navigator.clipboard.writeText(resource.value.url).then(() => {
-    copied.value = true
-    setTimeout(() => copied.value = false, 2000)
-  })
-}
-
-// ── 跳转 ──
-function openResource() {
-  if (resource.value?.url) {
+  if (isMobile.value) {
     window.open(resource.value.url, '_blank')
+  } else {
+    showQr.value = true
   }
 }
 
 onMounted(() => {
   isMobile.value = window.innerWidth < 768 || 'ontouchstart' in window
-  loadResource().then(() => {
-    if (activeTab.value === 'pc') nextTick(() => renderQr())
-  })
+  loadResource()
 })
 </script>
 
@@ -210,49 +181,17 @@ onMounted(() => {
         <!-- 获取方式 -->
         <section class="rd-section">
           <h2 class="rd-section-title">🚀 获取方式</h2>
-
-          <div class="rd-tabs">
-            <button
-              :class="['rd-tab', { active: activeTab === 'pc' }]"
-              @click="activeTab = 'pc'"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                <rect x="2" y="3" width="20" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/>
-                <path d="M8 21h8M12 17v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <div class="rd-platform-row">
+            <span class="rd-platform-info">
+              <span class="rd-platform-icon">{{ platMeta.icon }}</span>
+              <span class="rd-platform-name" :style="{ color: platMeta.color }">{{ platMeta.label }}</span>
+            </span>
+            <button class="rd-btn rd-btn--gold rd-btn--lg" @click="handleGet">
+              <svg width="18" height="18" viewBox="0 0 14 14" fill="none">
+                <path d="M7 1h6v6M13 1L6 8M3 3H1.5A.5.5 0 001 3.5v8a.5.5 0 00.5.5h8a.5.5 0 00.5-.5V11" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
-              PC 端获取
+              立即获取
             </button>
-            <button
-              :class="['rd-tab', { active: activeTab === 'mobile' }]"
-              @click="activeTab = 'mobile'"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                <rect x="5" y="2" width="14" height="20" rx="2.5" stroke="currentColor" stroke-width="1.5"/>
-                <path d="M12 18h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-              </svg>
-              移动端获取
-            </button>
-          </div>
-
-          <!-- PC 端：二维码 -->
-          <div v-show="activeTab === 'pc'" class="rd-tab-content">
-            <div class="rd-qr-wrap">
-              <canvas ref="qrCanvas" class="rd-qr-canvas"></canvas>
-              <p class="rd-qr-hint">📱 请使用手机扫描二维码获取资源</p>
-            </div>
-          </div>
-
-          <!-- 移动端：直接跳转 -->
-          <div v-show="activeTab === 'mobile'" class="rd-tab-content">
-            <div class="rd-mobile-wrap">
-              <button class="rd-btn rd-btn--gold rd-btn--lg" @click="openResource">
-                <svg width="18" height="18" viewBox="0 0 14 14" fill="none">
-                  <path d="M7 1h6v6M13 1L6 8M3 3H1.5A.5.5 0 001 3.5v8a.5.5 0 00.5.5h8a.5.5 0 00.5-.5V11" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                立即获取资源
-              </button>
-              <p class="rd-hint">点击按钮直接跳转到 {{ platMeta.label }} 资源页面</p>
-            </div>
           </div>
         </section>
 
@@ -276,27 +215,11 @@ onMounted(() => {
               <span class="rd-info-label">收录时间</span>
               <span class="rd-info-value">{{ fmtMonth(res.month) }}</span>
             </div>
-            <div v-if="res.pwd" class="rd-info-item">
-              <span class="rd-info-label">提取码</span>
-              <span class="rd-info-value rd-pwd">{{ res.pwd }}</span>
-            </div>
+
           </div>
         </section>
 
-        <!-- 操作区域 -->
-        <section class="rd-section">
-          <div class="rd-actions">
-            <button class="rd-btn rd-btn--outline" @click="copyLink">
-              {{ copied ? '✅ 已复制' : '📋 复制链接' }}
-            </button>
-            <a :href="res.url" target="_blank" class="rd-btn rd-btn--gold">
-              <svg width="16" height="16" viewBox="0 0 14 14" fill="none">
-                <path d="M7 1h6v6M13 1L6 8M3 3H1.5A.5.5 0 001 3.5v8a.5.5 0 00.5.5h8a.5.5 0 00.5-.5V11" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-              直接打开
-            </a>
-          </div>
-        </section>
+
 
         <!-- 返回 -->
         <div class="rd-back">
@@ -307,27 +230,7 @@ onMounted(() => {
       </div>
     </template>
 
-    <!-- ── Footer ── -->
-    <footer class="site-footer">
-      <div class="container">
-        <div class="footer-inner">
-          <div class="footer-brand">
-            <span class="brand__name" style="font-size:16px;">devmini</span>
-            <p class="footer-desc">免费资源导航 · 持续更新 · 分类整理</p>
-          </div>
-          <div class="footer-links">
-            <a href="/">返回首页</a>
-            <a href="/disclaimer">免责声明</a>
-            <a href="/support">支持本站</a>
-            <a href="https://t.me/xi7ang" target="_blank">Telegram</a>
-            <a href="https://qm.qq.com/q/EkPkbcVMaY" target="_blank">QQ群</a>
-          </div>
-        </div>
-        <div class="footer-copy">
-          © 2025-present xi7ang · 资源收集整理，仅供学习交流
-        </div>
-      </div>
-    </footer>
+    <QrModal :visible="showQr" :url="res.url" :title="displayTitle" @close="showQr = false" />
   </div>
 </template>
 
@@ -469,76 +372,33 @@ onMounted(() => {
 
 .rd-desc strong { color: var(--accent-gold, #D4A843); }
 
-/* ── Tabs ── */
-.rd-tabs {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.rd-tab {
+/* ── 获取方式行 ── */
+.rd-platform-row {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.65rem 1.25rem;
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 0.6rem;
-  background: var(--vp-c-bg-elv, rgba(255,255,255,0.03));
-  color: var(--vp-c-text-2, #8A8A99);
-  font-size: 0.9rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-family: inherit;
-}
-
-.rd-tab:hover {
-  border-color: rgba(212,168,67,0.3);
-  color: var(--vp-c-text-1, #F0EBE1);
-}
-
-.rd-tab.active {
-  background: rgba(212,168,67,0.12);
-  border-color: rgba(212,168,67,0.4);
-  color: var(--accent-gold, #D4A843);
-}
-
-.rd-tab-content {
-  animation: rdFadeIn 0.25s ease-out;
-}
-
-@keyframes rdFadeIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* ── QR ── */
-.rd-qr-wrap {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 2rem;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
   background: var(--vp-c-bg-elv, rgba(255,255,255,0.03));
   border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 1rem;
+  border-radius: 0.75rem;
+  gap: 1rem;
 }
 
-.rd-qr-canvas { border-radius: 0.75rem; width: 220px; height: 220px; }
-
-.rd-qr-hint { margin-top: 1rem; font-size: 0.9rem; color: var(--vp-c-text-3, #55555F); }
-
-/* ── Mobile tab ── */
-.rd-mobile-wrap {
+.rd-platform-info {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  padding: 2.5rem 2rem;
-  background: var(--vp-c-bg-elv, rgba(255,255,255,0.03));
-  border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 1rem;
+  gap: 0.75rem;
 }
 
-.rd-hint { margin-top: 1rem; font-size: 0.85rem; color: var(--vp-c-text-3, #55555F); }
+.rd-platform-icon {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.rd-platform-name {
+  font-size: 1rem;
+  font-weight: 600;
+}
 
 /* ── Buttons ── */
 .rd-btn {
@@ -572,18 +432,7 @@ onMounted(() => {
 
 .rd-btn--lg { padding: 0.8rem 2rem; font-size: 1rem; }
 
-.rd-btn--outline {
-  background: transparent;
-  border: 1px solid rgba(255,255,255,0.12);
-  color: var(--vp-c-text-1, #F0EBE1);
-}
-.rd-btn--outline:hover {
-  background: rgba(255,255,255,0.05);
-  border-color: rgba(255,255,255,0.2);
-}
 
-/* ── Actions ── */
-.rd-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
 
 /* ── Info Grid ── */
 .rd-info-grid {
@@ -615,13 +464,7 @@ onMounted(() => {
   word-break: break-all;
 }
 
-.rd-pwd {
-  font-family: 'SF Mono', 'Cascadia Code', monospace;
-  font-weight: 700;
-  font-size: 1.1rem !important;
-  letter-spacing: 0.12em;
-  color: var(--accent-gold, #D4A843) !important;
-}
+
 
 /* ── Back ── */
 .rd-back {
@@ -645,7 +488,6 @@ onMounted(() => {
   .rd-cover-icon { width: 4rem; height: 4rem; font-size: 2.5rem; }
   .rd-meta-row { justify-content: center; }
   .rd-info-grid { grid-template-columns: 1fr; }
-  .rd-tabs { flex-direction: column; }
-  .rd-tab { justify-content: center; }
+
 }
 </style>
