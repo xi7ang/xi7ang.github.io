@@ -30,6 +30,8 @@ const PLATFORM_META = {
 const resource = ref(null)
 const loading = ref(true)
 const notFound = ref(false)
+// SSR-safe proxy: 编译期不会直接访问 resource.value 上的属性
+const res = computed(() => resource.value || {})
 const activeTab = ref('pc')
 const qrCanvas = ref(null)
 const copied = ref(false)
@@ -176,7 +178,7 @@ onMounted(() => {
     </div>
 
     <!-- ── 详情主体 ── -->
-    <template v-else>
+    <template v-else-if="resource">
       <!-- 封面区域 -->
       <div class="rd-cover" :style="{ background: `linear-gradient(135deg, ${catMeta.color}33 0%, ${catMeta.color}11 60%, var(--bg-base) 100%)` }">
         <div class="rd-cover-inner">
@@ -188,7 +190,7 @@ onMounted(() => {
                 {{ platMeta.icon }} {{ platMeta.label }}
               </span>
               <span class="rd-meta-tag">{{ catMeta.label }}</span>
-              <span v-if="resource.month" class="rd-meta-tag">{{ fmtMonth(resource.month) }}</span>
+              <span v-if="res.month" class="rd-meta-tag">{{ fmtMonth(res.month) }}</span>
             </div>
           </div>
         </div>
@@ -271,13 +273,13 @@ onMounted(() => {
               <span class="rd-info-label">存储平台</span>
               <span class="rd-info-value" :style="{ color: platMeta.color }">{{ platMeta.icon }} {{ platMeta.label }}</span>
             </div>
-            <div v-if="resource.month" class="rd-info-item">
+            <div v-if="res.month" class="rd-info-item">
               <span class="rd-info-label">收录时间</span>
-              <span class="rd-info-value">{{ fmtMonth(resource.month) }}</span>
+              <span class="rd-info-value">{{ fmtMonth(res.month) }}</span>
             </div>
-            <div v-if="resource.pwd" class="rd-info-item">
+            <div v-if="res.pwd" class="rd-info-item">
               <span class="rd-info-label">提取码</span>
-              <span class="rd-info-value rd-pwd">{{ resource.pwd }}</span>
+              <span class="rd-info-value rd-pwd">{{ res.pwd }}</span>
             </div>
           </div>
         </section>
@@ -288,7 +290,7 @@ onMounted(() => {
             <button class="rd-btn rd-btn--outline" @click="copyLink">
               {{ copied ? '✅ 已复制' : '📋 复制链接' }}
             </button>
-            <a :href="resource.url" target="_blank" class="rd-btn rd-btn--gold">
+            <a :href="res.url" target="_blank" class="rd-btn rd-btn--gold">
               <svg width="16" height="16" viewBox="0 0 14 14" fill="none">
                 <path d="M7 1h6v6M13 1L6 8M3 3H1.5A.5.5 0 001 3.5v8a.5.5 0 00.5.5h8a.5.5 0 00.5-.5V11" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
@@ -299,7 +301,7 @@ onMounted(() => {
 
         <!-- 返回 -->
         <div class="rd-back">
-          <a :href="`/${resource.category}/`" class="rd-back-link">
+          <a :href="`/${res.category}/`" class="rd-back-link">
             ← 返回「{{ catMeta.label }}」分类
           </a>
         </div>

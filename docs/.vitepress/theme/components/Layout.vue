@@ -1,5 +1,6 @@
 <template>
-  <component :is="currentLayout" v-bind="layoutProps" />
+  <component v-if="currentLayout" :is="currentLayout" v-bind="layoutProps" />
+  <Content v-else />
 </template>
 
 <script setup>
@@ -40,7 +41,7 @@ const currentCategory = computed(() => {
 const currentLayout = computed(() => {
   if (isHome.value) return HomepageHero
   if (currentCategory.value) return CategoryPage
-  return HomepageHero
+  return null
 })
 
 const layoutProps = computed(() => {
