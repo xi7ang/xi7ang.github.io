@@ -136,13 +136,13 @@ onMounted(() => {
     </header>
 
     <!-- ── 加载中 ── -->
-    <div v-if="loading" class="rd-loading">
+    <div v-if="loading" class="rd-loading animate-in">
       <div class="loading-spinner"></div>
       <p>正在加载资源...</p>
     </div>
 
     <!-- ── 未找到 ── -->
-    <div v-else-if="notFound" class="rd-notfound">
+    <div v-else-if="notFound" class="rd-notfound animate-in">
       <div class="rd-notfound-icon">🔍</div>
       <h1>资源未找到</h1>
       <p>该资源不存在或已被移除</p>
@@ -152,7 +152,7 @@ onMounted(() => {
     <!-- ── 详情主体 ── -->
     <template v-else-if="resource">
       <!-- 封面区域 -->
-      <div class="rd-cover" :style="{ background: `linear-gradient(135deg, ${catMeta.color}33 0%, ${catMeta.color}11 60%, var(--bg-base) 100%)` }">
+      <div class="rd-cover animate-in" :style="{ background: `linear-gradient(135deg, ${catMeta.color}33 0%, ${catMeta.color}11 60%, var(--bg-base) 100%)` }">
         <div class="rd-cover-inner">
           <div class="rd-cover-icon">{{ catMeta.emoji }}</div>
           <div class="rd-cover-info">
@@ -171,7 +171,7 @@ onMounted(() => {
       <!-- 主体内容 -->
       <div class="rd-body">
         <!-- 资源简介 -->
-        <section class="rd-section">
+        <section class="rd-section animate-in stagger-1">
           <h2 class="rd-section-title">📋 资源简介</h2>
           <p class="rd-desc">
             此资源来自 <strong>{{ catMeta.label }}</strong> 分类，存储于 <strong>{{ platMeta.label }}</strong>。
@@ -180,7 +180,7 @@ onMounted(() => {
         </section>
 
         <!-- 获取方式 -->
-        <section class="rd-section">
+        <section class="rd-section animate-in stagger-2">
           <h2 class="rd-section-title">🚀 获取方式</h2>
           <div class="rd-platform-row">
             <span class="rd-platform-info">
@@ -197,7 +197,7 @@ onMounted(() => {
         </section>
 
         <!-- 资源信息 -->
-        <section class="rd-section">
+        <section class="rd-section animate-in stagger-3">
           <h2 class="rd-section-title">ℹ️ 资源信息</h2>
           <div class="rd-info-grid">
             <div class="rd-info-item">
@@ -223,7 +223,7 @@ onMounted(() => {
 
 
         <!-- 返回 -->
-        <div class="rd-back">
+        <div class="rd-back animate-in stagger-4">
           <a :href="`/${res.category}/`" class="rd-back-link">
             ← 返回「{{ catMeta.label }}」分类
           </a>
