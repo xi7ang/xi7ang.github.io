@@ -11,6 +11,11 @@ on:
     # 每20天早上8点自动检查更新（北京时间，UTC+8，所以是UTC 0点）
     - cron: '0 0 */20 * *'
 
+# 防止多个部署同时运行导致冲突（40% 失败率的根因）
+concurrency:
+  group: pages-deployment
+  cancel-in-progress: false
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -82,7 +87,9 @@ jobs:
           if git diff --cached --quiet; then
             echo "No content changes to commit"
           else
-            git commit -m "chore: sync site content from content repos $(date -u +%Y%m%d%H%M%S)"
+            # [skip ci] 放在 commit message 中，防止本次 push 触发另一个工作流运行
+            # 避免两个工作流同时调 deploy-pages 导致 "Deployment failed" 随机失败
+            git commit -m "[skip ci] chore: sync site content from content repos $(date -u +%Y%m%d%H%M%S)"
             git push origin main
           fi
 
