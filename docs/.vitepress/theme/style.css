@@ -1174,13 +1174,9 @@ a:hover {
   font-weight: 600;
 }
 
-/* ─── Resource Detail Page ─── */
-.resource-detail {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: var(--space-2xl) var(--space-xl);
-}
-
+/* ─── Resource Detail Page ──
+   Styles moved to ResourceDetail.vue — global wrapper removed.
+   Keep only shared detail-* helpers used across pages. */
 .detail-header {
   margin-bottom: var(--space-xl);
 }
