@@ -245,7 +245,7 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   padding: 6rem 2rem;
-  color: var(--vp-c-text-3, #8A8A99);
+  color: var(--text-muted, #8A8A99);
   gap: 1rem;
 }
 
@@ -269,14 +269,14 @@ onMounted(() => {
   justify-content: center;
   padding: 6rem 2rem;
   text-align: center;
-  color: var(--vp-c-text-2, #8A8A99);
+  color: var(--text-secondary, #8A8A99);
 }
 
 .rd-notfound-icon { font-size: 4rem; margin-bottom: 1.5rem; }
 
 .rd-notfound h1 {
   font-size: 1.5rem;
-  color: var(--vp-c-text-1, #F0EBE1);
+  color: var(--text-primary, #F0EBE1);
   margin-bottom: 0.5rem;
 }
 
@@ -316,7 +316,7 @@ onMounted(() => {
   font-family: 'Noto Serif SC', 'Songti SC', serif;
   font-size: clamp(1.5rem, 3vw, 2rem);
   font-weight: 800;
-  color: var(--vp-c-text-1, #F0EBE1);
+  color: var(--text-primary, #F0EBE1);
   line-height: 1.4;
   margin: 0 0 0.75rem 0;
 }
@@ -345,7 +345,7 @@ onMounted(() => {
   border: 1px solid var(--border-subtle, rgba(255,255,255,0.08));
   border-radius: 100px;
   font-size: 0.8rem;
-  color: var(--vp-c-text-2, #8A8A99);
+  color: var(--text-secondary, #8A8A99);
 }
 
 /* ── 主体 ── */
@@ -361,13 +361,13 @@ onMounted(() => {
   font-family: 'Noto Serif SC', 'Songti SC', serif;
   font-size: 1.15rem;
   font-weight: 700;
-  color: var(--vp-c-text-1, #F0EBE1);
+  color: var(--text-primary, #F0EBE1);
   margin: 0 0 1rem 0;
 }
 
 .rd-desc {
   font-size: 0.95rem;
-  color: var(--vp-c-text-2, #8A8A99);
+  color: var(--text-secondary, #8A8A99);
   line-height: 1.8;
   margin: 0;
 }
@@ -455,14 +455,14 @@ onMounted(() => {
 
 .rd-info-label {
   font-size: 0.8rem;
-  color: var(--vp-c-text-3, #55555F);
+  color: var(--text-muted, #55555F);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
 
 .rd-info-value {
   font-size: 0.95rem;
-  color: var(--vp-c-text-1, #F0EBE1);
+  color: var(--text-primary, #F0EBE1);
   word-break: break-all;
 }
 
@@ -477,7 +477,7 @@ onMounted(() => {
 
 .rd-back-link {
   font-size: 0.9rem;
-  color: var(--vp-c-text-2, #8A8A99);
+  color: var(--text-secondary, #8A8A99);
   text-decoration: none;
   transition: color 0.2s;
 }
