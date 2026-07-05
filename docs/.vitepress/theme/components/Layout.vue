@@ -8,6 +8,7 @@ import { computed, onMounted } from 'vue'
 import { useRoute } from 'vitepress'
 import HomepageHero from '../components/HomepageHero.vue'
 import CategoryPage from '../components/CategoryPage.vue'
+import ResourceDetail from '../components/ResourceDetail.vue'
 
 onMounted(() => {
   if (typeof window !== 'undefined') {
@@ -31,6 +32,7 @@ const CATEGORIES = [
 ]
 
 const isHome = computed(() => route.path === '/' || route.path === '/index.html')
+const isResource = computed(() => route.path.startsWith('/resource'))
 
 const currentCategory = computed(() => {
   const path = route.path.replace(/\/$/, '')
@@ -41,6 +43,7 @@ const currentCategory = computed(() => {
 const currentLayout = computed(() => {
   if (isHome.value) return HomepageHero
   if (currentCategory.value) return CategoryPage
+  if (isResource.value) return ResourceDetail
   return null
 })
 
