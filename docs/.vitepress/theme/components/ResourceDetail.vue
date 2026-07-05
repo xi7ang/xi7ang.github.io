@@ -252,7 +252,7 @@ onMounted(() => {
 .loading-spinner {
   width: 2.5rem;
   height: 2.5rem;
-  border: 3px solid rgba(255,255,255,0.08);
+  border: 3px solid var(--border-subtle, rgba(255,255,255,0.08));
   border-top: 3px solid var(--accent-gold, #D4A843);
   border-radius: 50%;
   animation: spin 1s linear infinite;
@@ -285,7 +285,7 @@ onMounted(() => {
 /* ── 封面 ── */
 .rd-cover {
   padding: 3rem 0 2.5rem;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
+  border-bottom: 1px solid var(--border-subtle, rgba(255,255,255,0.05));
 }
 
 .rd-cover-inner {
@@ -304,10 +304,10 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--vp-c-bg-elv, rgba(255,255,255,0.04));
+  background: var(--bg-card);
   border-radius: 1rem;
   flex-shrink: 0;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  box-shadow: var(--shadow-card);
 }
 
 .rd-cover-info { flex: 1; min-width: 0; }
@@ -341,8 +341,8 @@ onMounted(() => {
 
 .rd-meta-tag {
   padding: 4px 10px;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle, rgba(255,255,255,0.08));
   border-radius: 100px;
   font-size: 0.8rem;
   color: var(--vp-c-text-2, #8A8A99);
@@ -380,8 +380,8 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   padding: 1.25rem 1.5rem;
-  background: var(--vp-c-bg-elv, rgba(255,255,255,0.03));
-  border: 1px solid rgba(255,255,255,0.06);
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle, rgba(255,255,255,0.06));
   border-radius: 0.75rem;
   gap: 1rem;
 }
@@ -419,13 +419,13 @@ onMounted(() => {
 
 .rd-btn--primary {
   background: var(--accent-gold, #D4A843);
-  color: #0B0B0D;
+  color: var(--bg-base, #0B0B0D);
 }
 .rd-btn--primary:hover { opacity: 0.85; }
 
 .rd-btn--gold {
   background: linear-gradient(135deg, var(--accent-gold, #D4A843) 0%, var(--accent-warm, #C97A4A) 100%);
-  color: #0B0B0D;
+  color: var(--bg-base, #0B0B0D);
 }
 .rd-btn--gold:hover {
   opacity: 0.9;
@@ -445,8 +445,8 @@ onMounted(() => {
 
 .rd-info-item {
   padding: 1rem;
-  background: var(--vp-c-bg-elv, rgba(255,255,255,0.03));
-  border: 1px solid rgba(255,255,255,0.05);
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle, rgba(255,255,255,0.05));
   border-radius: 0.6rem;
   display: flex;
   flex-direction: column;
@@ -472,7 +472,7 @@ onMounted(() => {
 .rd-back {
   margin-top: 1.5rem;
   padding-top: 1.5rem;
-  border-top: 1px solid rgba(255,255,255,0.05);
+  border-top: 1px solid var(--border-subtle, rgba(255,255,255,0.05));
 }
 
 .rd-back-link {
