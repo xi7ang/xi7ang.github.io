@@ -141,6 +141,9 @@ onMounted(() => {
           </svg>
           <span class="brand__name">devmini</span>
         </a>
+        <div class="masthead__stats">
+          <span class="masthead__stat"><strong>资源详情</strong></span>
+        </div>
         <nav class="masthead__nav">
           <a href="/" class="nav-link">首页</a>
           <a href="https://t.me/xi7ang" target="_blank" class="nav-cta nav-cta--telegram">✈️ 加入 Telegram</a>
@@ -303,6 +306,28 @@ onMounted(() => {
         </div>
       </div>
     </template>
+
+    <!-- ── Footer ── -->
+    <footer class="site-footer">
+      <div class="container">
+        <div class="footer-inner">
+          <div class="footer-brand">
+            <span class="brand__name" style="font-size:16px;">devmini</span>
+            <p class="footer-desc">免费资源导航 · 持续更新 · 分类整理</p>
+          </div>
+          <div class="footer-links">
+            <a href="/">返回首页</a>
+            <a href="/disclaimer">免责声明</a>
+            <a href="/support">支持本站</a>
+            <a href="https://t.me/xi7ang" target="_blank">Telegram</a>
+            <a href="https://qm.qq.com/q/EkPkbcVMaY" target="_blank">QQ群</a>
+          </div>
+        </div>
+        <div class="footer-copy">
+          © 2025-present xi7ang · 资源收集整理，仅供学习交流
+        </div>
+      </div>
+    </footer>
   </div>
 </template>
 
