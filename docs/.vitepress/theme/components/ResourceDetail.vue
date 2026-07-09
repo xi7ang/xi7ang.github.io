@@ -78,7 +78,10 @@ const isMobile = ref(false)
 // ── 计算属性 ──
 const catMeta = computed(() => CAT_META[resource.value?.category] || CAT_META['auto'])
 const effectivePlatform = computed(() => {
-  return resource.value?.platform || detectPlatformFromUrl(resource.value?.url) || null
+  // URL 检测优先（最可靠），兜底到已知平台字段
+  return detectPlatformFromUrl(resource.value?.url)
+    || (PLATFORM_META[resource.value?.platform] ? resource.value.platform : null)
+    || null
 })
 const platMeta = computed(() => {
   const key = effectivePlatform.value
