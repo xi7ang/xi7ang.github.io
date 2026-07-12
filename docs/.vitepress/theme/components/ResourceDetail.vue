@@ -124,8 +124,11 @@ async function loadResource() {
     const found = all.find(r => r.category === cat && r.id === rid)
     if (found) {
       resource.value = found
+      // 动态设置页面标题："资源标题 资源详情 - xi7ang 资源收集站 | 免费资源下载"
+      document.title = `${found.title} 资源详情 - xi7ang 资源收集站 | 免费资源下载`
     } else {
       notFound.value = true
+      document.title = '资源未找到 - xi7ang 资源收集站 | 免费资源下载'
     }
   } catch (e) {
     console.error('Load resource error:', e)
