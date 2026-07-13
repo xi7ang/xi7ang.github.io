@@ -6,9 +6,6 @@
     <!-- Header: title + badge -->
     <div class="rc-header">
       <h3 class="rc-title">{{ item.title }}</h3>
-      <span class="rc-badge rc-badge--quark">
-        🥤 夸克
-      </span>
     </div>
 
     <!-- Meta row -->
