@@ -115,7 +115,7 @@ function scanCategory(catDir, category) {
   const entries = []
   if (!fs.existsSync(catDir)) return entries
 
-  const files = fs.readdirSync(catDir).filter(f => f.endsWith('.md') && !f.startsWith('index'))
+  const files = fs.readdirSync(catDir).filter(f => f.endsWith('.md') && !f.startsWith('index')).sort()
 
   for (const file of files) {
     const monthFromFile = file.match(/^(\d{6})\.md$/)
