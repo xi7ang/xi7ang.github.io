@@ -122,6 +122,29 @@
           </div>
         </div>
 
+        <!-- ── 最近更新：从下到上滚动 ── -->
+        <div class="recent-wrap">
+          <div class="recent-head">
+            <span class="recent-ttl">🕐 最近更新</span>
+            <span class="recent-sub">{{ recentResources.length }} 条最新收录</span>
+          </div>
+          <div class="recent-scroll">
+            <div class="recent-track" :style="{ animationDuration: recentDuration + 's' }">
+              <a
+                v-for="(item, idx) in recentLoop"
+                :key="'r' + item.id + '_' + idx"
+                class="recent-item"
+                :href="detailUrl(item)"
+                :title="item.title"
+              >
+                <span class="recent-item__dot"></span>
+                <span class="recent-item__title">{{ item.title }}</span>
+                <span class="recent-item__date">{{ fmtMonth(item.month) }}</span>
+              </a>
+            </div>
+          </div>
+        </div>
+
       </div>
     </section>
 
@@ -324,6 +347,23 @@ const recentResources = computed(() => {
     .slice(0, 8)
 })
 
+const recentLoop = computed(() => {
+  const list = recentResources.value
+  if (!list.length) return []
+  // 复制列表到至少 6 条，保证滚动高度足够（无缝循环用双份）
+  const rep = Math.ceil(6 / list.length)
+  return Array.from({ length: rep }, () => list).flat()
+})
+
+const recentDuration = computed(() => {
+  // 每条约 2s，速度适中
+  return Math.max(12, recentLoop.value.length * 2)
+})
+
+function detailUrl(item) {
+  return `/resource?c=${encodeURIComponent(item.category)}&id=${item.id}`
+}
+
 const searchResults = computed(() => {
   if (!searchQuery.value.trim() || !dataLoaded.value) return []
   const q = searchQuery.value.toLowerCase().trim()
@@ -512,6 +552,109 @@ onUnmounted(() => {
 .search-clear:hover {
   background: rgba(255,255,255,0.12);
   color: var(--text-primary);
+}
+
+/* ── 最近更新滚动模块 ── */
+.recent-wrap {
+  max-width: 680px;
+  margin: 0 auto var(--space-xl);
+  text-align: left;
+  animation: fadeInUp 0.6s ease-out 0.35s both;
+}
+
+.recent-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  padding: 0 2px;
+}
+
+.recent-ttl {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.recent-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.recent-scroll {
+  height: calc(46px * 3 + 8px * 2);
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.02);
+  padding: 0 6px;
+}
+
+.recent-track {
+  display: flex;
+  flex-direction: column;
+  animation: scroll-up linear infinite;
+  will-change: transform;
+}
+
+.recent-scroll:hover .recent-track {
+  animation-play-state: paused;
+}
+
+.recent-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 46px;
+  margin-bottom: 8px;
+  padding: 0 14px;
+  background: var(--bg-card);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 10px;
+  text-decoration: none;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.recent-item:hover {
+  border-color: var(--accent-gold);
+  background: var(--bg-card-hover);
+}
+
+.recent-item__dot {
+  flex-shrink: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent-gold);
+  opacity: 0.8;
+}
+
+.recent-item__title {
+  flex: 1;
+  min-width: 0;
+  font-size: 13.5px;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.recent-item__date {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+@keyframes scroll-up {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-50%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .recent-track {
+    animation: none !important;
+  }
 }
 
 /* Skeleton loading */
