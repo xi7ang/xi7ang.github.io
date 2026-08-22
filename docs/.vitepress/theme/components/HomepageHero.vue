@@ -340,11 +340,8 @@ const filteredCatList = computed(() => categoryList.value)
 
 const recentResources = computed(() => {
   if (!dataLoaded.value) return []
-  // Sort by month desc, take latest 8
-  return [...allResources.value]
-    .filter(r => r.month)
-    .sort((a, b) => b.month.localeCompare(a.month))
-    .slice(0, 8)
+  // 数组顺序即入库顺序（分类顺序 → 文件顺序 → 行顺序），取最后 8 条 = 最新收录
+  return allResources.value.slice(-8)
 })
 
 const recentLoop = computed(() => {
@@ -556,7 +553,7 @@ onUnmounted(() => {
 
 /* ── 最近更新滚动模块 ── */
 .recent-wrap {
-  max-width: 680px;
+  max-width: 1280px; /* 与下方"全部分类"的 .container 宽度一致 */
   margin: 0 auto var(--space-xl);
   text-align: left;
   animation: fadeInUp 0.6s ease-out 0.35s both;
