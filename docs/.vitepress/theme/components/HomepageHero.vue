@@ -340,8 +340,11 @@ const filteredCatList = computed(() => categoryList.value)
 
 const recentResources = computed(() => {
   if (!dataLoaded.value) return []
-  // 数组顺序即入库顺序（分类顺序 → 文件顺序 → 行顺序），取最后 8 条 = 最新收录
-  return allResources.value.slice(-8)
+  // 只取游戏资源，且限定最新月份文件（month 即 md 文件名月份，202608.md → 202608）
+  const games = allResources.value.filter(r => r.category === 'games' && r.month)
+  if (!games.length) return []
+  const latestMonth = games.reduce((m, r) => (r.month > m ? r.month : m), '')
+  return games.filter(r => r.month === latestMonth).slice(-8)
 })
 
 const recentLoop = computed(() => {
