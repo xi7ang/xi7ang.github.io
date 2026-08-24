@@ -822,33 +822,33 @@ onUnmounted(() => {
   background: var(--bg-card);
 }
 
-/* ── 强制深色文字配色（不随主题变化） ── */
+/* ── 内容区/页脚文字配色（跟随主题，勿用固定色） ── */
 .section-ttl {
-  color: #F0EBE1 !important;
+  color: var(--text-primary);
 }
 
 .section-sub {
-  color: #8A8A99 !important;
+  color: var(--text-secondary);
 }
 
 .site-footer {
-  color: #8A8A99 !important;
+  color: var(--text-secondary);
 }
 
 .footer-desc {
-  color: #55555F !important;
+  color: var(--text-muted);
 }
 
 .footer-links a {
-  color: #8A8A99 !important;
+  color: var(--text-secondary);
 }
 
 .footer-copy {
-  color: #55555F !important;
+  color: var(--text-muted);
 }
 
 .footer-inner .brand__name {
-  color: #F0EBE1 !important;
+  color: var(--text-primary);
 }
 
 
