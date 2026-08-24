@@ -64,7 +64,11 @@
           游戏 · 书籍 · 课程 · 工具 · 影视 · AI 知识
         </p>
 
-        <SubscribeNotify />
+        <!-- 邮件订阅：临时隐藏（2026-08-24），恢复时取消下面注释 -->
+        <!-- <SubscribeNotify /> -->
+
+        <!-- 搜索框上方：加入QQ群按钮（复用右上角 nav-cta--qq 样式） -->
+        <a href="https://qm.qq.com/q/EkPkbcVMaY" target="_blank" class="nav-cta nav-cta--qq hero-qq-btn">💬 加入 QQ群</a>
 
         <!-- Search — dropdown is inside search-wrap so they scroll together -->
         <div class="search-wrap">
@@ -530,6 +534,11 @@ onUnmounted(() => {
   border-radius: 3px;
   transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
   opacity: 0.8;
+}
+
+/* 搜索框上方 QQ 群按钮：与搜索框保持间距 */
+.hero-qq-btn {
+  margin-bottom: 16px;
 }
 
 /* Search clear button */
